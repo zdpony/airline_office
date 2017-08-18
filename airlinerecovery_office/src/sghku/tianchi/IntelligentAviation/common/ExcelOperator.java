@@ -452,13 +452,13 @@ public class ExcelOperator {
     }
     
     public static double getPassengerDelayParameter(int delay) {
-    	if(delay <= 2 && delay > 0) {
+    	if(delay <= 2*60 && delay > 0) {
     		return 1.;
-    	}else if(delay <= 4) {
+    	}else if(delay <= 4*60) {
     		return 1.5;
-    	}else if(delay <= 8) {
+    	}else if(delay <= 8*60) {
     		return 2.;
-    	}else if(delay <= 36) {
+    	}else if(delay <= 36*60) {
     		return 3.;
     	}else {
     		System.out.println("error : delay:"+delay);

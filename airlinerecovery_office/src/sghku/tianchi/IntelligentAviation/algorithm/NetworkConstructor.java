@@ -122,28 +122,37 @@ public class NetworkConstructor {
 						arc.passengerCapacity = aircraft.passengerCapacity;
 						//要减去对应的联程乘客
 						arc.passengerCapacity = arc.passengerCapacity - f.connectedPassengerNumber;
+						
 						//其他乘客全部被取消，所以不需要考虑
 						arc.passengerCapacity = Math.max(0, arc.passengerCapacity);
 					}else {
 						f.flightarcList.add(arc);
 						
 						//将该arc加入到对应的flight section中
+						boolean isFound = false;
 						for(FlightSection currentFlightSection:f.flightSectionList) {
-							if(arc.takeoffTime >= currentFlightSection.startTime && arc.takeoffTime <= currentFlightSection.endTime) {
+							if(arc.takeoffTime >= currentFlightSection.startTime && arc.takeoffTime < currentFlightSection.endTime) {
+								isFound = true;
 								currentFlightSection.flightArcList.add(arc);
 								break;
 							}
 						}
 						
-						//乘客容量
-						arc.passengerCapacity = aircraft.passengerCapacity;
-						
-						//减去转乘乘客
-						for(TransferPassenger tp:arc.flight.passengerTransferList) {
-							arc.passengerCapacity = arc.passengerCapacity - tp.volume;
+						if(!isFound) {
+							if(f.flightSectionList.get(f.flightSectionList.size()-1).endTime != arc.takeoffTime) {
+								System.out.println("no flight section found 3!"+f.flightSectionList.get(f.flightSectionList.size()-1).endTime+" "+arc.takeoffTime);
+							}
+							f.flightSectionList.get(f.flightSectionList.size()-1).flightArcList.add(arc);
 						}
+						
+						//乘客容量
+						arc.passengerCapacity = aircraft.passengerCapacity;			
+						//减去转乘乘客
+						arc.passengerCapacity = arc.passengerCapacity - f.transferPassengerNumber;
+						//剩下的则为有效座位
 						arc.passengerCapacity = Math.max(0, arc.passengerCapacity);
 					}
+					
 					arc.calculateCost();
 					aircraft.flightArcList.add(arc);
 				}
@@ -231,11 +240,12 @@ public class NetworkConstructor {
 	}
 	
 	public void generateArcForConnectingFlightPair(Aircraft aircraft, ConnectingFlightpair cf, int gap, boolean isGenerateArcForEachFlight){
-int connectionTime = Math.min(cf.secondFlight.initialTakeoffT-cf.firstFlight.initialLandingT, Parameter.MIN_BUFFER_TIME);
+		int connectionTime = Math.min(cf.secondFlight.initialTakeoffT-cf.firstFlight.initialLandingT, Parameter.MIN_BUFFER_TIME);
 		
 		//如果该联程航班在调整窗口之外
 		if(!cf.firstFlight.isIncludedInTimeWindow) {
 			if(cf.firstFlight.initialAircraft.id == aircraft.id) {
+				
 				//构建第一个flight arc
 				
 				FlightArc firstArc = new FlightArc();
@@ -369,12 +379,6 @@ int connectionTime = Math.min(cf.secondFlight.initialTakeoffT-cf.firstFlight.ini
 				
 				for(int i=0;i<=endIndex;i++){
 					if(cf.secondFlight.initialTakeoffT+gap*i >= firstArc.readyTime){
-						/*
-						if(i*gap > 360){
-							if(i%2 != 0){
-								continue;
-							}
-						}*/
 						
 						FlightArc secondArc = new FlightArc();
 						secondArc.flight = cf.secondFlight;
@@ -407,44 +411,61 @@ int connectionTime = Math.min(cf.secondFlight.initialTakeoffT-cf.firstFlight.ini
 			
 			for(ConnectingArc arc:aircraft.connectingArcList) {
 				//设置第一个arc
-				arc.firstArc.isIncludedInConnecting = true;
-				arc.firstArc.connectingArc = arc;
+				/*arc.firstArc.isIncludedInConnecting = true;
+				arc.firstArc.connectingArc = arc;*/
 				
-				arc.firstArc.passengerCapacity = aircraft.passengerCapacity;
+				//乘客容量
+				arc.firstArc.passengerCapacity = aircraft.passengerCapacity;			
 				//减去联程乘客
 				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.connectedPassengerNumber;
-				//减去转机乘客
-				for(TransferPassenger tp:arc.firstArc.flight.passengerTransferList) {
-					arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - tp.volume;				
-				}
+				//减去转乘乘客
+				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.transferPassengerNumber;
+				//剩下的则为有效座位
 				arc.firstArc.passengerCapacity = Math.max(0, arc.firstArc.passengerCapacity);
 				
+				boolean isFound = false;
 				for(FlightSection currentFlightSection:cf.firstFlight.flightSectionList) {
-					if(arc.firstArc.takeoffTime >= currentFlightSection.startTime && arc.firstArc.takeoffTime <= currentFlightSection.endTime) {
+					if(arc.firstArc.takeoffTime >= currentFlightSection.startTime && arc.firstArc.takeoffTime < currentFlightSection.endTime) {
 						currentFlightSection.flightArcList.add(arc.firstArc);
+						isFound = true;
 						break;
 					}
+				}
+				
+				if(!isFound) {				
+					if(arc.firstArc.takeoffTime != cf.firstFlight.flightSectionList.get(cf.firstFlight.flightSectionList.size()-1).endTime) {
+						System.out.println("no flight section found! "+arc.firstArc.takeoffTime+" "+cf.firstFlight.flightSectionList.get(cf.firstFlight.flightSectionList.size()-1).endTime);
+						System.exit(1);
+					}
+					cf.firstFlight.flightSectionList.get(cf.firstFlight.flightSectionList.size()-1).flightArcList.add(arc.firstArc);	
 				}
 				
 				//设置第二个arc
-				arc.secondArc.isIncludedInConnecting = true;
-				arc.secondArc.connectingArc = arc;
-				
-				arc.secondArc.passengerCapacity = aircraft.passengerCapacity;
+				//乘客容量
+				arc.secondArc.passengerCapacity = aircraft.passengerCapacity;			
 				//减去联程乘客
-				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.connectedPassengerNumber;
-				//减去转机乘客
-				for(TransferPassenger tp:arc.secondArc.flight.passengerTransferList) {
-					arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - tp.volume;				
-				}
+				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.firstFlight.connectedPassengerNumber;
+				//减去转乘乘客
+				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.transferPassengerNumber;
+				//剩下的则为有效座位
 				arc.secondArc.passengerCapacity = Math.max(0, arc.secondArc.passengerCapacity);
 				
+				isFound = false;
 				for(FlightSection currentFlightSection:cf.secondFlight.flightSectionList) {
-					if(arc.secondArc.takeoffTime >= currentFlightSection.startTime && arc.secondArc.takeoffTime <= currentFlightSection.endTime) {
+					if(arc.secondArc.takeoffTime >= currentFlightSection.startTime && arc.secondArc.takeoffTime < currentFlightSection.endTime) {
 						currentFlightSection.flightArcList.add(arc.secondArc);
+						isFound = true;
 						break;
 					}
-				}					
+				}
+				
+				if(!isFound) {				
+					if(arc.secondArc.takeoffTime != cf.secondFlight.flightSectionList.get(cf.secondFlight.flightSectionList.size()-1).endTime) {
+						System.out.println("no flight section found 2! "+arc.secondArc.takeoffTime+" "+cf.secondFlight.flightSectionList.get(cf.secondFlight.flightSectionList.size()-1).endTime);
+						System.exit(1);
+					}
+					cf.secondFlight.flightSectionList.get(cf.secondFlight.flightSectionList.size()-1).flightArcList.add(arc.secondArc);	
+				}
 			}
 			
 			//3. 为每一个flight生成arc，可以单独取消联程航班中的一段

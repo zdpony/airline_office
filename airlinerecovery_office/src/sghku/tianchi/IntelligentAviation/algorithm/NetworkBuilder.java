@@ -216,6 +216,7 @@ public class NetworkBuilder {
 			for (Flight f : aircraft.straightenedFlightList) {
 				networkConstructor.generateArcForFlight(aircraft, f, gap);
 			}
+			
 			for (Flight f : aircraft.deadheadFlightList) {
 				networkConstructor.generateArcForFlight(aircraft, f, gap);
 			}

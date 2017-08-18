@@ -38,8 +38,8 @@ public class FlightArc {
  	
  	public int passengerCapacity;
  	//标记一个arc是否属于一个connecting arc
-	public boolean isIncludedInConnecting = false;
-	public ConnectingArc connectingArc = null;
+	//public boolean isIncludedInConnecting = false;
+	//public ConnectingArc connectingArc = null;
 	
 	//打印信息
 	public String getTime(){
@@ -88,7 +88,7 @@ public class FlightArc {
 			cost += Parameter.COST_DELAY/60.0*delay*flight.connectingFlightpair.firstFlight.importance;
 			cost += Parameter.COST_STRAIGHTEN*(flight.connectingFlightpair.firstFlight.importance+flight.connectingFlightpair.secondFlight.importance);
 			
-			//如果是联程拉直航班，则只需要考虑联程拉直的乘客对应的delay
+			//如果是联程拉直航班，则只需要考虑联程拉直的乘客对应的delay和cancel成本，普通乘客则不需要考虑
 			int actualNum =  Math.min(aircraft.passengerCapacity, flight.connectingFlightpair.firstFlight.connectedPassengerNumber);
 			int cancelNum = flight.connectingFlightpair.firstFlight.connectedPassengerNumber - actualNum;
 			
@@ -111,18 +111,22 @@ public class FlightArc {
 				}
 			}
 			
-			//首先考虑联程乘客
-			int actualNum = 0;
 			if(flight.isIncludedInConnecting) {
-				actualNum += flight.connectingFlightpair.firstFlight.connectedPassengerNumber;
+				//首先考虑联程乘客，如果其中一段属于联程航班，则代表对应的联程乘客取消
+				cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
 			}
-			actualNum += flight.passengerNumber;
 			
-			int cancelNum = Math.max(0, actualNum-aircraft.passengerCapacity);
-			actualNum =  actualNum - cancelNum;
+			//考虑中转乘客的延误
+			for(TransferPassenger tp:flight.firstPassengerTransferList) {
+				cost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
+			}
 			
+			//考虑普通乘客的延误
+			int remainingCapacity = aircraft.passengerCapacity;
+			remainingCapacity = remainingCapacity - flight.transferPassengerNumber;
+			int actualNum = Math.min(remainingCapacity, flight.normalPassengerNumber);
+						
 			cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
-			cost += cancelNum*Parameter.passengerCancelCost;
 		}
 	}
 	

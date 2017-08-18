@@ -90,8 +90,16 @@ public class Flight {
 
 	public List<FlightSection> flightSectionList = new ArrayList<>();
 
-	public List<TransferPassenger> passengerTransferList = new ArrayList<>();
+	public List<TransferPassenger> firstPassengerTransferList = new ArrayList<>();
+	public List<TransferPassenger> secondPassengerTransferList = new ArrayList<>();
 
+	//分别表示normal passenger和transfer passenger的数量
+	public int normalPassengerNumber;
+	public int transferPassengerNumber;
+	
+	public int firstTransferPassengerNumber;
+	public int secondTransferPassengerNumber;
+	
 	// 初始化该航班所对应的网络模型
 	public void init() {
 		flightarcList.clear();

@@ -99,11 +99,6 @@ public class Scenario {
 				earliestDate, latestTimeLong, latestDate);
 		ExcelOperator.getClosureInfo(filename, airportList, earliestDate, latestDate);
 
-		// 读取中转乘客信息
-		// passengerTransferList =
-		// ExcelOperator.getPassengerTransferList(filename,flightList);
-		// //����F����ȡ�ÿ���ת��Ϣ
-
 		// 读取每一个航段的飞行信息
 		ExcelOperator.readflytimeMap(filename, legList);
 
@@ -147,9 +142,7 @@ public class Scenario {
 			f.actualLandingT = f.initialLandingT;
 			f.actualTakeoffT = f.initialTakeoffT;
 		}
-		for (Aircraft a : aircraftList) {
-
-		}
+		
 
 		for (Airport a : airportList) {
 			if (a.id == 49 || a.id == 50 || a.id == 61) {
@@ -157,6 +150,9 @@ public class Scenario {
 			}
 		}
 
+		// read transfer passenger
+		readTransferPassengerInformation();
+		
 		// 判断航班是否处在调整时间窗
 		for (Flight f : flightList) {
 			if (f.initialTakeoffT < Parameter.timeWindowStartTime || f.initialTakeoffT > Parameter.timeWindowEndTime) {
@@ -171,6 +167,7 @@ public class Scenario {
 		// 判断前半段处于调整时间窗外的联程航班
 		for (ConnectingFlightpair cf : connectingFlightList) {
 			if (!cf.firstFlight.isIncludedInTimeWindow && cf.secondFlight.isIncludedInTimeWindow) {
+				
 				for (int i = 0; i <= 432; i++) {
 					FlightArc fa = new FlightArc();
 					fa.flight = cf.secondFlight;
@@ -197,15 +194,12 @@ public class Scenario {
 			if (f.isIncludedInTimeWindow) {
 				Itinerary ite = new Itinerary();
 				ite.flight = f;
-				ite.volume = f.passengerNumber;
+				ite.volume = f.normalPassengerNumber;
 
 				itineraryList.add(ite);
 			}
 		}
-
-		// read transfer passenger
-		readTransferPassengerInformation();
-
+	
 		// 为每一个行程检测可以替代的航班
 		for (Itinerary ite : itineraryList) {
 			for (Flight f : flightList) {
@@ -387,6 +381,7 @@ public class Scenario {
 	public void readFlightSectionItinerary() {
 		int n = 0;
 		List<Integer> delayOptionList = new ArrayList<>();
+		//四个不同的延误值
 		delayOptionList.add(0);
 		delayOptionList.add(6 * 60);
 		delayOptionList.add(24 * 60);
@@ -406,16 +401,33 @@ public class Scenario {
 					latestT = latestT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
 				}
 
-				f.discreteTimePointSet.add(earlistT);
-				f.discreteTimePointSet.add(latestT);
-
 				for (int d : delayOptionList) {
 					int t = ite.flight.initialTakeoffT + d;
 
 					if (t >= earlistT && t <= latestT) {
+						
 						f.discreteTimePointSet.add(t);
 					}
 				}
+			}
+		}
+		
+		for(Flight f:flightList) {
+			if(f.isIncludedInTimeWindow) {
+				int earlistT = f.initialTakeoffT;
+				int latestT = f.initialTakeoffT;
+
+				if (f.isAllowtoBringForward) {
+					earlistT = earlistT - Parameter.MAX_LEAD_TIME;
+				}
+				if (f.isDomestic) {
+					latestT = latestT + Parameter.MAX_DELAY_DOMESTIC_TIME;
+				} else {
+					latestT = latestT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
+				}
+
+				f.discreteTimePointSet.add(earlistT);
+				f.discreteTimePointSet.add(latestT);
 			}
 		}
 
@@ -437,8 +449,10 @@ public class Scenario {
 				}
 			}
 		}
-
+		
+		//为每一itinerary生成flight section itinerary
 		for (Itinerary ite : itineraryList) {
+			//生成替代航班相关的flight section itinerary
 			for (Flight f : ite.candidateFlightList) {
 				for (FlightSection flightSection : f.flightSectionList) {
 					int t1 = flightSection.startTime;
@@ -448,20 +462,30 @@ public class Scenario {
 					fsi.itinerary = ite;
 					fsi.flightSection = flightSection;
 
-					if (t1 >= 0 && t1 <= 6 * 60 + ite.flight.initialTakeoffT) {
-						fsi.unitCost = 0.1;
-					} else if (t1 > 6 * 60 + ite.flight.initialTakeoffT && t1 <= 24 * 60 + ite.flight.initialTakeoffT) {
-						fsi.unitCost = 0.5;
-					} else if (t1 > 24 * 60 + ite.flight.initialTakeoffT
-							&& t1 <= 48 * 60 + ite.flight.initialTakeoffT) {
-						fsi.unitCost = 1;
+					int delay1 = t1 - ite.flight.initialTakeoffT;
+					int delay2 = t2 - ite.flight.initialTakeoffT;
+					
+					if(delay1 >= 0 && delay2 >=0) {
+						
+						if(delay2 <= 6*60) {
+							fsi.unitCost = 0.1;							
+						}else if(delay2 <= 24*60 && delay1 >= 6*60) {
+							fsi.unitCost = 0.5;
+						}else if(delay2 <= 48*60 && delay1 >= 24*60) {
+							fsi.unitCost = 1;
+						}else {
+							System.out.println("delay1:"+delay1+" "+delay2);
+						}
 					}
-
-					ite.flightSectionItineraryList.add(fsi);
-					flightSection.flightSectionItineraryList.add(fsi);
+					
+					if(fsi.unitCost > 1e-6) {
+						ite.flightSectionItineraryList.add(fsi);
+						flightSection.flightSectionItineraryList.add(fsi);
+					}				
 				}
 			}
 
+			//生成每一个行程初始航班对应的flight section itinerary
 			for (FlightSection flightSection : ite.flight.flightSectionList) {
 				int t1 = flightSection.startTime;
 				int t2 = flightSection.endTime;
@@ -475,6 +499,12 @@ public class Scenario {
 				flightSection.flightSectionItineraryList.add(fsi);
 			}
 		}
+		
+		int n2 = 0;
+		for(Itinerary ite:itineraryList) {
+			n2 += ite.flightSectionItineraryList.size();
+		}
+		System.out.println("n2:"+n2);
 	}
 
 	// 读取转机乘客信息
@@ -506,14 +536,43 @@ public class Scenario {
 				transferPassenger.minTurnaroundTime = minTurnaroundTime;
 				transferPassenger.volume = volume;
 
-				inFlight.passengerTransferList.add(transferPassenger);
-				outFlight.passengerTransferList.add(transferPassenger);
+				/*inFlight.passengerTransferList.add(transferPassenger);
+				outFlight.passengerTransferList.add(transferPassenger);*/
 
+				inFlight.firstPassengerTransferList.add(transferPassenger);
+				outFlight.secondPassengerTransferList.add(transferPassenger);
+				
 				transferPassengerList.add(transferPassenger);
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		//计算每一个航班的转机乘客和普通乘客
+		int n = 0;
+		int n1 = 0;
+		int n2 = 0;
+		for(Flight f:flightList) {
+			/*for(TransferPassenger tp:f.passengerTransferList) {
+				f.transferPassengerNumber += tp.volume;
+			}*/
+			
+			for(TransferPassenger tp:f.firstPassengerTransferList) {
+				f.transferPassengerNumber += tp.volume;
+				f.firstTransferPassengerNumber += tp.volume;
+			}
+			for(TransferPassenger tp:f.secondPassengerTransferList) {
+				f.transferPassengerNumber += tp.volume;
+				f.secondTransferPassengerNumber += tp.volume;
+			}
+			
+			f.normalPassengerNumber = f.passengerNumber - f.transferPassengerNumber;
+			
+			n += f.normalPassengerNumber;
+			n1 += f.transferPassengerNumber;
+			n2 += f.connectedPassengerNumber;
+		}
+		System.out.println("n:"+n+" "+n1+" "+n2);
 	}
 }
