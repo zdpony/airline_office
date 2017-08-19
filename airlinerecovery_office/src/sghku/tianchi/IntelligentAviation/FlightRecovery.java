@@ -26,12 +26,13 @@ public class FlightRecovery {
 		
 		Clique clique = new Clique();
 		
-		for(int i=0;i<10;i++) {
+		for(int i=0;i<scenario.aircraftList.size();i++) {
+		//for(int i=0;i<scenario.aircraftList.size();i++) {
 			clique.aircraftList.add(scenario.aircraftList.get(i));
 		}
 		//clique.aircraftList.addAll(scenario.aircraftList);
 		
-		NetworkBuilder nb = new NetworkBuilder(scenario, 60);
+		NetworkBuilder nb = new NetworkBuilder(scenario, 5);
 		nb.init();
 		nb.buildNetwork(clique, false, true, false, true);
 				
