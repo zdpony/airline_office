@@ -43,6 +43,9 @@ public class AircraftPathReader {
 			if(flightArray[0].equals("n")) {
 				Flight f = scenario.flightList.get(Integer.parseInt(flightArray[1])-1);
 				f.isFixed = true;
+				f.actualTakeoffT = Integer.parseInt(flightArray[2]);
+				f.actualLandingT = Integer.parseInt(flightArray[3]);
+				
 				a.fixedDestination = f.leg.destinationAirport;
 				
 				if(idSet.contains(f.id)){
@@ -54,20 +57,28 @@ public class AircraftPathReader {
 				Flight f = scenario.flightList.get(Integer.parseInt(flightArray[1])-1);			
 				f.isFixed = true;
 				
+				
 				if(idSet.contains(f.id)){
 					System.out.println("error 2");
 				}else{
 					idSet.add(f.id);
 				}
 				
-				f = scenario.flightList.get(Integer.parseInt(flightArray[2])-1);			
-				f.isFixed = true;
+				Flight f2 = scenario.flightList.get(Integer.parseInt(flightArray[2])-1);			
+				f2.isFixed = true;
 				
-				if(idSet.contains(f.id)){
+				if(idSet.contains(f2.id)){
 					System.out.println("error 3");
 				}else{
-					idSet.add(f.id);
+					idSet.add(f2.id);
 				}
+				
+				f.actualOrigin = f.leg.originAirport;
+				f.actualDestination = f2.leg.destinationAirport;
+				f.actualTakeoffT = Integer.parseInt(flightArray[3]);
+				f.actualLandingT = Integer.parseInt(flightArray[4]);
+				f.isStraightenedFirst = true;
+				f2.isStraightenedSecond = true;
 				
 				a.fixedDestination = scenario.flightList.get(Integer.parseInt(flightArray[2])-1).leg.destinationAirport;
 			}else if(flightArray[0].equals("d")) {

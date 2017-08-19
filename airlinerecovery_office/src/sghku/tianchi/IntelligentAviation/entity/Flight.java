@@ -104,6 +104,12 @@ public class Flight {
 	
 	public boolean isSmallGapRequired = false;
 	
+	//对于联程拉直航班对应的属性
+	public Airport actualOrigin = null;
+	public Airport actualDestination = null;
+	public boolean isStraightenedFirst = false;
+	public boolean isStraightenedSecond = false;
+	
 	// 初始化该航班所对应的网络模型
 	public void init() {
 		flightarcList.clear();

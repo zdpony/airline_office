@@ -87,7 +87,6 @@ public class LinearRecoveryModelWithPartialFixed {
 		
 		System.out.println("candidate:"+candidateAircraftList.size()+" "+candidateFlightList.size()+" "+candidateConnectingFlightList.size());
 		
-
 		//更新base information
 		for(Aircraft a:scenario.aircraftList) {
 			a.flightList.get(a.flightList.size()-1).leg.destinationAirport.finalAircraftNumber[a.type-1]++;
@@ -105,7 +104,7 @@ public class LinearRecoveryModelWithPartialFixed {
 				}
 			}		
 		}
-			
+		
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
 		solver(scenario, candidateAircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);
 		//根据线性松弛模型来确定新的需要固定的飞机路径
