@@ -102,6 +102,8 @@ public class Flight {
 	
 	public double totalConnectingCost = 0;
 	
+	public boolean isSmallGapRequired = false;
+	
 	// 初始化该航班所对应的网络模型
 	public void init() {
 		flightarcList.clear();

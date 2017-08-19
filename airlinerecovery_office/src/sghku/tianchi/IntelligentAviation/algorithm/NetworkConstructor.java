@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 
 import sghku.tianchi.IntelligentAviation.common.Parameter;
@@ -22,6 +23,7 @@ import sghku.tianchi.IntelligentAviation.entity.Leg;
 import sghku.tianchi.IntelligentAviation.entity.ConnectingFlightpair;
 import sghku.tianchi.IntelligentAviation.entity.Node;
 import sghku.tianchi.IntelligentAviation.entity.ParkingInfo;
+import sghku.tianchi.IntelligentAviation.entity.Scenario;
 import sghku.tianchi.IntelligentAviation.entity.TransferPassenger;
 
 /**
@@ -32,7 +34,9 @@ import sghku.tianchi.IntelligentAviation.entity.TransferPassenger;
 public class NetworkConstructor {
 	
 	//第一种生成方法，根据原始schedule大范围生成arc
-	public void generateArcForFlight(Aircraft aircraft, Flight f, int gap){
+	public void generateArcForFlight(Aircraft aircraft, Flight f, int givenGap, Scenario scenario){
+		int presetGap = 5;
+		
 		FlightArc arc = null;
 		
 		if(!f.isIncludedInTimeWindow) {
@@ -62,22 +66,21 @@ public class NetworkConstructor {
 			
 			if(f.isDeadhead) {
 				//如果是调机航班，则只能小范围延误
-				endIndex = Parameter.NORMAL_DELAY_TIME/gap;
+				endIndex = Parameter.NORMAL_DELAY_TIME/presetGap;
 			}else {
 				if(f.isAffected){
 					if(f.isDomestic){
-						endIndex = Parameter.MAX_DELAY_DOMESTIC_TIME/gap;
+						endIndex = Parameter.MAX_DELAY_DOMESTIC_TIME/presetGap;
 					}else{
-						endIndex = Parameter.MAX_DELAY_INTERNATIONAL_TIME/gap;
+						endIndex = Parameter.MAX_DELAY_INTERNATIONAL_TIME/presetGap;
 					}
 				}else{
-					endIndex = Parameter.NORMAL_DELAY_TIME/gap;
+					endIndex = Parameter.NORMAL_DELAY_TIME/presetGap;
 				}
 			}
-			
-			
+					
 			if(f.isAllowtoBringForward){
-				startIndex = Parameter.MAX_LEAD_TIME/gap;
+				startIndex = Parameter.MAX_LEAD_TIME/presetGap;
 			}
 			
 			int flyTime = f.flyTime;
@@ -90,23 +93,51 @@ public class NetworkConstructor {
 					flyTime = f.connectingFlightpair.firstFlight.initialLandingT-f.connectingFlightpair.firstFlight.initialTakeoffT + f.connectingFlightpair.secondFlight.initialLandingT-f.connectingFlightpair.secondFlight.initialTakeoffT;
 				}
 			}
-					
+			
 			for(int i=-startIndex;i<=endIndex;i++){
 				
+				boolean isWithinSmalGapRegionOrigin = false;
+				boolean isWithinSmalGapRegionDestination = false;
+				
+				if (!f.isSmallGapRequired) {
+					if((i*presetGap)%givenGap != 0) {
+						continue;
+					}
+				}else {
+					if((i*presetGap)%givenGap != 0) {
+						if(scenario.affectedAirportSet.contains(f.leg.originAirport.id)) {
+							int t = f.initialTakeoffT + i*presetGap;
+							if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+								isWithinSmalGapRegionOrigin = true;
+							}else {
+								continue;
+							}
+						}else if(scenario.affectedAirportSet.contains(f.leg.destinationAirport.id)) {
+							int t = f.initialLandingT + i*presetGap;
+							if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+								isWithinSmalGapRegionDestination = true;
+							}else {
+								continue;
+							}
+						}						
+					}
+				}
+								
 				arc = new FlightArc();
 				arc.flight = f;
 				arc.aircraft = aircraft;
 				if(i < 0) {
-					arc.earliness = -i*gap;
+					arc.earliness = -i*presetGap;
 				}else {
-					arc.delay = i*gap;
+					arc.delay = i*presetGap;
 				}
 				
-				arc.takeoffTime = f.initialTakeoffT+i*gap;
+				arc.takeoffTime = f.initialTakeoffT+i*presetGap;
 				arc.landingTime = arc.takeoffTime+flyTime;
 				
 				arc.readyTime = arc.landingTime + Parameter.MIN_BUFFER_TIME;
 										
+				
 				if(!arc.checkViolation()){
 					
 					//如果是调剂航班，不需要做任何处理
@@ -155,6 +186,17 @@ public class NetworkConstructor {
 					
 					arc.calculateCost();
 					aircraft.flightArcList.add(arc);
+					
+					//加入对应的起降时间点
+					if(isWithinSmalGapRegionOrigin) {
+						int t = f.initialTakeoffT + i*presetGap;
+						List<FlightArc> faList = scenario.airportFlightArcMap.get(f.leg.originAirport.id+"_"+t);
+						faList.add(arc);
+					}else if(isWithinSmalGapRegionDestination){
+						int t = f.initialLandingT + i*presetGap;
+						List<FlightArc> faList = scenario.airportFlightArcMap.get(f.leg.destinationAirport.id+"_"+t);
+						faList.add(arc);
+					}
 				}
 			}
 		}
@@ -180,8 +222,7 @@ public class NetworkConstructor {
 			}
 			
 		}
-		
-		
+				
 		if(f.isAllowtoBringForward){
 			earliestT = f.initialTakeoffT - Parameter.MAX_LEAD_TIME;
 		}
@@ -239,7 +280,9 @@ public class NetworkConstructor {
 		}
 	}
 	
-	public void generateArcForConnectingFlightPair(Aircraft aircraft, ConnectingFlightpair cf, int gap, boolean isGenerateArcForEachFlight){
+	public void generateArcForConnectingFlightPair(Aircraft aircraft, ConnectingFlightpair cf, int givenGap, boolean isGenerateArcForEachFlight, Scenario scenario){
+		int presetGap = 5;
+		
 		int connectionTime = Math.min(cf.secondFlight.initialTakeoffT-cf.firstFlight.initialLandingT, Parameter.MIN_BUFFER_TIME);
 		List<FlightArc> firstFlightArcList = new ArrayList<>();
 		List<ConnectingArc> connectingArcList = new ArrayList<>();
@@ -292,43 +335,69 @@ public class NetworkConstructor {
 				int startIndex = 0;
 
 				if(cf.firstFlight.isAllowtoBringForward){
-					startIndex = Parameter.MAX_LEAD_TIME/gap;				
+					startIndex = Parameter.MAX_LEAD_TIME/presetGap;				
 				}
 
 				//2.3 generate delay arcs
 				int endIndex = 0;
 				if(cf.isAffected){
 					if(cf.firstFlight.isDomestic){
-						endIndex = Parameter.MAX_DELAY_DOMESTIC_TIME/gap;								
+						endIndex = Parameter.MAX_DELAY_DOMESTIC_TIME/presetGap;								
 					}else{
-						endIndex = Parameter.MAX_DELAY_INTERNATIONAL_TIME/gap;		
+						endIndex = Parameter.MAX_DELAY_INTERNATIONAL_TIME/presetGap;		
 					}
 				}else{
-					endIndex = Parameter.NORMAL_DELAY_TIME/gap;		
+					endIndex = Parameter.NORMAL_DELAY_TIME/presetGap;		
 				}
 				
 				for(int i=-startIndex;i<=endIndex;i++){
-					/*if(i*gap > 360){
-						if(i%2 != 0){
+	
+					boolean isWithinAffectedRegionOrigin1 = false;
+					boolean isWithinAffectedRegionDestination1 = false;
+					
+					if (!cf.firstFlight.isSmallGapRequired) {
+						if((i*presetGap)%givenGap != 0) {
 							continue;
 						}
-					}*/
-					
+					}else {
+						if((i*presetGap)%givenGap != 0) {
+							if(scenario.affectedAirportSet.contains(cf.firstFlight.leg.originAirport.id)) {
+								int t = cf.firstFlight.initialTakeoffT + i*presetGap;
+								if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+									isWithinAffectedRegionOrigin1 = true;
+								}else {
+									continue;
+								}
+							}else if(scenario.affectedAirportSet.contains(cf.firstFlight.leg.destinationAirport.id)) {
+								int t = cf.firstFlight.initialLandingT + i*presetGap;
+								if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+									isWithinAffectedRegionDestination1 = true;
+								}else {
+									continue;
+								}
+							}
+							
+						}
+					}
+										
 					arc = new FlightArc();
 					arc.flight = cf.firstFlight;
 					arc.aircraft = aircraft;
 					if(i < 0) {
-						arc.earliness = -i*gap;	
+						arc.earliness = -i*presetGap;	
 					}else {
-						arc.delay = i*gap;
+						arc.delay = i*presetGap;
 					}
 				
-					arc.takeoffTime = cf.firstFlight.initialTakeoffT+i*gap;
+					arc.takeoffTime = cf.firstFlight.initialTakeoffT+i*presetGap;
 					arc.landingTime = arc.takeoffTime+cf.firstFlight.flyTime;
 					arc.readyTime = arc.landingTime + connectionTime;
 											
 					if(!arc.checkViolation()){
 						firstFlightArcList.add(arc);
+						
+						arc.isWithinAffectedRegionOrigin = isWithinAffectedRegionOrigin1;
+						arc.isWithinAffectedRegionDestination = isWithinAffectedRegionDestination1;
 					}
 				}
 			}
@@ -336,18 +405,50 @@ public class NetworkConstructor {
 			for(FlightArc firstArc:firstFlightArcList){
 				
 				if(cf.secondFlight.isAllowtoBringForward){
-					int startIndex = Parameter.MAX_LEAD_TIME/gap;
+					int startIndex = Parameter.MAX_LEAD_TIME/presetGap;
 
 					for(int i=startIndex;i>0;i--){
-						if(cf.secondFlight.initialTakeoffT-gap*i >= firstArc.readyTime){
+												
+						boolean isWithinAffectedRegionOrigin2 = false;
+						boolean isWithinAffectedRegionDestination2 = false;
+							
+						if (!cf.secondFlight.isSmallGapRequired) {
+							if((i*presetGap)%givenGap != 0) {
+								continue;
+							}
+						}else {
+							if((i*presetGap)%givenGap != 0) {
+								if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.originAirport.id)) {
+									int t = cf.secondFlight.initialTakeoffT + i*presetGap;
+									if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+										isWithinAffectedRegionOrigin2 = true;
+									}else {
+										continue;
+									}
+								}else if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.destinationAirport.id)) {
+									int t = cf.secondFlight.initialLandingT + i*presetGap;
+									if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+										isWithinAffectedRegionDestination2 = true;
+									}else {
+										continue;
+									}
+								}
+								
+							}
+						}
+						
+						if(cf.secondFlight.initialTakeoffT-presetGap*i >= firstArc.readyTime){
 							FlightArc secondArc = new FlightArc();
 							secondArc.flight = cf.secondFlight;
 							secondArc.aircraft = aircraft;
-							secondArc.earliness = i*gap;
+							secondArc.earliness = i*presetGap;
 							secondArc.takeoffTime = cf.secondFlight.initialTakeoffT-secondArc.earliness;
 							secondArc.landingTime = secondArc.takeoffTime+cf.secondFlight.flyTime;
 							secondArc.readyTime = secondArc.landingTime + Parameter.MIN_BUFFER_TIME;
 
+							secondArc.isWithinAffectedRegionOrigin =  isWithinAffectedRegionOrigin2;
+							secondArc.isWithinAffectedRegionDestination = isWithinAffectedRegionDestination2;
+							
 							if(!secondArc.checkViolation()){
 								ConnectingArc ca = new ConnectingArc();
 								ca.firstArc = firstArc;
@@ -371,25 +472,57 @@ public class NetworkConstructor {
 				int endIndex = 0;
 				if(cf.isAffected){
 					if(cf.secondFlight.isDomestic){
-						endIndex = Parameter.MAX_DELAY_DOMESTIC_TIME/gap;								
+						endIndex = Parameter.MAX_DELAY_DOMESTIC_TIME/presetGap;								
 					}else{
-						endIndex = Parameter.MAX_DELAY_INTERNATIONAL_TIME/gap;		
+						endIndex = Parameter.MAX_DELAY_INTERNATIONAL_TIME/presetGap;		
 					}
 				}else{
-					endIndex = Parameter.NORMAL_DELAY_TIME/gap;
+					endIndex = Parameter.NORMAL_DELAY_TIME/presetGap;
 				}
 				
 				for(int i=0;i<=endIndex;i++){
-					if(cf.secondFlight.initialTakeoffT+gap*i >= firstArc.readyTime){
+					
+					boolean isWithinAffectedRegionOrigin2 = false;
+					boolean isWithinAffectedRegionDestination2 = false;
+					
+					if (!cf.secondFlight.isSmallGapRequired) {
+						if((i*presetGap)%givenGap != 0) {
+							continue;
+						}
+					}else {
+						if((i*presetGap)%givenGap != 0) {
+							if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.originAirport.id)) {
+								int t = cf.secondFlight.initialTakeoffT + i*presetGap;
+								if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+									isWithinAffectedRegionOrigin2 = true;
+								}else {
+									continue;
+								}
+							}else if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.destinationAirport.id)) {
+								int t = cf.secondFlight.initialLandingT + i*presetGap;
+								if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+									isWithinAffectedRegionDestination2 = true;
+								}else {
+									continue;
+								}
+							}
+							
+						}
+					}
+					
+					if(cf.secondFlight.initialTakeoffT+presetGap*i >= firstArc.readyTime){
 						
 						FlightArc secondArc = new FlightArc();
 						secondArc.flight = cf.secondFlight;
 						secondArc.aircraft = aircraft;
-						secondArc.delay = i*gap;
+						secondArc.delay = i*presetGap;
 						secondArc.takeoffTime = cf.secondFlight.initialTakeoffT+secondArc.delay;
 						secondArc.landingTime = secondArc.takeoffTime+cf.secondFlight.flyTime;
 						secondArc.readyTime = secondArc.landingTime + Parameter.MIN_BUFFER_TIME;
 
+						secondArc.isWithinAffectedRegionOrigin =  isWithinAffectedRegionOrigin2;
+						secondArc.isWithinAffectedRegionDestination = isWithinAffectedRegionDestination2;
+						
 						if(!secondArc.checkViolation()){
 							ConnectingArc ca = new ConnectingArc();
 							ca.firstArc = firstArc;
@@ -406,7 +539,9 @@ public class NetworkConstructor {
 							connectingArcList.add(ca);
 							ca.calculateCost();
 							
-							break;
+							if(!isWithinAffectedRegionOrigin2 && isWithinAffectedRegionDestination2 ) {
+								break;								
+							}
 						}
 					}			
 				}
@@ -414,6 +549,24 @@ public class NetworkConstructor {
 			}
 			
 			for(ConnectingArc arc:connectingArcList) {
+				//加入到对应的机场
+				if(arc.firstArc.isWithinAffectedRegionOrigin) {
+					List<ConnectingArc> caList = scenario.airportConnectingArcMap.get(arc.firstArc.flight.leg.originAirport.id+"_"+arc.firstArc.takeoffTime);
+					caList.add(arc);
+				}
+				if(arc.firstArc.isWithinAffectedRegionDestination) {
+					List<ConnectingArc> caList = scenario.airportConnectingArcMap.get(arc.firstArc.flight.leg.destinationAirport.id+"_"+arc.firstArc.landingTime);
+					caList.add(arc);
+				}
+				if(arc.secondArc.isWithinAffectedRegionOrigin) {
+					List<ConnectingArc> caList = scenario.airportConnectingArcMap.get(arc.secondArc.flight.leg.originAirport.id+"_"+arc.secondArc.takeoffTime);
+					caList.add(arc);
+				}
+				if(arc.secondArc.isWithinAffectedRegionDestination) {
+					List<ConnectingArc> caList = scenario.airportConnectingArcMap.get(arc.secondArc.flight.leg.destinationAirport.id+"_"+arc.secondArc.landingTime);
+					caList.add(arc);
+				}
+				
 				//设置第一个arc
 				arc.firstArc.isIncludedInConnecting = true;
 				arc.firstArc.connectingArc = arc;
@@ -479,11 +632,11 @@ public class NetworkConstructor {
 			//3. 为每一个flight生成arc，可以单独取消联程航班中的一段
 			if(isGenerateArcForEachFlight) {
 				if(!aircraft.tabuLegs.contains(cf.firstFlight.leg)){
-					generateArcForFlight(aircraft, cf.firstFlight, gap);
+					generateArcForFlight(aircraft, cf.firstFlight, givenGap, scenario);
 				}
 				
 				if(!aircraft.tabuLegs.contains(cf.secondFlight.leg)){
-					generateArcForFlight(aircraft, cf.secondFlight, gap);
+					generateArcForFlight(aircraft, cf.secondFlight, givenGap, scenario);
 				}
 			}
 		}

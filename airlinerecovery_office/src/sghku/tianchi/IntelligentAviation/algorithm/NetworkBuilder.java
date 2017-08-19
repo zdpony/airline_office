@@ -213,21 +213,21 @@ public class NetworkBuilder {
 		// 为每一个飞机的网络模型生成arc
 		NetworkConstructor networkConstructor = new NetworkConstructor();
 		for (Aircraft aircraft : smallAircraftList) {
-			for (Flight f : aircraft.singleFlightList) {
-				networkConstructor.generateArcForFlight(aircraft, f, gap);
+			for (Flight f : aircraft.singleFlightList) {	
+				networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
 			}
 
 			for (Flight f : aircraft.straightenedFlightList) {
-				networkConstructor.generateArcForFlight(aircraft, f, gap);
+				networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
 			}
 			
 			for (Flight f : aircraft.deadheadFlightList) {
-				networkConstructor.generateArcForFlight(aircraft, f, gap);
+				networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
 			}
 
 			for (ConnectingFlightpair cf : aircraft.connectingFlightList) {
 				networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, gap,
-						isGenerateArcForSingleFlightInConnectingFlightPair);
+						isGenerateArcForSingleFlightInConnectingFlightPair, scenario);
 			}
 		}
 

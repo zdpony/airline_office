@@ -42,6 +42,9 @@ public class FlightArc {
 	public boolean isIncludedInConnecting = false;
 	public ConnectingArc connectingArc = null;
 	
+	public boolean isWithinAffectedRegionOrigin = false;
+	public boolean isWithinAffectedRegionDestination = false;
+	
 	//打印信息
 	public String getTime(){
 		return "["+takeoffTime+","+landingTime+","+readyTime+"]";

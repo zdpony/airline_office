@@ -101,4 +101,10 @@ public class Parameter {
 	public static double aircraftChangeCostLarge = 15;
 	public static double aircraftChangeCostSmall = 5;
 	public static double passengerCancelCost = 4;
+	
+	public static long airportFirstTimeWindowStart = 6*1440+15*60;
+	public static long airportFirstTimeWindowEnd = 6*1440+16*60;
+	
+	public static long airportSecondTimeWindowStart = 7*1440+17*60;
+	public static long airportSecondTimeWindowEnd = 7*1440+19*60;
 }

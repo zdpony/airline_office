@@ -23,16 +23,16 @@ public class FlightRecovery {
 
 		//Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME, Parameter.FLYTIME_FILENAME);
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
-		
+			
 		Clique clique = new Clique();
 		
-		for(int i=0;i<scenario.aircraftList.size();i++) {
 		//for(int i=0;i<scenario.aircraftList.size();i++) {
+		for(int i=0;i<10;i++) {
 			clique.aircraftList.add(scenario.aircraftList.get(i));
 		}
 		//clique.aircraftList.addAll(scenario.aircraftList);
 		
-		NetworkBuilder nb = new NetworkBuilder(scenario, 5);
+		NetworkBuilder nb = new NetworkBuilder(scenario, 60);
 		nb.init();
 		nb.buildNetwork(clique, false, true, false, true);
 				

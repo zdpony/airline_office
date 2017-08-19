@@ -257,6 +257,22 @@ public class CplexModel {
 				cplex.addLe(seatConstraint, 0);
 			}
 
+			//8. 机场起降约束
+			for(String key:sce.keyList) {
+				IloLinearNumExpr airportConstraint = cplex.linearNumExpr();
+				List<FlightArc> faList = sce.airportFlightArcMap.get(key);
+				List<ConnectingArc> caList = sce.airportConnectingArcMap.get(key);
+				
+				for(FlightArc arc:faList) {
+					airportConstraint.addTerm(1, x[arc.id]);
+				}
+				for(ConnectingArc arc:caList) {
+					airportConstraint.addTerm(1, beta[arc.id]);
+				}
+				
+				cplex.addLe(airportConstraint, 2);
+			}
+			
 			if(cplex.solve()){
 		
 				if(isFractional){

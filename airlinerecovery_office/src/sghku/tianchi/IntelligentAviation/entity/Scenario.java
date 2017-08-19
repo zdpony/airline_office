@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 import sghku.tianchi.IntelligentAviation.common.ExcelOperator;
 import sghku.tianchi.IntelligentAviation.common.Parameter;
@@ -42,6 +44,12 @@ public class Scenario {
 	// 乘客信息
 	public List<Itinerary> itineraryList = new ArrayList<>();
 
+	public Set<Integer> affectedAirportSet = new HashSet();
+	
+	public List<String> keyList = new ArrayList<>();
+	public Map<String, List<FlightArc>> airportFlightArcMap = new HashMap<>();	
+	public Map<String, List<ConnectingArc>> airportConnectingArcMap = new HashMap<>();
+	
 	public Scenario() {
 
 	}
@@ -229,6 +237,38 @@ public class Scenario {
 		for(Flight f:flightList) {
 			f.totalConnectingCost = f.totalConnectingCost/2.0;
 		}
+		
+		
+		checkTyphoonAffectedFlights();
+		
+		//初始化机场流量限制
+		for(long i=Parameter.airportFirstTimeWindowStart;i<=Parameter.airportFirstTimeWindowEnd;i+=5) {
+			keyList.add("49_"+i);
+			keyList.add("50_"+i);
+			keyList.add("61_"+i);
+			
+			airportFlightArcMap.put("49_"+i, new ArrayList<>());
+			airportFlightArcMap.put("50_"+i, new ArrayList<>());
+			airportFlightArcMap.put("61_"+i, new ArrayList<>());
+			
+			airportConnectingArcMap.put("49_"+i, new ArrayList<>());
+			airportConnectingArcMap.put("50_"+i, new ArrayList<>());
+			airportConnectingArcMap.put("61_"+i, new ArrayList<>());
+		}
+		for(long i=Parameter.airportSecondTimeWindowStart;i<=Parameter.airportSecondTimeWindowEnd;i+=5) {
+			keyList.add("49_"+i);
+			keyList.add("50_"+i);
+			keyList.add("61_"+i);
+			
+			airportFlightArcMap.put("49_"+i, new ArrayList<>());
+			airportFlightArcMap.put("50_"+i, new ArrayList<>());
+			airportFlightArcMap.put("61_"+i, new ArrayList<>());
+			
+			airportConnectingArcMap.put("49_"+i, new ArrayList<>());
+			airportConnectingArcMap.put("50_"+i, new ArrayList<>());
+			airportConnectingArcMap.put("61_"+i, new ArrayList<>());
+		}
+		System.out.println("------------------------------------------");
 	}
 
 	// 读取机场信息
@@ -584,5 +624,53 @@ public class Scenario {
 			n2 += f.connectedPassengerNumber;
 		}
 		System.out.println("n:"+n+" "+n1+" "+n2);
+	}
+	
+	//检测某一个航班是否处于台风影响范围从事限制起降个数
+	public void checkTyphoonAffectedFlights() {
+		
+		affectedAirportSet.add(49);
+		affectedAirportSet.add(50);
+		affectedAirportSet.add(61);
+		
+		for(Flight f:flightList) {
+			
+			if(f.isIncludedInTimeWindow) {
+				if(affectedAirportSet.contains(f.leg.originAirport.id)) {
+					int earliestT = f.initialTakeoffT;
+					int latestT = f.initialTakeoffT;
+					
+					if(f.isAllowtoBringForward) {
+						earliestT = earliestT - Parameter.MAX_LEAD_TIME;
+					}
+					if(f.isDomestic) {
+						latestT = latestT + Parameter.MAX_DELAY_DOMESTIC_TIME;
+					}else {
+						latestT = latestT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
+					}
+					
+					if((earliestT <= Parameter.airportFirstTimeWindowStart && latestT > Parameter.airportFirstTimeWindowStart) || (earliestT < Parameter.airportFirstTimeWindowEnd && latestT > Parameter.airportFirstTimeWindowEnd)) {
+						f.isSmallGapRequired = true;
+					}			
+				}
+				if(affectedAirportSet.contains(f.leg.destinationAirport.id)) {
+					int earliestT = f.initialLandingT;
+					int latestT = f.initialLandingT;
+					
+					if(f.isAllowtoBringForward) {
+						earliestT = earliestT - Parameter.MAX_LEAD_TIME;
+					}
+					if(f.isDomestic) {
+						latestT = latestT + Parameter.MAX_DELAY_DOMESTIC_TIME;
+					}else {
+						latestT = latestT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
+					}
+					
+					if((earliestT <= Parameter.airportFirstTimeWindowStart && latestT > Parameter.airportFirstTimeWindowStart) || (earliestT < Parameter.airportFirstTimeWindowEnd && latestT > Parameter.airportFirstTimeWindowEnd)) {
+						f.isSmallGapRequired = true;
+					}			
+				}
+			}		
+		}
 	}
 }

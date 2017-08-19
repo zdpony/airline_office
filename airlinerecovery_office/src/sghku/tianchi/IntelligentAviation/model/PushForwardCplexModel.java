@@ -14,11 +14,12 @@ import sghku.tianchi.IntelligentAviation.comparator.FlightComparator2;
 import sghku.tianchi.IntelligentAviation.entity.Aircraft;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
 import sghku.tianchi.IntelligentAviation.entity.FlightArc;
+import sghku.tianchi.IntelligentAviation.entity.Scenario;
 
 public class PushForwardCplexModel {
 	public IloCplex cplex;
 	
-	public void run(List<Aircraft> aircraftList){
+	public void run(List<Aircraft> aircraftList, Scenario scenario){
 		for(Aircraft aircraft:aircraftList){
 			Collections.sort(aircraft.flightList, new FlightComparator2());
 			for(Flight f:aircraft.flightList){
@@ -26,7 +27,7 @@ public class PushForwardCplexModel {
 			}
 			NetworkConstructor initialization = new NetworkConstructor();
 			for(Flight f:aircraft.flightList) {
-				initialization.generateArcForFlight(aircraft, f , 5);					
+				initialization.generateArcForFlight(aircraft, f , 5, scenario);					
 			}
 		
 			solveEach(aircraft);
