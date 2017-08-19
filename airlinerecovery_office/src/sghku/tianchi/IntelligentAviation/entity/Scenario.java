@@ -50,6 +50,9 @@ public class Scenario {
 	public Map<String, List<FlightArc>> airportFlightArcMap = new HashMap<>();	
 	public Map<String, List<ConnectingArc>> airportConnectingArcMap = new HashMap<>();
 	
+	public Map<Integer, GroundArc> affectedGroundArcMap = new HashMap<>();
+	public Map<Integer, Integer> affectedGroundArcLimitMap = new HashMap<>();
+	
 	public Scenario() {
 
 	}
@@ -105,6 +108,7 @@ public class Scenario {
 		// 读取故障信息
 		faultList = ExcelOperator.getFaultList(filename, airportList, flightList, aircraftList, earliestTimeLong,
 				earliestDate, latestTimeLong, latestDate);
+		
 		ExcelOperator.getClosureInfo(filename, airportList, earliestDate, latestDate);
 
 		// 读取每一个航段的飞行信息
@@ -150,13 +154,7 @@ public class Scenario {
 			f.actualLandingT = f.initialLandingT;
 			f.actualTakeoffT = f.initialTakeoffT;
 		}
-		
-
-		for (Airport a : airportList) {
-			if (a.id == 49 || a.id == 50 || a.id == 61) {
-				Parameter.restrictedAirportSet.add(a);
-			}
-		}
+	
 
 		// read transfer passenger
 		readTransferPassengerInformation();
@@ -226,16 +224,17 @@ public class Scenario {
 			}
 		}
 
+		//生成flight section itinerary
 		readFlightSectionItinerary();
 		
 		//计算每一个航班的联程乘客成本
 		for(ConnectingFlightpair cf:connectingFlightList) {
-			cf.firstFlight.totalConnectingCost += cf.firstFlight.connectedPassengerNumber * Parameter.passengerCancelCost;
-			cf.secondFlight.totalConnectingCost += cf.secondFlight.connectedPassengerNumber * Parameter.passengerCancelCost;
+			cf.firstFlight.totalConnectingCancellationCost += cf.firstFlight.connectedPassengerNumber * Parameter.passengerCancelCost;
+			cf.secondFlight.totalConnectingCancellationCost += cf.secondFlight.connectedPassengerNumber * Parameter.passengerCancelCost;
 		}
 		
 		for(Flight f:flightList) {
-			f.totalConnectingCost = f.totalConnectingCost/2.0;
+			f.totalConnectingCancellationCost = f.totalConnectingCancellationCost/2.0;
 		}
 		
 		
@@ -255,6 +254,7 @@ public class Scenario {
 			airportConnectingArcMap.put("50_"+i, new ArrayList<>());
 			airportConnectingArcMap.put("61_"+i, new ArrayList<>());
 		}
+		
 		for(long i=Parameter.airportSecondTimeWindowStart;i<=Parameter.airportSecondTimeWindowEnd;i+=5) {
 			keyList.add("49_"+i);
 			keyList.add("50_"+i);
@@ -549,12 +549,6 @@ public class Scenario {
 				flightSection.flightSectionItineraryList.add(fsi);
 			}
 		}
-		
-		int n2 = 0;
-		for(Itinerary ite:itineraryList) {
-			n2 += ite.flightSectionItineraryList.size();
-		}
-		System.out.println("n2:"+n2);
 	}
 
 	// 读取转机乘客信息
@@ -600,14 +594,7 @@ public class Scenario {
 		}
 		
 		//计算每一个航班的转机乘客和普通乘客
-		int n = 0;
-		int n1 = 0;
-		int n2 = 0;
 		for(Flight f:flightList) {
-			/*for(TransferPassenger tp:f.passengerTransferList) {
-				f.transferPassengerNumber += tp.volume;
-			}*/
-			
 			for(TransferPassenger tp:f.firstPassengerTransferList) {
 				f.transferPassengerNumber += tp.volume;
 				f.firstTransferPassengerNumber += tp.volume;
@@ -617,13 +604,9 @@ public class Scenario {
 				f.secondTransferPassengerNumber += tp.volume;
 			}
 			
-			f.normalPassengerNumber = f.passengerNumber - f.transferPassengerNumber;
-			
-			n += f.normalPassengerNumber;
-			n1 += f.transferPassengerNumber;
-			n2 += f.connectedPassengerNumber;
+			f.normalPassengerNumber = f.passengerNumber - f.transferPassengerNumber;			
 		}
-		System.out.println("n:"+n+" "+n1+" "+n2);
+		
 	}
 	
 	//检测某一个航班是否处于台风影响范围从事限制起降个数
@@ -649,9 +632,13 @@ public class Scenario {
 						latestT = latestT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
 					}
 					
-					if((earliestT <= Parameter.airportFirstTimeWindowStart && latestT > Parameter.airportFirstTimeWindowStart) || (earliestT < Parameter.airportFirstTimeWindowEnd && latestT > Parameter.airportFirstTimeWindowEnd)) {
+					if((earliestT <= Parameter.airportFirstTimeWindowStart && latestT > Parameter.airportFirstTimeWindowStart) || (earliestT < Parameter.airportFirstTimeWindowEnd && latestT >= Parameter.airportFirstTimeWindowEnd)) {
 						f.isSmallGapRequired = true;
-					}			
+					}	
+					
+					if((earliestT <= Parameter.airportSecondTimeWindowStart && latestT > Parameter.airportSecondTimeWindowStart) || (earliestT < Parameter.airportSecondTimeWindowEnd && latestT >= Parameter.airportSecondTimeWindowEnd)) {
+						f.isSmallGapRequired = true;
+					}
 				}
 				if(affectedAirportSet.contains(f.leg.destinationAirport.id)) {
 					int earliestT = f.initialLandingT;
@@ -666,9 +653,13 @@ public class Scenario {
 						latestT = latestT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
 					}
 					
-					if((earliestT <= Parameter.airportFirstTimeWindowStart && latestT > Parameter.airportFirstTimeWindowStart) || (earliestT < Parameter.airportFirstTimeWindowEnd && latestT > Parameter.airportFirstTimeWindowEnd)) {
+					if((earliestT <= Parameter.airportFirstTimeWindowStart && latestT > Parameter.airportFirstTimeWindowStart) || (earliestT < Parameter.airportFirstTimeWindowEnd && latestT >= Parameter.airportFirstTimeWindowEnd)) {
 						f.isSmallGapRequired = true;
-					}			
+					}	
+					
+					if((earliestT <= Parameter.airportSecondTimeWindowStart && latestT > Parameter.airportSecondTimeWindowStart) || (earliestT < Parameter.airportSecondTimeWindowEnd && latestT >= Parameter.airportSecondTimeWindowEnd)) {
+						f.isSmallGapRequired = true;
+					}
 				}
 			}		
 		}

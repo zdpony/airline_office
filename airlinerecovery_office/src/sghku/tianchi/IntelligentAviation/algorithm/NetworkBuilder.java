@@ -149,7 +149,6 @@ public class NetworkBuilder {
 					}
 				}
 			}
-
 		}
 
 		// 如果需要插入取消航班
@@ -231,7 +230,7 @@ public class NetworkBuilder {
 			}
 		}
 
-		networkConstructor.generateNodes(smallAircraftList, scenario.airportList);
+		networkConstructor.generateNodes(smallAircraftList, scenario.airportList, scenario);
 		
 		List<FlightSection> flightSectionList = new ArrayList<>();
 		List<FlightSectionItinerary> flightSectionItineraryList = new ArrayList<>();
@@ -583,6 +582,6 @@ public class NetworkBuilder {
 			}
 		}
 
-		networkConstructor.generateNodes(smallAircraftList, scenario.airportList);
+		networkConstructor.generateNodes(smallAircraftList, scenario.airportList,scenario);
 	}
 }

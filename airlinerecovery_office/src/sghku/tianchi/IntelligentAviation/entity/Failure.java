@@ -54,12 +54,15 @@ public class Failure {
      * @return
      */
     public boolean isInScene(int flightId, int airplaneId, Airport startAirport, Airport endAirport, int startTime, int endTime){
-        if(type.equals(FailureType.parking)) {         //停机判断
+       //不需要继续判断停机约束
+    	/* if(type.equals(FailureType.parking)) {         //停机判断
             if(airport.equals(endAirport) && endTime>sTime && endTime<eTime)
         	//if(airport.equals(endAirport) && endTime>sTime && endTime<eTime)
                 return true;
         }
-        else if(type.equals(FailureType.landing)){    //降落判断
+        else */
+        	
+        if(type.equals(FailureType.landing)){    //降落判断
         	if(airport.equals(endAirport) && endTime>sTime && endTime<eTime)
         	//if(airport.equals(endAirport) && endTime>sTime && endTime<eTime)
                 return true;

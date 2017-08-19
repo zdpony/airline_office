@@ -31,12 +31,12 @@ import sghku.tianchi.IntelligentAviation.entity.Path;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
 import sghku.tianchi.IntelligentAviation.entity.Solution;
 
-public class CplexModel {
+public class CplexModelForPureAircraft {
 	public IloCplex cplex;
 
 	//the network flow model for initial problem solving
 
-	public Solution run(List<Aircraft> aircraftList, List<Flight> flightList, List<ConnectingFlightpair> cfList, List<Airport> airportList, Scenario sce, List<FlightSection> flightSectionList, List<Itinerary> itineraryList, List<FlightSectionItinerary> flightSectionItineraryList, boolean isFractional, boolean isAllowToCancelSingleFlightInAnConnectingFlight){
+	public Solution run(List<Aircraft> aircraftList, List<Flight> flightList, List<ConnectingFlightpair> cfList, List<Airport> airportList, Scenario sce, boolean isFractional, boolean isAllowToCancelSingleFlightInAnConnectingFlight){
 		Solution solution = new Solution();
 		solution.involvedAircraftList.addAll(aircraftList);
 		
@@ -76,10 +76,6 @@ public class CplexModel {
 			IloNumVar[] y = new IloNumVar[groundArcList.size()];
 			IloNumVar[] z = new IloNumVar[flightList.size()];
 			
-			IloNumVar[] passX = new IloNumVar[flightSectionItineraryList.size()];
-			IloNumVar[] passCancel = new IloNumVar[itineraryList.size()];
-			//IloNumVar[] gamma = new IloNumVar[airportList.size()];
-
 			IloLinearNumExpr obj = cplex.linearNumExpr();
 
 			for(int i=0;i<flightArcList.size();i++){
@@ -113,19 +109,6 @@ public class CplexModel {
 				z[i] = cplex.numVar(0, 1);
 
 				obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingCancellationCost, z[i]);
-			}
-			
-			for(int i=0;i<flightSectionItineraryList.size();i++) {
-				FlightSectionItinerary fsi = flightSectionItineraryList.get(i);
-				fsi.id = i;	 
-				passX[i] = cplex.numVar(0, fsi.itinerary.volume);
-				obj.addTerm(fsi.unitCost, passX[i]);
-			}
-			for(int i=0;i<itineraryList.size();i++) {
-				Itinerary ite = itineraryList.get(i);
-				ite.id = i;
-				passCancel[i] = cplex.numVar(0, ite.volume);
-				obj.addTerm(Parameter.passengerCancelCost, passCancel[i]);
 			}
 					
 			cplex.addMinimize(obj);
@@ -228,35 +211,6 @@ public class CplexModel {
 				}
 			}
 			
-			//6. 乘客相关约束
-			for(Itinerary ite:itineraryList) {
-				IloLinearNumExpr iteNumConstraint = cplex.linearNumExpr();
-				for(FlightSectionItinerary fsi:ite.flightSectionItineraryList) {
-					iteNumConstraint.addTerm(1, passX[fsi.id]); 
-				}
-				iteNumConstraint.addTerm(1, passCancel[ite.id]);
-				
-				cplex.addEq(iteNumConstraint, ite.volume);
-			}
-			
-			//7. 座位相关约束
-			for(FlightSection fs:flightSectionList) {
-				IloLinearNumExpr seatConstraint = cplex.linearNumExpr();
-				for(FlightSectionItinerary fsi:fs.flightSectionItineraryList) {
-					seatConstraint.addTerm(1, passX[fsi.id]);
-				}
-				
-				for(FlightArc arc:fs.flightArcList) {
-					if(arc.isIncludedInConnecting) {
-						seatConstraint.addTerm(-arc.passengerCapacity, beta[arc.connectingArc.id]);
-					}else {
-						seatConstraint.addTerm(-arc.passengerCapacity, x[arc .id]);						
-					}
-				}
-				
-				cplex.addLe(seatConstraint, 0);
-			}
-
 			//8. 机场起降约束
 			for(String key:sce.keyList) {
 				IloLinearNumExpr airportConstraint = cplex.linearNumExpr();
@@ -413,7 +367,7 @@ public class CplexModel {
 									arc.fractionalFlow = arc.fractionalFlow - p.value;
 								}
 								
-								System.out.println("p value:"+p.value);
+								//System.out.println("p value:"+p.value);
 								
 								sb.append(p.toString()+"\n");
 							}else{

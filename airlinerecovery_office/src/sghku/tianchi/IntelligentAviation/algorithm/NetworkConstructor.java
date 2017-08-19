@@ -41,21 +41,23 @@ public class NetworkConstructor {
 		
 		if(!f.isIncludedInTimeWindow) {
 			//如果该航班在调整时间窗口外
-			if(f.initialAircraft.id == aircraft.id) {
-				int flyTime = f.flyTime;
-				
+			if(f.initialAircraft.id == aircraft.id) {			
 				arc = new FlightArc();
 				arc.flight = f;
 				arc.aircraft = aircraft;
 				arc.delay = f.fixedTakeoffTime - f.initialTakeoffT;
 				
-				arc.takeoffTime = f.initialTakeoffT+arc.delay;
-				arc.landingTime = arc.takeoffTime+flyTime;
+				/*arc.takeoffTime = f.initialTakeoffT+arc.delay;
+				arc.landingTime = arc.takeoffTime+flyTime;*/
+				
+				arc.takeoffTime = f.fixedTakeoffTime;
+				arc.landingTime = f.fixedLandingTime;
 				
 				arc.readyTime = arc.landingTime + Parameter.MIN_BUFFER_TIME;
 				
 				f.flightarcList.add(arc);
 				aircraft.flightArcList.add(arc);				
+				
 				arc.calculateCost();
 			}			
 		}else {
@@ -775,7 +777,7 @@ public class NetworkConstructor {
 	}
 	
 	//生成点和地面arc
-	public void generateNodes(List<Aircraft> aircraftList, List<Airport> airportList){
+	public void generateNodes(List<Aircraft> aircraftList, List<Airport> airportList, Scenario scenario){
 		//2. generate nodes for each arc		
 		for(Aircraft aircraft:aircraftList){
 			//1. clear node map for each airport
@@ -864,7 +866,18 @@ public class NetworkConstructor {
 					aircraft.nodeListArray[i].add(aircraft.nodeMapArray[i].get(key));
 				}
 				
+				Airport airport = airportList.get(i);
+				boolean isFound = false;
+				
 				Collections.sort(aircraft.nodeListArray[i], new NodeComparator());
+				
+				if(scenario.affectedAirportSet.contains(airport.id)) {
+					for(Failure scene:airport.failureList){
+						if(scene.type.equals(FailureType.parking)) {
+							scenario.affectedGroundArcLimitMap.put(airport.id, scene.parkingLimit);
+						}
+					}
+				}
 				
 				for(int j=0;j<aircraft.nodeListArray[i].size()-1;j++){
 					Node n1 = aircraft.nodeListArray[i].get(j);
@@ -874,12 +887,26 @@ public class NetworkConstructor {
 					groundArc.fromNode = n1;
 					groundArc.toNode = n2;
 					
-					if(!groundArc.checkViolation()){
+					n1.flowoutGroundArcList.add(groundArc);
+					n2.flowinGroundArcList.add(groundArc);
+					
+					aircraft.groundArcList.add(groundArc);
+					
+					if(scenario.affectedAirportSet.contains(airport.id)) {
+						if(!isFound) {
+							if(n1.time >= Parameter.airportFirstTimeWindowEnd && n2.time <= Parameter.airportSecondTimeWindowStart) {
+								scenario.affectedGroundArcMap.put(airport.id, groundArc);
+								isFound = true;
+							}
+						}						
+					}
+					
+					/*if(!groundArc.checkViolation()){
 						n1.flowoutGroundArcList.add(groundArc);
 						n2.flowinGroundArcList.add(groundArc);
 						
 						aircraft.groundArcList.add(groundArc);
-					}
+					}*/
 				}
 				
 			}
@@ -899,7 +926,7 @@ public class NetworkConstructor {
 			}
 			
 			//对停机限制的机场飞机可以刚开停靠
-			if(Parameter.restrictedAirportSet.contains(aircraft.initialLocation)){
+			/*if(Parameter.restrictedAirportSet.contains(aircraft.initialLocation)){
 				if(aircraft.nodeListArray[aircraft.initialLocation.id-1].size() > 0){
 					for(int j=1;j<aircraft.nodeListArray[aircraft.initialLocation.id-1].size();j++){
 						Node n = aircraft.nodeListArray[aircraft.initialLocation.id-1].get(j);
@@ -913,11 +940,29 @@ public class NetworkConstructor {
 						aircraft.groundArcList.add(arc);
 					}
 				}				
+			}*/
+			//对停机限制的机场飞机可以刚开停靠
+			if(scenario.affectedAirportSet.contains(aircraft.initialLocation.id)){
+				if(aircraft.nodeListArray[aircraft.initialLocation.id-1].size() > 0){
+					for(int j=1;j<aircraft.nodeListArray[aircraft.initialLocation.id-1].size();j++){
+						Node n = aircraft.nodeListArray[aircraft.initialLocation.id-1].get(j);
+						
+						if(n.time >= Parameter.airportSecondTimeWindowStart) {
+							GroundArc arc = new GroundArc();
+							arc.fromNode = sourceNode;
+							arc.toNode = n;
+							arc.isSource = true;
+							sourceNode.flowoutGroundArcList.add(arc);
+							n.flowinGroundArcList.add(arc);
+							aircraft.groundArcList.add(arc);
+						}
+					}
+				}				
 			}
 			
 			
 
-			for(Airport airport:airportList){
+			/*for(Airport airport:airportList){
 				if(aircraft.nodeListArray[airport.id-1].size() > 0){
 					if(Parameter.restrictedAirportSet.contains(airport)){
 						for(Node lastNode:aircraft.nodeListArray[airport.id-1]){
@@ -944,6 +989,45 @@ public class NetworkConstructor {
 						
 						lastNode.airport.sinkArcList[aircraft.type-1].add(arc);
 					}					
+				}
+			}*/
+			
+			
+			for(Airport airport:airportList){
+				if(aircraft.nodeListArray[airport.id-1].size() > 0){
+					if(scenario.affectedAirportSet.contains(airport.id)){
+						for(int j=0;j<aircraft.nodeListArray[airport.id-1].size()-1;j++){
+							
+							Node lastNode = aircraft.nodeListArray[airport.id-1].get(j);
+							Node nextNode = aircraft.nodeListArray[airport.id-1].get(j+1);
+							
+							if(lastNode.time <= Parameter.airportFirstTimeWindowEnd && nextNode.time > Parameter.airportSecondTimeWindowStart) {
+								GroundArc arc = new GroundArc();
+								arc.fromNode = lastNode;
+								arc.toNode = sinkNode;
+								arc.isSink = true;
+								lastNode.flowoutGroundArcList.add(arc);
+								sinkNode.flowinGroundArcList.add(arc);
+								aircraft.groundArcList.add(arc);
+								
+								lastNode.airport.sinkArcList[aircraft.type-1].add(arc);
+								
+								break;
+							}							
+						}
+					}
+					
+					Node lastNode = aircraft.nodeListArray[airport.id-1].get(aircraft.nodeListArray[airport.id-1].size()-1);
+					
+					GroundArc arc = new GroundArc();
+					arc.fromNode = lastNode;
+					arc.toNode = sinkNode;
+					arc.isSink = true;
+					lastNode.flowoutGroundArcList.add(arc);
+					sinkNode.flowinGroundArcList.add(arc);
+					aircraft.groundArcList.add(arc);
+					
+					lastNode.airport.sinkArcList[aircraft.type-1].add(arc);
 				}
 			}
 			

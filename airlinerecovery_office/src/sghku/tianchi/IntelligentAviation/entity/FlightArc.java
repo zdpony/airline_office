@@ -92,13 +92,14 @@ public class FlightArc {
 			cost += Parameter.COST_DELAY/60.0*delay*flight.connectingFlightpair.firstFlight.importance;
 			cost += Parameter.COST_STRAIGHTEN*(flight.connectingFlightpair.firstFlight.importance+flight.connectingFlightpair.secondFlight.importance);
 			
-			//如果是联程拉直航班，则只需要考虑联程拉直的乘客对应的delay和cancel成本，普通乘客则不需要考虑
-			int actualNum =  Math.min(aircraft.passengerCapacity, flight.connectingFlightpair.firstFlight.connectedPassengerNumber);
-			int cancelNum = flight.connectingFlightpair.firstFlight.connectedPassengerNumber - actualNum;
-			
-			cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
-			cost += cancelNum*Parameter.passengerCancelCost;
-			
+			if(Parameter.isPassengerCostConsidered) {
+				//如果是联程拉直航班，则只需要考虑联程拉直的乘客对应的delay和cancel成本，普通乘客则不需要考虑
+				int actualNum =  Math.min(aircraft.passengerCapacity, flight.connectingFlightpair.firstFlight.connectedPassengerNumber);
+				int cancelNum = flight.connectingFlightpair.firstFlight.connectedPassengerNumber - actualNum;
+				
+				cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
+				cost += cancelNum*Parameter.passengerCancelCost;
+			}		
 		}else if(flight.isDeadhead){
 			cost += Parameter.COST_DEADHEAD;
 		}else{
@@ -115,22 +116,24 @@ public class FlightArc {
 				}
 			}
 			
-			if(flight.isIncludedInConnecting) {
-				//首先考虑联程乘客，如果其中一段属于联程航班，则代表对应的联程乘客取消
-				cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost/2.0;
-			}
-			
-			//考虑中转乘客的延误
-			for(TransferPassenger tp:flight.firstPassengerTransferList) {
-				cost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
-			}
-			
-			//考虑普通乘客的延误
-			int remainingCapacity = aircraft.passengerCapacity;
-			remainingCapacity = remainingCapacity - flight.transferPassengerNumber;
-			int actualNum = Math.min(remainingCapacity, flight.normalPassengerNumber);
-						
-			cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
+			if(Parameter.isPassengerCostConsidered) {
+				if(flight.isIncludedInConnecting) {
+					//首先考虑联程乘客，如果其中一段属于联程航班，则代表对应的联程乘客取消
+					cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost/2.0;
+				}
+				
+				//考虑中转乘客的延误
+				for(TransferPassenger tp:flight.firstPassengerTransferList) {
+					cost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
+				}
+				
+				//考虑普通乘客的延误
+				int remainingCapacity = aircraft.passengerCapacity;
+				remainingCapacity = remainingCapacity - flight.transferPassengerNumber;
+				int actualNum = Math.min(remainingCapacity, flight.normalPassengerNumber);
+							
+				cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
+			}			
 		}
 	}
 	
@@ -153,7 +156,7 @@ public class FlightArc {
             }
 		}
 		
-		if(!vio){
+		/*if(!vio){
 			//判断停机时间是否在台风停机故障内
 			for(Failure scene:leg.destinationAirport.failureList){
 				if(scene.isStopInScene(0, 0, leg.destinationAirport, landingTime, readyTime)){
@@ -161,7 +164,7 @@ public class FlightArc {
 					break;
 				}
 			}
-		}
+		}*/
 		if(!vio){
 			//判断是否在机场关闭时间内
 			for(ClosureInfo ci:leg.originAirport.closedSlots){

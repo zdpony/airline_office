@@ -69,7 +69,7 @@ public class Parameter {
 	public static int deadheadIndex = 9001;
 	
 	public static int initialTabuValue = 3;
-	public static Set<Airport> restrictedAirportSet = new HashSet<>();
+	//public static Set<Airport> restrictedAirportSet = new HashSet<>();
 	
 	/*public static int neighStartIndex = -6;
 	public static int neighEndIndex = 12;*/
@@ -107,4 +107,6 @@ public class Parameter {
 	
 	public static long airportSecondTimeWindowStart = 7*1440+17*60;
 	public static long airportSecondTimeWindowEnd = 7*1440+19*60;
+	
+	public static boolean isPassengerCostConsidered = false;
 }
