@@ -9,8 +9,11 @@ import sghku.tianchi.IntelligentAviation.clique.Clique;
 import sghku.tianchi.IntelligentAviation.common.OutputResult;
 import sghku.tianchi.IntelligentAviation.common.Parameter;
 import sghku.tianchi.IntelligentAviation.entity.Aircraft;
+import sghku.tianchi.IntelligentAviation.entity.ConnectingArc;
 import sghku.tianchi.IntelligentAviation.entity.ConnectingFlightpair;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
+import sghku.tianchi.IntelligentAviation.entity.FlightArc;
+import sghku.tianchi.IntelligentAviation.entity.FlightSection;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
 import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 
@@ -31,6 +34,7 @@ public class FlightRecovery {
 		NetworkBuilder nb = new NetworkBuilder(scenario, 60);
 		nb.init();
 		nb.buildNetwork(clique, false, true, false, true);
+				
 	}
 
 }

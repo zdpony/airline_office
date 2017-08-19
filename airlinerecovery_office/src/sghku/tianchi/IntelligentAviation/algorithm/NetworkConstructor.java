@@ -241,6 +241,8 @@ public class NetworkConstructor {
 	
 	public void generateArcForConnectingFlightPair(Aircraft aircraft, ConnectingFlightpair cf, int gap, boolean isGenerateArcForEachFlight){
 		int connectionTime = Math.min(cf.secondFlight.initialTakeoffT-cf.firstFlight.initialLandingT, Parameter.MIN_BUFFER_TIME);
+		List<FlightArc> firstFlightArcList = new ArrayList<>();
+		List<ConnectingArc> connectingArcList = new ArrayList<>();
 		
 		//如果该联程航班在调整窗口之外
 		if(!cf.firstFlight.isIncludedInTimeWindow) {
@@ -281,7 +283,6 @@ public class NetworkConstructor {
 			}
 		}else {
 			//otherwise, create a set of connecting arcs for this connecting flight
-			List<FlightArc> firstFlightArcList = new ArrayList<>();
 			
 			if(!aircraft.tabuLegs.contains(cf.firstFlight.leg) && !aircraft.tabuLegs.contains(cf.secondFlight.leg)){
 				//only if this leg is not in the tabu list of the corresponding aircraft
@@ -359,6 +360,7 @@ public class NetworkConstructor {
 								cf.secondFlight.connectingarcList.add(ca);
 								ca.connectingFlightPair = cf;
 								
+								connectingArcList.add(ca);
 								ca.calculateCost();
 							}
 						}
@@ -400,6 +402,8 @@ public class NetworkConstructor {
 							ca.connectingFlightPair = cf;
 							
 							ca.aircraft = aircraft;
+							
+							connectingArcList.add(ca);
 							ca.calculateCost();
 							
 							break;
@@ -409,10 +413,10 @@ public class NetworkConstructor {
 				
 			}
 			
-			for(ConnectingArc arc:aircraft.connectingArcList) {
+			for(ConnectingArc arc:connectingArcList) {
 				//设置第一个arc
-				/*arc.firstArc.isIncludedInConnecting = true;
-				arc.firstArc.connectingArc = arc;*/
+				arc.firstArc.isIncludedInConnecting = true;
+				arc.firstArc.connectingArc = arc;
 				
 				//乘客容量
 				arc.firstArc.passengerCapacity = aircraft.passengerCapacity;			
@@ -420,6 +424,8 @@ public class NetworkConstructor {
 				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.connectedPassengerNumber;
 				//减去转乘乘客
 				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.transferPassengerNumber;
+				//减去普通乘客
+				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.normalPassengerNumber;
 				//剩下的则为有效座位
 				arc.firstArc.passengerCapacity = Math.max(0, arc.firstArc.passengerCapacity);
 				
@@ -447,6 +453,8 @@ public class NetworkConstructor {
 				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.firstFlight.connectedPassengerNumber;
 				//减去转乘乘客
 				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.transferPassengerNumber;
+				//减去普通乘客
+				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.normalPassengerNumber;
 				//剩下的则为有效座位
 				arc.secondArc.passengerCapacity = Math.max(0, arc.secondArc.passengerCapacity);
 				

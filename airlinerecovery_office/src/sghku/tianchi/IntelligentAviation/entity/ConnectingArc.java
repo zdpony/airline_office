@@ -82,13 +82,17 @@ public class ConnectingArc {
 
 		//考虑中转乘客延误
 		cost += connectingFlightPair.firstFlight.firstTransferPassengerNumber * ExcelOperator.getPassengerDelayParameter(firstArc.delay);
+		cost += connectingFlightPair.secondFlight.firstTransferPassengerNumber * ExcelOperator.getPassengerDelayParameter(secondArc.delay);
 		
+		//计算每一个航段剩余座位
 		passengerCapacity1 = Math.max(0, passengerCapacity1-connectingFlightPair.firstFlight.transferPassengerNumber);
 		passengerCapacity2 = Math.max(0, passengerCapacity2-connectingFlightPair.secondFlight.transferPassengerNumber);
 
 		//考虑普通乘客的延误
 		cost += Math.min(connectingFlightPair.firstFlight.normalPassengerNumber, passengerCapacity1) * ExcelOperator.getPassengerDelayParameter(firstArc.delay);
 		cost += Math.min(connectingFlightPair.secondFlight.normalPassengerNumber, passengerCapacity2) * ExcelOperator.getPassengerDelayParameter(secondArc.delay);		
+		
+		//普通乘客的取消成本不在arc中计算
 	}
 	
 	public void update() {

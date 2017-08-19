@@ -100,6 +100,8 @@ public class Flight {
 	public int firstTransferPassengerNumber;
 	public int secondTransferPassengerNumber;
 	
+	public double totalConnectingCost = 0;
+	
 	// 初始化该航班所对应的网络模型
 	public void init() {
 		flightarcList.clear();

@@ -9,7 +9,11 @@ import sghku.tianchi.IntelligentAviation.entity.Aircraft;
 import sghku.tianchi.IntelligentAviation.entity.Airport;
 import sghku.tianchi.IntelligentAviation.entity.ConnectingFlightpair;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
+import sghku.tianchi.IntelligentAviation.entity.FlightSection;
+import sghku.tianchi.IntelligentAviation.entity.FlightSectionItinerary;
+import sghku.tianchi.IntelligentAviation.entity.Itinerary;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
+import sghku.tianchi.IntelligentAviation.model.CplexModel;
 
 public class NetworkBuilder {
 	public Scenario scenario = null;
@@ -228,6 +232,21 @@ public class NetworkBuilder {
 		}
 
 		networkConstructor.generateNodes(smallAircraftList, scenario.airportList);
+		
+		List<FlightSection> flightSectionList = new ArrayList<>();
+		List<FlightSectionItinerary> flightSectionItineraryList = new ArrayList<>();
+		
+		for(Flight f:scenario.flightList) {
+			flightSectionList.addAll(f.flightSectionList);
+		}
+		for(Itinerary ite:scenario.itineraryList) {
+			flightSectionItineraryList.addAll(ite.flightSectionItineraryList);
+		}
+		
+		//求解模型
+		CplexModel cplexModel = new CplexModel();
+		cplexModel.run(smallAircraftList, clique.realFlightList, clique.realConnectingFlightPairList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, true, true);
+		
 	}
 
 	// 构建时空网络流模型

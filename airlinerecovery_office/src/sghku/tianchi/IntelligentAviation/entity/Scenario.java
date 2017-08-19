@@ -219,6 +219,16 @@ public class Scenario {
 		}
 
 		readFlightSectionItinerary();
+		
+		//计算每一个航班的联程乘客成本
+		for(ConnectingFlightpair cf:connectingFlightList) {
+			cf.firstFlight.totalConnectingCost += cf.firstFlight.connectedPassengerNumber * Parameter.passengerCancelCost;
+			cf.secondFlight.totalConnectingCost += cf.secondFlight.connectedPassengerNumber * Parameter.passengerCancelCost;
+		}
+		
+		for(Flight f:flightList) {
+			f.totalConnectingCost = f.totalConnectingCost/2.0;
+		}
 	}
 
 	// 读取机场信息

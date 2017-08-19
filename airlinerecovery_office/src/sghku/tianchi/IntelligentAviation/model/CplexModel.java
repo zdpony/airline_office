@@ -112,7 +112,7 @@ public class CplexModel {
 				f.IDInCPLEXModel = i;
 				z[i] = cplex.numVar(0, 1);
 
-				obj.addTerm(f.importance*Parameter.COST_CANCEL, z[i]);
+				obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingCost, z[i]);
 			}
 			
 			for(int i=0;i<flightSectionItineraryList.size();i++) {
@@ -247,7 +247,11 @@ public class CplexModel {
 				}
 				
 				for(FlightArc arc:fs.flightArcList) {
-					seatConstraint.addTerm(-arc.passengerCapacity, x[fs.id]);
+					if(arc.isIncludedInConnecting) {
+						seatConstraint.addTerm(-arc.passengerCapacity, beta[arc.connectingArc.id]);
+					}else {
+						seatConstraint.addTerm(-arc.passengerCapacity, x[fs.id]);						
+					}
 				}
 				
 				cplex.addLe(seatConstraint, 0);
