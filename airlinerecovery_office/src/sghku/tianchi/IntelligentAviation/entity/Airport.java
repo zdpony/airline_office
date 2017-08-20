@@ -23,6 +23,12 @@ public class Airport {
 	//该机场对应的所有的sink arc
 	public List<GroundArc>[] sinkArcList = new ArrayList[Parameter.TOTAL_AIRCRAFTTYPE_NUM];
 		
+	public Airport(){
+		for(int i=0;i<Parameter.TOTAL_AIRCRAFTTYPE_NUM;i++){
+			sinkArcList[i] = new ArrayList<>();
+		}
+	}
+	
 	//初始化该机场对应的网络模型
 	public void init(){
 		for(int i=0;i<Parameter.TOTAL_AIRCRAFTTYPE_NUM;i++) {

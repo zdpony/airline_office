@@ -112,8 +112,11 @@ public class CplexModel {
 				f.IDInCPLEXModel = i;
 				z[i] = cplex.numVar(0, 1);
 
-				obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingCancellationCost, z[i]);
-			}
+				if(Parameter.isPassengerCostConsidered){
+					obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingCancellationCost, z[i]);					
+				}else{
+					obj.addTerm(f.importance*Parameter.COST_CANCEL, z[i]);
+				}			}
 			
 			for(int i=0;i<flightSectionItineraryList.size();i++) {
 				FlightSectionItinerary fsi = flightSectionItineraryList.get(i);
