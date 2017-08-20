@@ -169,16 +169,17 @@ public class LinearRecoveryModelWithPartialFixed {
 						}
 						
 						if(scenario.affectedAirportSet.contains(f1.actualDestination.id)) {
-							GroundArc ga = scenario.affectedGroundArcMap.get(f1.actualDestination.id);
-							
-							if(f1.actualLandingT+Parameter.MIN_BUFFER_TIME <= ga.fromNode.time && f2.actualTakeoffT >= ga.toNode.time) {
-								int limit = scenario.affectedGroundArcLimitMap.get(f1.actualDestination.id);
-								scenario.affectedGroundArcLimitMap.put(f1.actualDestination.id, limit-1);
-								
-								if(limit-1 < 0) {
-									System.out.println("negative airport limit");
+							for(GroundArc ga:scenario.affectedGroundArcMap.get(f1.actualDestination.id)) {
+								if(f1.actualLandingT+Parameter.MIN_BUFFER_TIME <= ga.fromNode.time && f2.actualTakeoffT >= ga.toNode.time) {
+									int limit = scenario.affectedGroundArcLimitMap.get(f1.actualDestination.id);
+									scenario.affectedGroundArcLimitMap.put(f1.actualDestination.id, limit-1);
+									
+									if(limit-1 < 0) {
+										System.out.println("negative airport limit");
+									}
 								}
 							}
+							
 						}
 					}
 				}		

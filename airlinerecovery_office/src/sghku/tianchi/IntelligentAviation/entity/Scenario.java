@@ -51,7 +51,7 @@ public class Scenario {
 	public Map<String, List<ConnectingArc>> airportConnectingArcMap = new HashMap<>();
 	public Map<String, Integer> airportCapacityMap = new HashMap<>();
 	
-	public Map<Integer, GroundArc> affectedGroundArcMap = new HashMap<>();
+	public Map<Integer, List<GroundArc>> affectedGroundArcMap = new HashMap<>();
 	public Map<Integer, Integer> affectedGroundArcLimitMap = new HashMap<>();
 	
 
@@ -696,6 +696,23 @@ public class Scenario {
 					}
 				}
 			}		
+		}
+		
+		//读取台风影响下的停机数
+		for(Airport airport:airportList) {
+			if(affectedAirportSet.contains(airport.id)) {
+				for(Failure scene:airport.failureList){
+					if(scene.type.equals(FailureType.parking)) {
+						affectedGroundArcLimitMap.put(airport.id, scene.parkingLimit);
+					}
+				}
+			}
+		}	
+		
+		//初始化affectedGroundArcMap
+		for(int airportId:affectedAirportSet ) {
+			List<GroundArc> gaList = new ArrayList<>();
+			affectedGroundArcMap.put(airportId, gaList);
 		}
 	}
 }

@@ -180,6 +180,7 @@ public class NetworkConstructor {
 						if(!isFound) {
 							if(f.flightSectionList.get(f.flightSectionList.size()-1).endTime != arc.takeoffTime) {
 								System.out.println("no flight section found 3!"+f.flightSectionList.get(f.flightSectionList.size()-1).endTime+" "+arc.takeoffTime);
+								System.exit(1);
 							}
 							f.flightSectionList.get(f.flightSectionList.size()-1).flightArcList.add(arc);
 						}
@@ -555,7 +556,7 @@ public class NetworkConstructor {
 							ca.calculateCost();
 							generatedConnectingArcList.add(ca);
 							
-							if(!isWithinAffectedRegionOrigin2 && isWithinAffectedRegionDestination2 ) {
+							if(!isWithinAffectedRegionOrigin2 && !isWithinAffectedRegionDestination2 ) {
 								break;								
 							}
 						}
@@ -616,6 +617,8 @@ public class NetworkConstructor {
 				}
 				
 				//设置第二个arc
+				arc.secondArc.isIncludedInConnecting = true;
+				arc.secondArc.connectingArc = arc;
 				//乘客容量
 				arc.secondArc.passengerCapacity = aircraft.passengerCapacity;			
 				//减去联程乘客
@@ -887,15 +890,7 @@ public class NetworkConstructor {
 				boolean isFound = false;
 				
 				Collections.sort(aircraft.nodeListArray[i], new NodeComparator());
-				
-				if(scenario.affectedAirportSet.contains(airport.id)) {
-					for(Failure scene:airport.failureList){
-						if(scene.type.equals(FailureType.parking)) {
-							scenario.affectedGroundArcLimitMap.put(airport.id, scene.parkingLimit);
-						}
-					}
-				}
-				
+						
 				for(int j=0;j<aircraft.nodeListArray[i].size()-1;j++){
 					Node n1 = aircraft.nodeListArray[i].get(j);
 					Node n2 = aircraft.nodeListArray[i].get(j+1);
@@ -912,7 +907,9 @@ public class NetworkConstructor {
 					if(!isFound) {
 						if(scenario.affectedAirportSet.contains(airport.id)) {					
 							if(n1.time >= Parameter.airportFirstTimeWindowEnd && n2.time <= Parameter.airportSecondTimeWindowStart) {
-								scenario.affectedGroundArcMap.put(airport.id, groundArc);
+								List<GroundArc> gaList = scenario.affectedGroundArcMap.get(airport.id);
+								gaList.add(groundArc);
+
 								isFound = true;
 							}
 						}						
@@ -925,7 +922,7 @@ public class NetworkConstructor {
 						aircraft.groundArcList.add(groundArc);
 					}*/
 				}
-				
+							
 			}
 			
 			//4. construct source and sink arcs
@@ -972,6 +969,8 @@ public class NetworkConstructor {
 							sourceNode.flowoutGroundArcList.add(arc);
 							n.flowinGroundArcList.add(arc);
 							aircraft.groundArcList.add(arc);
+							
+							break;
 						}
 					}
 				}				
@@ -1013,12 +1012,10 @@ public class NetworkConstructor {
 			for(Airport airport:airportList){
 				if(aircraft.nodeListArray[airport.id-1].size() > 0){
 					if(scenario.affectedAirportSet.contains(airport.id)){
-						for(int j=0;j<aircraft.nodeListArray[airport.id-1].size()-1;j++){
-							
+						for(int j=aircraft.nodeListArray[airport.id-1].size()-1;j>=1;j--) {
 							Node lastNode = aircraft.nodeListArray[airport.id-1].get(j);
-							Node nextNode = aircraft.nodeListArray[airport.id-1].get(j+1);
 							
-							if(lastNode.time <= Parameter.airportFirstTimeWindowEnd && nextNode.time > Parameter.airportSecondTimeWindowStart) {
+							if(lastNode.time < Parameter.airportFirstTimeWindowEnd) {
 								GroundArc arc = new GroundArc();
 								arc.fromNode = lastNode;
 								arc.toNode = sinkNode;
@@ -1030,7 +1027,7 @@ public class NetworkConstructor {
 								lastNode.airport.sinkArcList[aircraft.type-1].add(arc);
 								
 								break;
-							}							
+							}
 						}
 					}
 					
@@ -1055,8 +1052,7 @@ public class NetworkConstructor {
 			arc.isSink = true;
 			sourceNode.flowoutGroundArcList.add(arc);
 			sinkNode.flowinGroundArcList.add(arc);
-			aircraft.groundArcList.add(arc);
-			
+			aircraft.groundArcList.add(arc);			
 			aircraft.initialLocation.sinkArcList[aircraft.type-1].add(arc);
 			
 			//5. construct turn-around arc

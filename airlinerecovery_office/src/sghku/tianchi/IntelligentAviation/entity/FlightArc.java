@@ -57,26 +57,6 @@ public class FlightArc {
 	
 	//计算该arc的成本
 	public void calculateCost(){
-		/*if(flight.isStraightened){
-			if(flight.connectingFlightpair.firstFlight.initialAircraftType != aircraft.type){
-				cost += Parameter.COST_AIRCRAFTTYPE_VARIATION*flight.connectingFlightpair.firstFlight.importance;
-			}
-			
-			cost += Parameter.COST_EARLINESS/60.0*earliness*flight.connectingFlightpair.firstFlight.importance;
-			cost += Parameter.COST_DELAY/60.0*delay*flight.connectingFlightpair.firstFlight.importance;
-			cost += Parameter.COST_STRAIGHTEN*(flight.connectingFlightpair.firstFlight.importance+flight.connectingFlightpair.secondFlight.importance);
-			
-		}else if(flight.isDeadhead){
-			cost += Parameter.COST_DEADHEAD;
-		}else{
-			cost += earliness/60.0*Parameter.COST_EARLINESS*flight.importance;
-			cost += delay/60.0*Parameter.COST_DELAY*flight.importance;
-
-			if(flight.initialAircraftType != aircraft.type){
-				cost += Parameter.COST_AIRCRAFTTYPE_VARIATION*flight.importance;
-			}
-		}*/
-		
 		if(flight.isStraightened){
 			cost += ExcelOperator.getFlightTypeChangeParam(flight.connectingFlightpair.firstFlight.initialAircraftType, aircraft.type)*flight.connectingFlightpair.firstFlight.importance;
 			

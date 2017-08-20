@@ -279,8 +279,10 @@ public class CplexModel {
 			//9. 停机约束
 			for(Integer airport:sce.affectedAirportSet) {
 				IloLinearNumExpr parkingConstraint = cplex.linearNumExpr();
-				GroundArc ga = sce.affectedGroundArcMap.get(airport);
-				parkingConstraint.addTerm(1, y[ga.id]);
+				List<GroundArc> gaList = sce.affectedGroundArcMap.get(airport);
+				for(GroundArc ga:gaList) {
+					parkingConstraint.addTerm(1, y[ga.id]);					
+				}
 				
 				cplex.addLe(parkingConstraint, sce.affectedGroundArcLimitMap.get(airport));
 			}
