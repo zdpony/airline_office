@@ -40,26 +40,28 @@ public class NetworkConstructor {
 		FlightArc arc = null;
 		
 		if(!f.isIncludedInTimeWindow) {
-			//如果该航班在调整时间窗口外
-			if(f.initialAircraft.id == aircraft.id) {			
-				arc = new FlightArc();
-				arc.flight = f;
-				arc.aircraft = aircraft;
-				arc.delay = f.fixedTakeoffTime - f.initialTakeoffT;
-				
-				/*arc.takeoffTime = f.initialTakeoffT+arc.delay;
-				arc.landingTime = arc.takeoffTime+flyTime;*/
-				
-				arc.takeoffTime = f.fixedTakeoffTime;
-				arc.landingTime = f.fixedLandingTime;
-				
-				arc.readyTime = arc.landingTime + Parameter.MIN_BUFFER_TIME;
-				
-				f.flightarcList.add(arc);
-				aircraft.flightArcList.add(arc);				
-				
-				arc.calculateCost();
-			}			
+			if(!f.isIncludedInConnecting){
+				//如果该航班在调整时间窗口外
+				if(f.initialAircraft.id == aircraft.id) {			
+					arc = new FlightArc();
+					arc.flight = f;
+					arc.aircraft = aircraft;
+					arc.delay = f.fixedTakeoffTime - f.initialTakeoffT;
+					
+					/*arc.takeoffTime = f.initialTakeoffT+arc.delay;
+					arc.landingTime = arc.takeoffTime+flyTime;*/
+					
+					arc.takeoffTime = f.fixedTakeoffTime;
+					arc.landingTime = f.fixedLandingTime;
+					
+					arc.readyTime = arc.landingTime + Parameter.MIN_BUFFER_TIME;
+					
+					f.flightarcList.add(arc);
+					aircraft.flightArcList.add(arc);				
+					
+					arc.calculateCost();
+				}
+			}						
 		}else {
 			//2.1 check whether f can be brought forward and generate earliness arcs
 			
@@ -638,6 +640,7 @@ public class NetworkConstructor {
 				}
 				
 				if(!aircraft.tabuLegs.contains(cf.secondFlight.leg)){
+					
 					generateArcForFlight(aircraft, cf.secondFlight, givenGap, scenario);
 				}
 			}

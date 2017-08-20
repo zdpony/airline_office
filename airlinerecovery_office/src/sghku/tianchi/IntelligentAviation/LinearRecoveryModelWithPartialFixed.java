@@ -210,15 +210,14 @@ public class LinearRecoveryModelWithPartialFixed {
 		for (Aircraft a : candidateAircraftList) {
 			
 			for(Flight f1:candidateFlightList) {
-				if(!f1.isIncludedInConnecting) {
-					if (!a.checkFlyViolation(f1)) {
-						a.singleFlightList.add(f1);
-					}
+				if (!a.checkFlyViolation(f1)) {
+					a.singleFlightList.add(f1);
 				}
 			}
 					
-			for(ConnectingFlightpair cf:candidateConnectingFlightList) {
+			for(ConnectingFlightpair cf:candidateConnectingFlightList) {				
 				if (!a.checkFlyViolation(cf)) {
+					
 					a.connectingFlightList.add(cf);
 				}
 			}
@@ -236,15 +235,12 @@ public class LinearRecoveryModelWithPartialFixed {
 			}
 		}
 		
-		for(Aircraft a:scenario.aircraftList) {
-			System.out.println("a:"+a.id+"  "+a.singleFlightList.size()+" "+a.connectingFlightList.size());
-		}
-		
 		// 每一个航班生成arc
 
 		// 为每一个飞机的网络模型生成arc
 		NetworkConstructor networkConstructor = new NetworkConstructor();
 		for (Aircraft aircraft : candidateAircraftList) {
+			
 			for (Flight f : aircraft.singleFlightList) {
 				networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
 			}
@@ -258,9 +254,10 @@ public class LinearRecoveryModelWithPartialFixed {
 
 			for (ConnectingFlightpair cf : aircraft.connectingFlightList) {
 				networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, gap,
-						true, scenario);
+						false, scenario);
 			}
 		}
+		
 
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
 	}

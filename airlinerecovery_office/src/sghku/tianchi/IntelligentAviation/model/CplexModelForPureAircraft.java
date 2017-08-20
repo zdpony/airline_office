@@ -69,8 +69,7 @@ public class CplexModelForPureAircraft {
 			}
 
 			System.out.println("start solving:"+flightArcList.size()+" "+connectingArcList.size()+" "+groundArcList.size()+" "+nodeList.size()+" "+ flightList.size());
-			
-			
+				
 			IloNumVar[] x = new IloNumVar[flightArcList.size()];
 			IloNumVar[] beta = new IloNumVar[connectingArcList.size()];
 			IloNumVar[] y = new IloNumVar[groundArcList.size()];
