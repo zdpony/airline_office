@@ -34,7 +34,8 @@ import sghku.tianchi.IntelligentAviation.entity.TransferPassenger;
 public class NetworkConstructor {
 	
 	//第一种生成方法，根据原始schedule大范围生成arc
-	public void generateArcForFlight(Aircraft aircraft, Flight f, int givenGap, Scenario scenario){
+	public List<FlightArc> generateArcForFlight(Aircraft aircraft, Flight f, int givenGap, Scenario scenario){
+		List<FlightArc> generatedFlightArcList = new ArrayList<>();
 		int presetGap = 5;
 		
 		FlightArc arc = null;
@@ -55,12 +56,14 @@ public class NetworkConstructor {
 					arc.takeoffTime = f.fixedTakeoffTime;
 					arc.landingTime = f.fixedLandingTime;
 					
-					arc.readyTime = arc.landingTime + Parameter.MIN_BUFFER_TIME;
+					arc.readyTime = arc.landingTime + (f.isShortConnection?f.shortConnectionTime:Parameter.MIN_BUFFER_TIME);
 					
 					f.flightarcList.add(arc);
 					aircraft.flightArcList.add(arc);				
 					
 					arc.calculateCost();
+					
+					generatedFlightArcList.add(arc);
 				}
 			}						
 		}else {
@@ -191,6 +194,7 @@ public class NetworkConstructor {
 					
 					arc.calculateCost();
 					aircraft.flightArcList.add(arc);
+					generatedFlightArcList.add(arc);
 					
 					//加入对应的起降时间点
 					if(isWithinSmalGapRegionOrigin) {
@@ -205,6 +209,8 @@ public class NetworkConstructor {
 				}
 			}
 		}
+		
+		return generatedFlightArcList;
 	}
 
 	
@@ -285,7 +291,9 @@ public class NetworkConstructor {
 		}
 	}
 	
-	public void generateArcForConnectingFlightPair(Aircraft aircraft, ConnectingFlightpair cf, int givenGap, boolean isGenerateArcForEachFlight, Scenario scenario){
+	public List<ConnectingArc> generateArcForConnectingFlightPair(Aircraft aircraft, ConnectingFlightpair cf, int givenGap, boolean isGenerateArcForEachFlight, Scenario scenario){
+		List<ConnectingArc> generatedConnectingArcList = new ArrayList<>();
+		
 		int presetGap = 5;
 		
 		int connectionTime = Math.min(cf.secondFlight.initialTakeoffT-cf.firstFlight.initialLandingT, Parameter.MIN_BUFFER_TIME);
@@ -314,7 +322,7 @@ public class NetworkConstructor {
 				secondArc.delay = cf.secondFlight.fixedTakeoffTime - cf.secondFlight.initialTakeoffT;
 				secondArc.takeoffTime = cf.secondFlight.initialTakeoffT+secondArc.delay;
 				secondArc.landingTime = secondArc.takeoffTime+cf.secondFlight.flyTime;
-				secondArc.readyTime = secondArc.landingTime + Parameter.MIN_BUFFER_TIME;
+				secondArc.readyTime = secondArc.landingTime + (cf.secondFlight.isShortConnection?cf.secondFlight.shortConnectionTime:Parameter.MIN_BUFFER_TIME);
 
 				ConnectingArc ca = new ConnectingArc();
 				ca.firstArc = firstArc;
@@ -328,6 +336,7 @@ public class NetworkConstructor {
 				ca.connectingFlightPair = cf;
 				
 				ca.calculateCost();
+				generatedConnectingArcList.add(ca);
 			}
 		}else {
 			//otherwise, create a set of connecting arcs for this connecting flight
@@ -468,6 +477,7 @@ public class NetworkConstructor {
 								
 								connectingArcList.add(ca);
 								ca.calculateCost();
+								generatedConnectingArcList.add(ca);
 							}
 						}
 						
@@ -543,6 +553,7 @@ public class NetworkConstructor {
 							
 							connectingArcList.add(ca);
 							ca.calculateCost();
+							generatedConnectingArcList.add(ca);
 							
 							if(!isWithinAffectedRegionOrigin2 && isWithinAffectedRegionDestination2 ) {
 								break;								
@@ -634,7 +645,7 @@ public class NetworkConstructor {
 				}
 			}
 			
-			//3. 为每一个flight生成arc，可以单独取消联程航班中的一段
+			/*//3. 为每一个flight生成arc，可以单独取消联程航班中的一段
 			if(isGenerateArcForEachFlight) {
 				if(!aircraft.tabuLegs.contains(cf.firstFlight.leg)){
 					generateArcForFlight(aircraft, cf.firstFlight, givenGap, scenario);
@@ -644,8 +655,10 @@ public class NetworkConstructor {
 					
 					generateArcForFlight(aircraft, cf.secondFlight, givenGap, scenario);
 				}
-			}
+			}*/
 		}
+		
+		return generatedConnectingArcList;
 	}
 	
 	

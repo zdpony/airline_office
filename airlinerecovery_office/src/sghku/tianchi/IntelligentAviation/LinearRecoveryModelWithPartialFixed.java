@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import sghku.tianchi.IntelligentAviation.algorithm.NetworkConstructor;
@@ -13,8 +15,10 @@ import sghku.tianchi.IntelligentAviation.common.OutputResult;
 import sghku.tianchi.IntelligentAviation.common.Parameter;
 import sghku.tianchi.IntelligentAviation.entity.Aircraft;
 import sghku.tianchi.IntelligentAviation.entity.Airport;
+import sghku.tianchi.IntelligentAviation.entity.ConnectingArc;
 import sghku.tianchi.IntelligentAviation.entity.ConnectingFlightpair;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
+import sghku.tianchi.IntelligentAviation.entity.FlightArc;
 import sghku.tianchi.IntelligentAviation.entity.GroundArc;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
 import sghku.tianchi.IntelligentAviation.entity.Solution;
@@ -40,6 +44,7 @@ public class LinearRecoveryModelWithPartialFixed {
 	public static void runOneIteration(int fixNumber, boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 
+		
 		AircraftPathReader scheduleReader = new AircraftPathReader();
 		
 		//读取已经固定的飞机路径
@@ -240,25 +245,37 @@ public class LinearRecoveryModelWithPartialFixed {
 		// 为每一个飞机的网络模型生成arc
 		NetworkConstructor networkConstructor = new NetworkConstructor();
 		for (Aircraft aircraft : candidateAircraftList) {
-			
+	
 			for (Flight f : aircraft.singleFlightList) {
-				networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
+				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);			
 			}
 
 			for (Flight f : aircraft.straightenedFlightList) {
-				networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
+				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
 			}
 			for (Flight f : aircraft.deadheadFlightList) {
-				networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
+				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
 			}
 
 			for (ConnectingFlightpair cf : aircraft.connectingFlightList) {
-				networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, gap,
+				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, gap,
 						false, scenario);
+				
+				//为每一个flight生成arc
+				//3. 为每一个flight生成arc，可以单独取消联程航班中的一段
+				/*if(cf.firstFlight.isIncludedInTimeWindow && cf.secondFlight.isIncludedInTimeWindow) {
+					if(!aircraft.tabuLegs.contains(cf.firstFlight.leg)){
+						List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, cf.firstFlight, gap, scenario);
+					}
+					
+					if(!aircraft.tabuLegs.contains(cf.secondFlight.leg)){				
+						List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, cf.secondFlight, gap, scenario);
+					}
+				}*/
 			}
+			
 		}
 		
-
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
 	}
 	

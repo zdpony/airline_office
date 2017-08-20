@@ -110,6 +110,10 @@ public class Flight {
 	public boolean isStraightenedFirst = false;
 	public boolean isStraightenedSecond = false;
 	
+	//该航班是否对应于short connection
+	public boolean isShortConnection = false;
+	public int shortConnectionTime = 0;
+	
 	// 初始化该航班所对应的网络模型
 	public void init() {
 		flightarcList.clear();

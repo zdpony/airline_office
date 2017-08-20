@@ -54,6 +54,7 @@ public class Scenario {
 	public Map<Integer, GroundArc> affectedGroundArcMap = new HashMap<>();
 	public Map<Integer, Integer> affectedGroundArcLimitMap = new HashMap<>();
 	
+
 	public Scenario() {
 
 	}
@@ -278,6 +279,30 @@ public class Scenario {
 			airportCapacityMap.put("61_"+i, 2);
 		}
 		System.out.println("------------------------------------------");
+		
+		//计算初始存在的short connection
+		for(Aircraft a:aircraftList){
+			for(int i=0;i<a.flightList.size()-1;i++){
+				Flight f1 = a.flightList.get(i);
+				Flight f2 = a.flightList.get(i+1);
+				if(f2.isIncludedInTimeWindow){					
+					
+				}else{
+					int connT = f2.initialTakeoffT - f1.initialLandingT;
+					
+					if(connT < Parameter.MIN_BUFFER_TIME){
+						if(f1.isIncludedInTimeWindow || f2.isIncludedInTimeWindow){
+							System.out.println("short connection exists in adjustable time window!");
+							System.exit(1);
+						}
+						f1.isShortConnection = true;
+						f1.shortConnectionTime = connT;
+					}
+					
+				}
+			}
+		}
+		
 	}
 
 	// 读取机场信息

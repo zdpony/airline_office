@@ -69,7 +69,7 @@ public class CplexModelForPureAircraft {
 			}
 
 			System.out.println("start solving:"+flightArcList.size()+" "+connectingArcList.size()+" "+groundArcList.size()+" "+nodeList.size()+" "+ flightList.size());
-				
+			
 			IloNumVar[] x = new IloNumVar[flightArcList.size()];
 			IloNumVar[] beta = new IloNumVar[connectingArcList.size()];
 			IloNumVar[] y = new IloNumVar[groundArcList.size()];
@@ -170,8 +170,11 @@ public class CplexModelForPureAircraft {
 				/*if(!f.isLatest){
 					flightSelectionConstraint.addTerm(1, z[i]);
 				}*/
-				flightSelectionConstraint.addTerm(1, z[i]);
-
+				//对于在调整窗口内的航班才可以取消
+				if(f.isIncludedInTimeWindow){
+					flightSelectionConstraint.addTerm(1, z[i]);	
+				}
+				
 				cplex.addEq(flightSelectionConstraint, 1);
 			}
 
