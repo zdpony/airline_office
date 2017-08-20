@@ -45,8 +45,12 @@ public class AircraftPathReader {
 				f.isFixed = true;
 				f.actualTakeoffT = Integer.parseInt(flightArray[2]);
 				f.actualLandingT = Integer.parseInt(flightArray[3]);
+				f.actualOrigin = f.leg.originAirport;
+				f.actualDestination = f.leg.destinationAirport;
 				
 				a.fixedDestination = f.leg.destinationAirport;
+				
+				a.fixedFlightList.add(f);
 				
 				if(idSet.contains(f.id)){
 					System.out.println("error 1 "+f.id);
@@ -79,6 +83,8 @@ public class AircraftPathReader {
 				f.actualLandingT = Integer.parseInt(flightArray[4]);
 				f.isStraightenedFirst = true;
 				f2.isStraightenedSecond = true;
+				
+				a.fixedFlightList.add(f);
 				
 				a.fixedDestination = scenario.flightList.get(Integer.parseInt(flightArray[2])-1).leg.destinationAirport;
 			}else if(flightArray[0].equals("d")) {

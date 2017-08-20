@@ -224,7 +224,7 @@ public class CplexModelForPureAircraft {
 					airportConstraint.addTerm(1, beta[arc.id]);
 				}
 				
-				cplex.addLe(airportConstraint, 2);
+				cplex.addLe(airportConstraint, sce.airportCapacityMap.get(key));
 			}
 			
 			//9. 停机约束

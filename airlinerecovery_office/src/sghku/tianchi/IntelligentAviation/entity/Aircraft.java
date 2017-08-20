@@ -61,6 +61,8 @@ public class Aircraft {
 	
 	public boolean isFixed = false;
 	public Airport fixedDestination = null;
+	//最终确定的飞行路线
+	public List<Flight> fixedFlightList = new ArrayList<>();
 	
 	//计算两个飞机之间swap的概率
 	public int calculateSimilarity(Aircraft a2){

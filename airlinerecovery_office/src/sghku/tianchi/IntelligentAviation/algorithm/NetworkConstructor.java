@@ -892,8 +892,8 @@ public class NetworkConstructor {
 					
 					aircraft.groundArcList.add(groundArc);
 					
-					if(scenario.affectedAirportSet.contains(airport.id)) {
-						if(!isFound) {
+					if(!isFound) {
+						if(scenario.affectedAirportSet.contains(airport.id)) {					
 							if(n1.time >= Parameter.airportFirstTimeWindowEnd && n2.time <= Parameter.airportSecondTimeWindowStart) {
 								scenario.affectedGroundArcMap.put(airport.id, groundArc);
 								isFound = true;

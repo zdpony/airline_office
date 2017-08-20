@@ -15,6 +15,7 @@ import sghku.tianchi.IntelligentAviation.entity.Aircraft;
 import sghku.tianchi.IntelligentAviation.entity.Airport;
 import sghku.tianchi.IntelligentAviation.entity.ConnectingFlightpair;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
+import sghku.tianchi.IntelligentAviation.entity.GroundArc;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
 import sghku.tianchi.IntelligentAviation.entity.Solution;
 import sghku.tianchi.IntelligentAviation.model.CplexModel;
@@ -28,9 +29,9 @@ public class LinearRecoveryModelWithPartialFixed {
 		
 		//前面两个循环求解线性松弛模型
 		runOneIteration(70,true);
-		runOneIteration(40, true);
+		//runOneIteration(40, true);
 		//最后一个循环直接解整数规划模型
-		runOneIteration(32, false);
+		//runOneIteration(32, false);
 		
 		//将航班时刻尽可能往前推进
 		//pushforward();
@@ -92,11 +93,93 @@ public class LinearRecoveryModelWithPartialFixed {
 			a.flightList.get(a.flightList.size()-1).leg.destinationAirport.finalAircraftNumber[a.type-1]++;
 		}
 		for(Aircraft a:scenario.aircraftList) {
-			if(a.isFixed) {
-				
+			if(a.isFixed) {				
 				a.fixedDestination.finalAircraftNumber[a.type-1]--;
 			}
 		}
+		//更新起降约束
+		for(Flight f:scenario.flightList) {
+			if(f.isFixed) {			
+				if(scenario.affectedAirportSet.contains(f.actualOrigin)) {
+					for(long i=Parameter.airportFirstTimeWindowStart;i<=Parameter.airportFirstTimeWindowEnd;i+=5) {
+						if(i == f.actualTakeoffT) {
+							int n = scenario.airportCapacityMap.get(f.actualOrigin.id+"_"+i);
+							scenario.airportCapacityMap.put(f.actualOrigin.id+"_"+i, n-1);
+							
+							if(n-1 < 0) {
+								System.out.println("error : negative capacity");
+							}
+						}
+					}
+					
+					for(long i=Parameter.airportSecondTimeWindowStart;i<=Parameter.airportSecondTimeWindowEnd;i+=5) {
+						if(i == f.actualTakeoffT) {
+							int n = scenario.airportCapacityMap.get(f.actualOrigin.id+"_"+i);
+							scenario.airportCapacityMap.put(f.actualOrigin.id+"_"+i, n-1);
+							
+							if(n-1 < 0) {
+								System.out.println("error : negative capacity");
+							}
+						}
+					}					
+				}else if(scenario.affectedAirportSet.contains(f.actualDestination)) {
+					for(long i=Parameter.airportFirstTimeWindowStart;i<=Parameter.airportFirstTimeWindowEnd;i+=5) {
+						if(i == f.actualLandingT) {
+							int n = scenario.airportCapacityMap.get(f.actualDestination.id+"_"+i);
+							scenario.airportCapacityMap.put(f.actualDestination.id+"_"+i, n-1);
+							
+							if(n-1 < 0) {
+								System.out.println("error : negative capacity");
+							}
+						}
+					}
+					
+					for(long i=Parameter.airportSecondTimeWindowStart;i<=Parameter.airportSecondTimeWindowEnd;i+=5) {
+						if(i == f.actualLandingT) {
+							int n = scenario.airportCapacityMap.get(f.actualDestination.id+"_"+i);
+							scenario.airportCapacityMap.put(f.actualDestination.id+"_"+i, n-1);
+							
+							if(n-1 < 0) {
+								System.out.println("error : negative capacity");
+							}
+						}
+					}	
+				}			
+			}
+		}
+		
+		//更新停机约束
+		for(Aircraft a:scenario.aircraftList) {
+			if(a.isFixed) {
+				if(a.fixedFlightList.size() > 0) {
+					for(int i=0;i<a.fixedFlightList.size()-1;i++) {
+						Flight f1 = a.fixedFlightList.get(i);
+						Flight f2 = a.fixedFlightList.get(i+1);
+					
+						if(!f1.actualDestination.equals(f1.actualOrigin)) {
+							System.out.println("error aircraft routes");
+						}
+						if(f1.actualLandingT >= f2.actualTakeoffT) {
+							System.out.println("error connection time");
+						}
+						
+						if(scenario.affectedAirportSet.contains(f1.actualDestination.id)) {
+							GroundArc ga = scenario.affectedGroundArcMap.get(f1.actualDestination.id);
+							
+							if(f1.actualLandingT+Parameter.MIN_BUFFER_TIME <= ga.fromNode.time && f2.actualTakeoffT >= ga.toNode.time) {
+								int limit = scenario.affectedGroundArcLimitMap.get(f1.actualDestination.id);
+								scenario.affectedGroundArcLimitMap.put(f1.actualDestination.id, limit-1);
+								
+								if(limit-1 < 0) {
+									System.out.println("negative airport limit");
+								}
+							}
+						}
+					}
+				}		
+			}
+		}
+		
 		for(Airport a:scenario.airportList){
 			for(int type=0;type<Parameter.TOTAL_AIRCRAFTTYPE_NUM;type++) {
 				if(a.finalAircraftNumber[type] < 0){
@@ -123,7 +206,6 @@ public class LinearRecoveryModelWithPartialFixed {
 	// 构建时空网络流模型
 	public static void buildNetwork(Scenario scenario, List<Aircraft> candidateAircraftList, List<Flight> candidateFlightList, List<ConnectingFlightpair> candidateConnectingFlightList, int gap) {
 	
-
 		// 计算当前问题需要考虑的航班
 		for (Aircraft a : candidateAircraftList) {
 			
@@ -132,16 +214,14 @@ public class LinearRecoveryModelWithPartialFixed {
 					a.singleFlightList.add(f1);
 				}
 			}
-			
-			
+					
 			for(ConnectingFlightpair cf:candidateConnectingFlightList) {
 				if (!a.checkFlyViolation(cf)) {
 					a.connectingFlightList.add(cf);
 				}
 			}
 		}
-
-		
+	
 		// 生成联程拉直航班
 		for (int i = 0; i < candidateAircraftList.size(); i++) {
 			Aircraft targetA = candidateAircraftList.get(i);

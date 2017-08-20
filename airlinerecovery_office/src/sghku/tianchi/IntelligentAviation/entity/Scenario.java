@@ -49,6 +49,7 @@ public class Scenario {
 	public List<String> keyList = new ArrayList<>();
 	public Map<String, List<FlightArc>> airportFlightArcMap = new HashMap<>();	
 	public Map<String, List<ConnectingArc>> airportConnectingArcMap = new HashMap<>();
+	public Map<String, Integer> airportCapacityMap = new HashMap<>();
 	
 	public Map<Integer, GroundArc> affectedGroundArcMap = new HashMap<>();
 	public Map<Integer, Integer> affectedGroundArcLimitMap = new HashMap<>();
@@ -253,6 +254,10 @@ public class Scenario {
 			airportConnectingArcMap.put("49_"+i, new ArrayList<>());
 			airportConnectingArcMap.put("50_"+i, new ArrayList<>());
 			airportConnectingArcMap.put("61_"+i, new ArrayList<>());
+			
+			airportCapacityMap.put("49_"+i, 2);
+			airportCapacityMap.put("50_"+i, 2);
+			airportCapacityMap.put("61_"+i, 2);
 		}
 		
 		for(long i=Parameter.airportSecondTimeWindowStart;i<=Parameter.airportSecondTimeWindowEnd;i+=5) {
@@ -267,6 +272,10 @@ public class Scenario {
 			airportConnectingArcMap.put("49_"+i, new ArrayList<>());
 			airportConnectingArcMap.put("50_"+i, new ArrayList<>());
 			airportConnectingArcMap.put("61_"+i, new ArrayList<>());
+			
+			airportCapacityMap.put("49_"+i, 2);
+			airportCapacityMap.put("50_"+i, 2);
+			airportCapacityMap.put("61_"+i, 2);
 		}
 		System.out.println("------------------------------------------");
 	}
