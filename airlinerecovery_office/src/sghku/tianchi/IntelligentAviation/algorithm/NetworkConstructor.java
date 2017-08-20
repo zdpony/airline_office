@@ -40,6 +40,7 @@ public class NetworkConstructor {
 		FlightArc arc = null;
 		
 		if(!f.isIncludedInTimeWindow) {
+			//因为在调整窗口外，不存在单独的联程航班
 			if(!f.isIncludedInConnecting){
 				//如果该航班在调整时间窗口外
 				if(f.initialAircraft.id == aircraft.id) {			
