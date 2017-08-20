@@ -206,6 +206,11 @@ public class NetworkBuilder {
 				}
 			}
 		}
+		
+		for(Aircraft a:scenario.aircraftList) {
+			System.out.println("a:"+a.id+"  "+a.singleFlightList.size()+" "+a.connectingFlightList.size());
+		}
+		System.exit(1);
 
 		// 每一个航班生成arc
 
