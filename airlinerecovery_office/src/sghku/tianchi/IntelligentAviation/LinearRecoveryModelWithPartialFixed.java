@@ -204,6 +204,7 @@ public class LinearRecoveryModelWithPartialFixed {
 	public static void solver(Scenario scenario, List<Aircraft> candidateAircraftList, List<Flight> candidateFlightList, List<ConnectingFlightpair> candidateConnectingFlightList, boolean isFractional) {
 		buildNetwork(scenario, candidateAircraftList, candidateFlightList, candidateConnectingFlightList, 60);
 		
+		//System.exit(1);
 		//求解CPLEX模型
 		CplexModelForPureAircraft model = new CplexModelForPureAircraft();
 		Solution solution = model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList,scenario, isFractional, true);		
@@ -258,23 +259,14 @@ public class LinearRecoveryModelWithPartialFixed {
 				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
 			}
 
+			int nnn = 0;
 			for (ConnectingFlightpair cf : aircraft.connectingFlightList) {
 				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, gap,
 						false, scenario);
-				
-				//为每一个flight生成arc
-				//3. 为每一个flight生成arc，可以单独取消联程航班中的一段
-				/*if(cf.firstFlight.isIncludedInTimeWindow && cf.secondFlight.isIncludedInTimeWindow) {
-					if(!aircraft.tabuLegs.contains(cf.firstFlight.leg)){
-						List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, cf.firstFlight, gap, scenario);
-					}
-					
-					if(!aircraft.tabuLegs.contains(cf.secondFlight.leg)){				
-						List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, cf.secondFlight, gap, scenario);
-					}
-				}*/
+				nnn += caList.size();
 			}
 			
+			System.out.println("nnn:"+nnn);
 		}
 		
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
