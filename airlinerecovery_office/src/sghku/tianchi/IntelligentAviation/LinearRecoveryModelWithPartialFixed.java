@@ -233,7 +233,7 @@ public class LinearRecoveryModelWithPartialFixed {
 				}
 			}
 		}
-
+		
 		// 每一个航班生成arc
 
 		// 为每一个飞机的网络模型生成arc
@@ -252,7 +252,7 @@ public class LinearRecoveryModelWithPartialFixed {
 
 			for (ConnectingFlightpair cf : aircraft.connectingFlightList) {
 				networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, gap,
-						true, scenario);
+						false, scenario);
 			}
 		}
 
