@@ -205,6 +205,8 @@ public class Scenario {
 				Itinerary ite = new Itinerary();
 				ite.flight = f;
 				ite.volume = f.normalPassengerNumber;
+				
+				f.itinerary = ite;
 
 				itineraryList.add(ite);
 			}

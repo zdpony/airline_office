@@ -6,6 +6,8 @@ import java.io.IOException;
 import sghku.tianchi.IntelligentAviation.entity.ConnectingFlightpair;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
 import sghku.tianchi.IntelligentAviation.entity.FlightArc;
+import sghku.tianchi.IntelligentAviation.entity.FlightSectionItinerary;
+import sghku.tianchi.IntelligentAviation.entity.Itinerary;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
 
 public class OutputResultWithPassenger {
@@ -87,16 +89,38 @@ public class OutputResultWithPassenger {
 				}
 				
 				//passengers
-				/*if(f.isSignChange){
-					sb.append("1,");
-					for(Flight signTo:f.signChangeFlightList){
-						sb.append(signTo.id +":"+signTo.signMap.get(f.id)+"&");
+				
+				boolean isSignChange = false;
+				StringBuilder signChangeSb = new StringBuilder();
+				
+				if(f.itinerary != null){
+					for(FlightSectionItinerary fsi:f.itinerary.flightSectionItineraryList){
+						if(fsi.volume > 1e-6){
+							if(fsi.flightSection.flight.id != f.id){
+								signChangeSb.append(fsi.flightSection.flight.id +":"+(int)Math.round(fsi.volume)+"&");
+								isSignChange = true;
+							}
+						}
 					}
-					sb.deleteCharAt(sb.length()-1);  //delete the last &
+					
+					if(isSignChange){
+
+						System.out.println("previous:"+signChangeSb.toString());
+						signChangeSb.deleteCharAt(signChangeSb.length()-1);  //delete the last &
+						System.out.println("after:"+signChangeSb.toString());
+
+					}
+				}
+				
+				
+				if(isSignChange){
+					
+					sb.append("1,");			
+					sb.append(signChangeSb.toString());
 					sb.append("\n");
 				}else{
 					sb.append("0,"+"\n");
-				}*/
+				}
 			}
 			
 	

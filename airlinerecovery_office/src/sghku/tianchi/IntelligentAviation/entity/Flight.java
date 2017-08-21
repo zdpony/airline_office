@@ -114,6 +114,10 @@ public class Flight {
 	public boolean isShortConnection = false;
 	public int shortConnectionTime = 0;
 	
+	//转签乘客信息
+	public Itinerary itinerary;
+
+	
 	// 初始化该航班所对应的网络模型
 	public void init() {
 		flightarcList.clear();

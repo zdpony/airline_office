@@ -124,7 +124,9 @@ public class CplexModel {
 			for(int i=0;i<flightSectionItineraryList.size();i++) {
 				FlightSectionItinerary fsi = flightSectionItineraryList.get(i);
 				fsi.id = i;	 
-				passX[i] = cplex.numVar(0, fsi.itinerary.volume);
+				//passX[i] = cplex.numVar(0, fsi.itinerary.volume);
+				passX[i] = cplex.intVar(0, fsi.itinerary.volume);
+				
 				obj.addTerm(fsi.unitCost, passX[i]);
 			}
 			for(int i=0;i<itineraryList.size();i++) {
@@ -454,12 +456,31 @@ public class CplexModel {
 						
 						if(cplex.getValue(x[fa.id])>1e-6){
 							solution.selectedFlightArcList.add(fa);
+							
+							//更新flight arc的时间
+							fa.flight.actualTakeoffT = fa.takeoffTime;
+							fa.flight.actualLandingT = fa.landingTime;
 						}
 					}
 					for(ConnectingArc arc:connectingArcList){
 						if(cplex.getValue(beta[arc.id]) > 1e-6){
 							
-							solution.selectedConnectingArcList.add(arc);			
+							solution.selectedConnectingArcList.add(arc);
+							//更新flight arc的时间
+
+							arc.connectingFlightPair.firstFlight.actualTakeoffT = arc.firstArc.takeoffTime;
+							arc.connectingFlightPair.firstFlight.actualLandingT = arc.firstArc.landingTime;
+							
+							arc.connectingFlightPair.secondFlight.actualTakeoffT = arc.secondArc.takeoffTime;
+							arc.connectingFlightPair.secondFlight.actualLandingT = arc.secondArc.landingTime;
+						}
+					}
+					
+					for(int i=0;i<flightSectionItineraryList.size();i++) {
+						FlightSectionItinerary fsi = flightSectionItineraryList.get(i);
+						if(cplex.getValue(passX[i]) > 1e-6){
+							//更新具体转签行程信息
+							fsi.volume = cplex.getValue(passX[i]);
 						}
 					}
 
@@ -504,8 +525,6 @@ public class CplexModel {
 							
 							System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
 							totalArcCost += fa.cost;
-							fa.flight.actualTakeoffT = fa.takeoffTime;
-							fa.flight.actualLandingT = fa.landingTime;
 						}
 					}
 					System.out.println("totalArcCost:"+totalArcCost);
@@ -514,13 +533,6 @@ public class CplexModel {
 					for(ConnectingArc arc:connectingArcList){
 						if(cplex.getValue(beta[arc.id]) > 1e-6){
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
-							
-							arc.connectingFlightPair.firstFlight.actualTakeoffT = arc.firstArc.takeoffTime;
-							arc.connectingFlightPair.firstFlight.actualLandingT = arc.firstArc.landingTime;
-							
-							arc.connectingFlightPair.secondFlight.actualTakeoffT = arc.secondArc.takeoffTime;
-							arc.connectingFlightPair.secondFlight.actualLandingT = arc.secondArc.landingTime;
-							
 						}
 					}
 					for(GroundArc ga:groundArcList){

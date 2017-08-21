@@ -12,6 +12,7 @@ import java.util.Scanner;
 import sghku.tianchi.IntelligentAviation.algorithm.NetworkConstructor;
 import sghku.tianchi.IntelligentAviation.clique.Clique;
 import sghku.tianchi.IntelligentAviation.common.OutputResult;
+import sghku.tianchi.IntelligentAviation.common.OutputResultWithPassenger;
 import sghku.tianchi.IntelligentAviation.common.Parameter;
 import sghku.tianchi.IntelligentAviation.entity.Aircraft;
 import sghku.tianchi.IntelligentAviation.entity.Airport;
@@ -41,6 +42,15 @@ public class FlightReschedulingConsideringPassenger {
 	public static void runOneIteration(boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 		System.out.println("---------------this way ---------");
+		
+		//1.初始化，所有的航班取消
+		for(Flight f:scenario.flightList){
+			f.isCancelled = true;
+			f.aircraft = f.initialAircraft;
+			f.actualTakeoffT = f.initialTakeoffT;
+			f.actualLandingT = f.initialLandingT;
+		}
+		
 		AircraftPathReader scheduleReader = new AircraftPathReader();
 		
 		//读取已经固定的飞机路径
@@ -78,7 +88,9 @@ public class FlightReschedulingConsideringPassenger {
 					
 					f1.flyTime = f1.actualLandingT-f1.actualTakeoffT;
 												
-					f1.initialLandingT = f1.initialTakeoffT + f1.flyTime;	
+					f1.initialLandingT = f1.initialTakeoffT + f1.flyTime;
+					
+					f1.connectingFlightpair.secondFlight.isStraightened = true;
 					System.out.println("one straightened flight");
 				}
 				
@@ -153,6 +165,8 @@ public class FlightReschedulingConsideringPassenger {
 		CplexModel model = new CplexModel();
 		model.run(candidateAircraftList, candidateFlightList, new ArrayList(), scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, isFractional, true, false);
 
+		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
+		outputResultWithPassenger.writeResult(scenario, "firstresult821.csv");
 	}
 
 	// 构建时空网络流模型

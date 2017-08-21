@@ -46,7 +46,10 @@ public class AircraftPathReader {
 
 			if (flightArray[0].equals("n")) {
 				Flight f = scenario.flightList.get(Integer.parseInt(flightArray[1]) - 1);
+				
 				f.isFixed = true;
+				f.aircraft = a;
+				f.isCancelled = false;
 				f.actualTakeoffT = Integer.parseInt(flightArray[2]);
 				f.actualLandingT = Integer.parseInt(flightArray[3]);
 				f.actualOrigin = f.leg.originAirport;
@@ -84,6 +87,8 @@ public class AircraftPathReader {
 				f.actualDestination = f2.leg.destinationAirport;
 				f.actualTakeoffT = Integer.parseInt(flightArray[3]);
 				f.actualLandingT = Integer.parseInt(flightArray[4]);
+				f.aircraft = a;
+				f.isCancelled = false;
 				f.isStraightenedFirst = true;
 				f2.isStraightenedSecond = true;
 
