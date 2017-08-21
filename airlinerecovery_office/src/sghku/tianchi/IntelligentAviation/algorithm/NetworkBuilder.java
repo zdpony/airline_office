@@ -249,7 +249,7 @@ public class NetworkBuilder {
 		
 		//求解模型
 		CplexModel cplexModel = new CplexModel();
-		cplexModel.run(smallAircraftList, clique.realFlightList, clique.realConnectingFlightPairList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, true, true);
+		cplexModel.run(smallAircraftList, clique.realFlightList, clique.realConnectingFlightPairList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, true, true, true);
 		
 	}
 

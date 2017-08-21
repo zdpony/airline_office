@@ -47,7 +47,7 @@ public class CplexModelForPureAircraft {
 			if(isFractional){
 				
 			}else{
-				cplex.setOut(null);				
+				//cplex.setOut(null);				
 			}
 			
 			/*cplex.setParam(IloCplex.Param.RootAlgorithm,

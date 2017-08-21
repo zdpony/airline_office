@@ -27,16 +27,18 @@ import sghku.tianchi.IntelligentAviation.entity.GroundArc;
 import sghku.tianchi.IntelligentAviation.entity.Itinerary;
 import sghku.tianchi.IntelligentAviation.entity.Node;
 import sghku.tianchi.IntelligentAviation.entity.ParkingInfo;
+import sghku.tianchi.IntelligentAviation.entity.PassengerTransfer;
 import sghku.tianchi.IntelligentAviation.entity.Path;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
 import sghku.tianchi.IntelligentAviation.entity.Solution;
+import sghku.tianchi.IntelligentAviation.entity.TransferPassenger;
 
 public class CplexModel {
 	public IloCplex cplex;
 
 	//the network flow model for initial problem solving
 
-	public Solution run(List<Aircraft> aircraftList, List<Flight> flightList, List<ConnectingFlightpair> cfList, List<Airport> airportList, Scenario sce, List<FlightSection> flightSectionList, List<Itinerary> itineraryList, List<FlightSectionItinerary> flightSectionItineraryList, boolean isFractional, boolean isAllowToCancelSingleFlightInAnConnectingFlight){
+	public Solution run(List<Aircraft> aircraftList, List<Flight> flightList, List<ConnectingFlightpair> cfList, List<Airport> airportList, Scenario sce, List<FlightSection> flightSectionList, List<Itinerary> itineraryList, List<FlightSectionItinerary> flightSectionItineraryList, boolean isFractional, boolean isAllowToCancelSingleFlightInAnConnectingFlight, boolean isCancelAllowed){
 		Solution solution = new Solution();
 		solution.involvedAircraftList.addAll(aircraftList);
 		
@@ -47,7 +49,7 @@ public class CplexModel {
 			if(isFractional){
 				
 			}else{
-				cplex.setOut(null);				
+				//cplex.setOut(null);				
 			}
 
 			List<FlightArc> flightArcList = new ArrayList<>();
@@ -116,7 +118,8 @@ public class CplexModel {
 					obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingCancellationCost, z[i]);					
 				}else{
 					obj.addTerm(f.importance*Parameter.COST_CANCEL, z[i]);
-				}			}
+				}			
+			}
 			
 			for(int i=0;i<flightSectionItineraryList.size();i++) {
 				FlightSectionItinerary fsi = flightSectionItineraryList.get(i);
@@ -187,7 +190,11 @@ public class CplexModel {
 				/*if(!f.isLatest){
 					flightSelectionConstraint.addTerm(1, z[i]);
 				}*/
-				flightSelectionConstraint.addTerm(1, z[i]);
+				if(isCancelAllowed){
+					if(f.isIncludedInTimeWindow){
+						flightSelectionConstraint.addTerm(1, z[i]);	
+					}
+				}
 
 				cplex.addEq(flightSelectionConstraint, 1);
 			}
@@ -489,15 +496,31 @@ public class CplexModel {
 						e1.printStackTrace();
 					}
 					
+					double totalArcCost = 0;
 					for(FlightArc fa:flightArcList){
 						
 						if(cplex.getValue(x[fa.id])>1e-6){
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);
+							
+							System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
+							totalArcCost += fa.cost;
+							fa.flight.actualTakeoffT = fa.takeoffTime;
+							fa.flight.actualLandingT = fa.landingTime;
 						}
 					}
+					System.out.println("totalArcCost:"+totalArcCost);
+					
+					
 					for(ConnectingArc arc:connectingArcList){
 						if(cplex.getValue(beta[arc.id]) > 1e-6){
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
+							
+							arc.connectingFlightPair.firstFlight.actualTakeoffT = arc.firstArc.takeoffTime;
+							arc.connectingFlightPair.firstFlight.actualLandingT = arc.firstArc.landingTime;
+							
+							arc.connectingFlightPair.secondFlight.actualTakeoffT = arc.secondArc.takeoffTime;
+							arc.connectingFlightPair.secondFlight.actualLandingT = arc.secondArc.landingTime;
+							
 						}
 					}
 					for(GroundArc ga:groundArcList){
@@ -617,7 +640,14 @@ public class CplexModel {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-									
+											
+					int numOfMissedConnections = 0;
+					for(TransferPassenger pt:sce.transferPassengerList){
+						if(pt.inFlight.actualLandingT + pt.minTurnaroundTime > pt.outFlight.actualTakeoffT){
+							numOfMissedConnections += pt.volume;
+						}
+					}
+					System.out.println("numOfMissedConnections:"+numOfMissedConnections);
 				}
 			
 			}else{
