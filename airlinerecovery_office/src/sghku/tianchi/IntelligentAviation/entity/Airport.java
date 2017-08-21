@@ -58,5 +58,8 @@ public class Airport {
 		return true;
 	}
 	
+	public String toString(){
+		return id+"";
+	}
 	
 }

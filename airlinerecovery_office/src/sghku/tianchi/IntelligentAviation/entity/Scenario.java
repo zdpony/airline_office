@@ -285,7 +285,7 @@ public class Scenario {
 			for(int i=0;i<a.flightList.size()-1;i++){
 				Flight f1 = a.flightList.get(i);
 				Flight f2 = a.flightList.get(i+1);
-				if(f2.isIncludedInTimeWindow){					
+				/*if(f2.isIncludedInTimeWindow){					
 					
 				}else{
 					int connT = f2.initialTakeoffT - f1.initialLandingT;
@@ -299,10 +299,24 @@ public class Scenario {
 						f1.shortConnectionTime = connT;
 					}
 					
+				}*/
+				
+				int connT = f2.initialTakeoffT - f1.initialLandingT;
+				
+				if(connT < Parameter.MIN_BUFFER_TIME){
+					if(f1.isIncludedInTimeWindow || f2.isIncludedInTimeWindow){
+						if(f1.isIncludedInConnecting && f2.isIncludedInConnecting){
+							
+						}else{
+							//System.out.println("short connection exists in adjustable time window! "+f1.id+" "+f2.id+" "+f1.isIncludedInConnecting+" "+f2.isIncludedInConnecting+" "+f1.isIncludedInTimeWindow+" "+f2.isIncludedInTimeWindow+" "+(f2.initialTakeoffT-f1.initialLandingT)+" "+Parameter.airportSecondTimeWindowStart+" "+f2.initialTakeoffT);
+							//System.exit(1);
+						}					
+					}
+					f1.isShortConnection = true;
+					f1.shortConnectionTime = connT;
 				}
 			}
 		}
-		
 	}
 
 	// 读取机场信息

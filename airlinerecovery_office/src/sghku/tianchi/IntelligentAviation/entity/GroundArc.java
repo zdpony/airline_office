@@ -7,12 +7,16 @@ public class GroundArc {
 	public Node fromNode;  
 	public Node toNode;   
 	
+	public Aircraft aircraft;
+	
 	//标记该地面arc是否是source或者sink
 	public boolean isSource = false;
 	public boolean isSink = false;
 	
 	public int flow;
 	public double fractionalFlow;
+	
+	public boolean isVisited = false;
 	
 	//检测该地面arc是否违反约束
 	public boolean checkViolation(){

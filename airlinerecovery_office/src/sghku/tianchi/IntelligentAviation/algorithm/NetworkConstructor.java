@@ -229,82 +229,38 @@ public class NetworkConstructor {
 		return generatedFlightArcList;
 	}
 
-	
-	public void generateArcForFlightBasedOnReference(Aircraft aircraft, Flight f){
+	//根据fix的schedule来
+	public List<FlightArc> generateArcForFlightBasedOnFixedSchedule(Aircraft aircraft, Flight f, Scenario scenario){
+		List<FlightArc> generatedFlightArcList = new ArrayList<>();
+		int presetGap = 5;
+		
 		FlightArc arc = null;
 		
-		//2.1 check whether f can be brought forward and generate earliness arcs
-		
-		int earliestT = f.initialTakeoffT;
-		int latestT = 0;
-		
-		if(f.isDeadhead) {
-			//如果是调机航班，则只能小范围延误
-			latestT = f.initialTakeoffT + Parameter.NORMAL_DELAY_TIME;
-		}else {
-			if(f.isDomestic){
-				latestT = f.initialTakeoffT + Parameter.MAX_DELAY_DOMESTIC_TIME;
-			}else{
-				latestT = f.initialTakeoffT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
-			}
-			
-		}
-				
-		if(f.isAllowtoBringForward){
-			earliestT = f.initialTakeoffT - Parameter.MAX_LEAD_TIME;
+		arc = new FlightArc();
+		arc.flight = f;
+		arc.aircraft = aircraft;
+		if(f.actualTakeoffT - f.initialTakeoffT < 0){
+			arc.earliness = f.initialTakeoffT - f.actualTakeoffT;
+		}else{
+			arc.delay = f.actualTakeoffT - f.initialTakeoffT;			
 		}
 		
-		int flyTime = f.flyTime;
+		/*arc.takeoffTime = f.initialTakeoffT+arc.delay;
+		arc.landingTime = arc.takeoffTime+flyTime;*/
 		
-		if(f.isDeadhead) {
-			flyTime = f.leg.flytimeArray[aircraft.type-1];
-		}else if(f.isStraightened) {
-			flyTime = f.leg.flytimeArray[aircraft.type-1];
-			if(flyTime <= 0) {
-				flyTime = f.connectingFlightpair.firstFlight.initialLandingT-f.connectingFlightpair.firstFlight.initialTakeoffT + f.connectingFlightpair.secondFlight.initialLandingT-f.connectingFlightpair.secondFlight.initialTakeoffT;
-			}
-		}
-				
-		for(int i=Parameter.neighStartIndex;i<=Parameter.neighEndIndex;i++){
-			
-			arc = new FlightArc();
-			arc.flight = f;
-			arc.aircraft = aircraft;
-			
-			arc.takeoffTime = f.actualTakeoffT+i*Parameter.neighGap;
-			
-			if(arc.takeoffTime < earliestT || arc.takeoffTime > latestT) {
-				continue;
-			}
-
-			int delay = arc.takeoffTime - f.initialTakeoffT;
-			
-			if(delay < 0) {
-				arc.earliness = -delay;
-			}else {
-				arc.delay = delay;
-			}
-						
-			arc.landingTime = arc.takeoffTime+flyTime;
-			
-			arc.readyTime = arc.landingTime + Parameter.MIN_BUFFER_TIME;
-									
-			if(!arc.checkViolation()){
-				arc.calculateCost();
-				//如果是调剂航班，不需要做任何处理
-				if(f.isDeadhead) {
-					
-				}else if(f.isStraightened) {
-					//如果是联程拉直，将该arc加到对应的两段航班中
-					f.connectingFlightpair.firstFlight.flightarcList.add(arc);
-					f.connectingFlightpair.secondFlight.flightarcList.add(arc);
-				}else {
-					f.flightarcList.add(arc);
-				}
-				
-				aircraft.flightArcList.add(arc);
-			}
-		}
+		arc.takeoffTime = f.actualTakeoffT;
+		arc.landingTime = f.actualLandingT;
+		
+		arc.readyTime = arc.landingTime + (f.isShortConnection?f.shortConnectionTime:Parameter.MIN_BUFFER_TIME);
+		
+		f.flightarcList.add(arc);
+		aircraft.flightArcList.add(arc);				
+		
+		arc.calculateCost();
+		
+		generatedFlightArcList.add(arc);
+		
+		return generatedFlightArcList;
 	}
 	
 	public List<ConnectingArc> generateArcForConnectingFlightPair(Aircraft aircraft, ConnectingFlightpair cf, int givenGap, boolean isGenerateArcForEachFlight, Scenario scenario){
@@ -677,138 +633,6 @@ public class NetworkConstructor {
 		return generatedConnectingArcList;
 	}
 	
-	
-	public void generateArcForConnectingFlightPairBasedOnReference(Aircraft aircraft, ConnectingFlightpair cf, boolean isGenerateArcForEachFlight){
-		//otherwise, create a set of connecting arcs for this connecting flight
-		List<FlightArc> firstFlightArcList = new ArrayList<>();
-		
-		int connectionTime = Math.min(cf.secondFlight.initialTakeoffT-cf.firstFlight.initialLandingT, Parameter.MIN_BUFFER_TIME);
-		
-		if(!aircraft.tabuLegs.contains(cf.firstFlight.leg) && !aircraft.tabuLegs.contains(cf.secondFlight.leg)){
-			//only if this leg is not in the tabu list of the corresponding aircraft
-			FlightArc arc = null;
-	
-			//2.1 check whether f can be brought forward and generate earliness arcs
-			int earliestT = 0;
-
-			if(cf.firstFlight.isAllowtoBringForward){
-				earliestT = cf.firstFlight.initialTakeoffT - Parameter.MAX_LEAD_TIME;				
-			}
-
-			//2.3 generate delay arcs
-			int latestT = 0;
-			
-			if(cf.firstFlight.isDomestic){
-				latestT = cf.firstFlight.initialTakeoffT + Parameter.MAX_DELAY_DOMESTIC_TIME;								
-			}else{
-				latestT = cf.firstFlight.initialTakeoffT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;		
-			}
-			
-			for(int i=Parameter.neighStartIndex;i<=Parameter.neighEndIndex;i++){
-				
-				
-				arc = new FlightArc();
-				arc.flight = cf.firstFlight;
-				arc.aircraft = aircraft;
-				
-				arc.takeoffTime = cf.firstFlight.actualTakeoffT+i*Parameter.neighGap;
-				
-				if(arc.takeoffTime < earliestT || arc.takeoffTime > latestT) {
-					continue;
-				}
-				
-				int delay = arc.takeoffTime - cf.firstFlight.initialTakeoffT;
-				if(delay < 0) {
-					arc.earliness = -delay;	
-				}else {
-					arc.delay = delay;
-				}
-				
-				arc.landingTime = arc.takeoffTime+cf.firstFlight.flyTime;
-				arc.readyTime = arc.landingTime + connectionTime;
-										
-				if(!arc.checkViolation()){
-					
-					firstFlightArcList.add(arc);
-				}
-			}
-		}
-		
-		for(FlightArc firstArc:firstFlightArcList){
-			
-			int earliestT = cf.secondFlight.initialTakeoffT;
-			
-			if(cf.secondFlight.isAllowtoBringForward){
-				earliestT = cf.secondFlight.initialTakeoffT - Parameter.MAX_LEAD_TIME;
-			}
-							
-			int latestT = 0;
-			if(cf.secondFlight.isDomestic){
-				latestT = cf.secondFlight.initialTakeoffT + Parameter.MAX_DELAY_DOMESTIC_TIME;								
-			}else{
-				latestT = cf.secondFlight.initialTakeoffT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;		
-			}
-			
-			for(int i=Parameter.neighStartIndex;i<=Parameter.neighEndIndex;i++) {
-				int takeoffT = cf.secondFlight.actualTakeoffT + i*Parameter.neighGap;
-				
-				if(takeoffT < earliestT || takeoffT > latestT) {
-					continue;
-				}
-				
-				if(takeoffT >= firstArc.readyTime){
-					
-					
-					FlightArc secondArc = new FlightArc();
-					secondArc.flight = cf.secondFlight;
-					secondArc.aircraft = aircraft;
-					
-					int delay = takeoffT - cf.secondFlight.initialTakeoffT;
-					if(delay < 0) {
-						secondArc.earliness = -delay;
-					}else {
-						secondArc.delay = delay;	
-					}
-					
-					secondArc.takeoffTime = takeoffT;
-					secondArc.landingTime = secondArc.takeoffTime+cf.secondFlight.flyTime;
-					secondArc.readyTime = secondArc.landingTime + Parameter.MIN_BUFFER_TIME;
-
-					if(!secondArc.checkViolation()){
-						ConnectingArc ca = new ConnectingArc();
-						ca.firstArc = firstArc;
-						ca.secondArc = secondArc;
-						
-						aircraft.connectingArcList.add(ca);
-						
-						cf.firstFlight.connectingarcList.add(ca);
-						cf.secondFlight.connectingarcList.add(ca);
-						ca.connectingFlightPair = cf;
-						
-						ca.aircraft = aircraft;
-						ca.calculateCost();
-						
-						if(i >= 0) {
-							break;
-						}						
-					}
-				}
-			}
-			
-		}
-		
-		//3. 为每一个flight生成arc，可以单独取消联程航班中的一段
-		if(isGenerateArcForEachFlight) {
-			if(!aircraft.tabuLegs.contains(cf.firstFlight.leg)){
-				generateArcForFlightBasedOnReference(aircraft, cf.firstFlight);
-			}
-			
-			if(!aircraft.tabuLegs.contains(cf.secondFlight.leg)){
-				generateArcForFlightBasedOnReference(aircraft, cf.secondFlight);
-			}
-		}
-	}
-	
 	//生成点和地面arc
 	public void generateNodes(List<Aircraft> aircraftList, List<Airport> airportList, Scenario scenario){
 		//2. generate nodes for each arc		
@@ -911,6 +735,7 @@ public class NetworkConstructor {
 					GroundArc groundArc = new GroundArc();
 					groundArc.fromNode = n1;
 					groundArc.toNode = n2;
+					groundArc.aircraft = aircraft;
 					
 					n1.flowoutGroundArcList.add(groundArc);
 					n2.flowinGroundArcList.add(groundArc);
@@ -947,6 +772,7 @@ public class NetworkConstructor {
 				arc.fromNode = sourceNode;
 				arc.toNode = firstNode;
 				arc.isSource = true;
+				arc.aircraft = aircraft;
 				sourceNode.flowoutGroundArcList.add(arc);
 				firstNode.flowinGroundArcList.add(arc);
 				aircraft.groundArcList.add(arc);
@@ -979,6 +805,7 @@ public class NetworkConstructor {
 							arc.fromNode = sourceNode;
 							arc.toNode = n;
 							arc.isSource = true;
+							arc.aircraft = aircraft;
 							sourceNode.flowoutGroundArcList.add(arc);
 							n.flowinGroundArcList.add(arc);
 							aircraft.groundArcList.add(arc);
@@ -1033,6 +860,7 @@ public class NetworkConstructor {
 								arc.fromNode = lastNode;
 								arc.toNode = sinkNode;
 								arc.isSink = true;
+								arc.aircraft = aircraft;
 								lastNode.flowoutGroundArcList.add(arc);
 								sinkNode.flowinGroundArcList.add(arc);
 								aircraft.groundArcList.add(arc);
@@ -1050,6 +878,7 @@ public class NetworkConstructor {
 					arc.fromNode = lastNode;
 					arc.toNode = sinkNode;
 					arc.isSink = true;
+					arc.aircraft = aircraft;
 					lastNode.flowoutGroundArcList.add(arc);
 					sinkNode.flowinGroundArcList.add(arc);
 					aircraft.groundArcList.add(arc);
@@ -1063,6 +892,7 @@ public class NetworkConstructor {
 			arc.fromNode = sourceNode;
 			arc.toNode = sinkNode;
 			arc.isSink = true;
+			arc.aircraft = aircraft;
 			sourceNode.flowoutGroundArcList.add(arc);
 			sinkNode.flowinGroundArcList.add(arc);
 			aircraft.groundArcList.add(arc);			
@@ -1072,6 +902,7 @@ public class NetworkConstructor {
 			arc = new GroundArc();
 			arc.fromNode = sinkNode;
 			arc.toNode = sourceNode;
+			arc.aircraft = aircraft;
 			sinkNode.flowoutGroundArcList.add(arc);
 			sourceNode.flowinGroundArcList.add(arc);
 			aircraft.groundArcList.add(arc);

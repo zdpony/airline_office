@@ -46,8 +46,6 @@ public class LinearRecoveryModelWithPartialFixed {
 	public static void runOneIteration(int fixNumber, boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 
-		System.out.println("初始:"+scenario.airportCapacityMap.get("50_11155"));
-		
 		AircraftPathReader scheduleReader = new AircraftPathReader();
 		
 		//读取已经固定的飞机路径
@@ -194,11 +192,12 @@ public class LinearRecoveryModelWithPartialFixed {
 				if(a.finalAircraftNumber[type] < 0){
 					System.out.println("error "+a.finalAircraftNumber+" "+a.id);
 				}
+				if(a.finalAircraftNumber[type] != 0){
+					System.out.println("base imbalance");
+				}
 			}		
 		}
-		
-		System.out.println("更新后:"+scenario.airportCapacityMap.get("50_11155"));
-		
+		System.exit(1);
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
 		solver(scenario, candidateAircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);
 		//根据线性松弛模型来确定新的需要固定的飞机路径
@@ -212,7 +211,7 @@ public class LinearRecoveryModelWithPartialFixed {
 		//System.exit(1);
 		//求解CPLEX模型
 		CplexModelForPureAircraft model = new CplexModelForPureAircraft();
-		Solution solution = model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList,scenario, isFractional, true);		
+		Solution solution = model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList,scenario, isFractional, true, true);		
 	}
 
 	// 构建时空网络流模型

@@ -36,7 +36,7 @@ public class CplexModelForPureAircraft {
 
 	//the network flow model for initial problem solving
 
-	public Solution run(List<Aircraft> aircraftList, List<Flight> flightList, List<ConnectingFlightpair> cfList, List<Airport> airportList, Scenario sce, boolean isFractional, boolean isAllowToCancelSingleFlightInAnConnectingFlight){
+	public Solution run(List<Aircraft> aircraftList, List<Flight> flightList, List<ConnectingFlightpair> cfList, List<Airport> airportList, Scenario sce, boolean isFractional, boolean isAllowToCancelSingleFlightInAnConnectingFlight, boolean isCancelAllowed){
 		Solution solution = new Solution();
 		solution.involvedAircraftList.addAll(aircraftList);
 		
@@ -174,8 +174,10 @@ public class CplexModelForPureAircraft {
 					flightSelectionConstraint.addTerm(1, z[i]);
 				}*/
 				//对于在调整窗口内的航班才可以取消
-				if(f.isIncludedInTimeWindow){
-					flightSelectionConstraint.addTerm(1, z[i]);	
+				if(isCancelAllowed){
+					if(f.isIncludedInTimeWindow){
+						flightSelectionConstraint.addTerm(1, z[i]);	
+					}
 				}
 				
 				cplex.addEq(flightSelectionConstraint, 1);
@@ -430,6 +432,7 @@ public class CplexModelForPureAircraft {
 						Flight f = flightList.get(i);
 						if(cplex.getValue(z[i]) > 1e-6){
 							solution.cancelledFlightList.add(f);
+							System.out.println("cancelled flight:"+f.id+"  "+flightList.size());
 							
 							cancelN2++;
 						}
@@ -578,29 +581,7 @@ public class CplexModelForPureAircraft {
 						e.printStackTrace();
 					}
 					
-					String key = "50_11155";
-					List<FlightArc> faList = sce.airportFlightArcMap.get(key);
-					List<ConnectingArc> caList = sce.airportConnectingArcMap.get(key);
 					
-					for(FlightArc arc:faList){
-						if(arc.flight.id == 1136){
-							System.out.println("this flight:"+arc.takeoffTime);
-						}
-					}
-					
-					System.out.println("related flight list:"+faList.size());
-					System.out.println("related connecting list:"+caList.size());
-					
-					for(FlightArc arc:faList) {
-						if(arc.fractionalFlow > 1e-6){
-							System.out.println("arc:"+arc.flight.id+" "+arc.takeoffTime+" "+arc.landingTime);
-						}
-					}
-					for(ConnectingArc arc:caList) {
-						if(arc.fractionalFlow > 1e-6){
-							System.out.println("arc："+arc.firstArc.flight.id+" "+arc.firstArc.takeoffTime+" "+arc.firstArc.landingTime+" "+arc.secondArc.flight.id+" "+arc.secondArc.takeoffTime+" "+arc.secondArc.landingTime);
-						}
-					}
 				}
 			
 			}else{
