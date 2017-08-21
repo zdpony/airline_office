@@ -108,5 +108,9 @@ public class Parameter {
 	public static long airportSecondTimeWindowStart = 7*1440+17*60;
 	public static long airportSecondTimeWindowEnd = 7*1440+19*60;
 	
+	public static long airport2567ParkingLimitStart = 10320;
+	public static long airport2567ParkingLimitEnd = 10321;
+
+	
 	public static boolean isPassengerCostConsidered = false;
 }

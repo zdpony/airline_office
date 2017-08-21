@@ -296,6 +296,31 @@ public class CplexModel {
 				cplex.addLe(parkingConstraint, sce.affectedGroundArcLimitMap.get(airport));
 			}
 			
+			//10. 25 和 67 停机约束
+			IloLinearNumExpr parkingConstraint25 = cplex.linearNumExpr();
+			for(GroundArc ga:sce.airport25ClosureGroundArcList){
+				parkingConstraint25.addTerm(1, y[ga.id]);
+			}
+			for(FlightArc arc:sce.airport25ClosureFlightArcList){
+				parkingConstraint25.addTerm(1, x[arc.id]);
+			}
+			for(ConnectingArc arc:sce.airport25ClosureConnectingArcList){
+				parkingConstraint25.addTerm(1, beta[arc.id]);
+			}
+			cplex.addLe(parkingConstraint25, 11);
+			
+			IloLinearNumExpr parkingConstraint67 = cplex.linearNumExpr();
+			for(GroundArc ga:sce.airport67ClosureGroundArcList){
+				parkingConstraint67.addTerm(1, y[ga.id]);
+			}
+			for(FlightArc arc:sce.airport67ClosureFlightArcList){
+				parkingConstraint67.addTerm(1, x[arc.id]);
+			}
+			for(ConnectingArc arc:sce.airport67ClosureConnectingArcList){
+				parkingConstraint67.addTerm(1, beta[arc.id]);
+			}
+			cplex.addLe(parkingConstraint67, 7);
+			
 			if(cplex.solve()){
 		
 				if(isFractional){
@@ -503,6 +528,24 @@ public class CplexModel {
 						}
 					}
 					
+					for(String key:sce.keyList) {
+						if(key.startsWith("49_")){
+							List<FlightArc> faList = sce.airportFlightArcMap.get(key);
+							List<ConnectingArc> caList = sce.airportConnectingArcMap.get(key);
+							
+							for(FlightArc arc:faList) {
+								if(cplex.getValue(x[arc.id]) > 1e-6){
+									System.out.println("key:"+key+" "+arc.flight.id+" "+Parameter.airportFirstTimeWindowStart+"->"+Parameter.airportFirstTimeWindowEnd);
+								}
+							}
+							for(ConnectingArc arc:caList) {
+								if(cplex.getValue(beta[arc.id]) > 1e-6){
+									System.out.println("key:"+key+" "+arc.firstArc.flight.id+" "+arc.secondArc.flight.id+" "+Parameter.airportFirstTimeWindowStart+"->"+Parameter.airportFirstTimeWindowEnd);
+								}
+							}
+						}
+					}
+					
 					System.out.println("saved flights:"+cancelN1+" "+cancelN2);
 					
 					try {
@@ -540,6 +583,21 @@ public class CplexModel {
 							ga.fractionalFlow = cplex.getValue(y[ga.id]);
 						}
 					}
+					
+
+                    int[] aaa = {91,99,12,4,5,130,32,45,62,73};
+
+                    for(int aId:aaa){
+                    	Aircraft a = aircraftList.get(aId-1);
+                    	for(GroundArc ga:a.groundArcList){
+                    		if(ga.fractionalFlow > 1e-6){
+                    			if(ga.fromNode.time <= 10320 && ga.toNode.time >= 10321){
+                    				System.out.println("this  a:"+a.id+" "+ga.fractionalFlow);
+                    			}
+                    		}
+                    	}
+                    }
+					
 					
 					StringBuilder sb = new StringBuilder();
 					for(Aircraft a:aircraftList){

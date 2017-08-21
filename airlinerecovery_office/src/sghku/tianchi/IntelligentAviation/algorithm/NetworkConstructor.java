@@ -64,6 +64,13 @@ public class NetworkConstructor {
 					arc.calculateCost();
 					
 					generatedFlightArcList.add(arc);
+				
+					if(f.leg.destinationAirport.id == 25 && arc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.readyTime >= Parameter.airport2567ParkingLimitEnd){
+						scenario.airport25ClosureFlightArcList.add(arc);
+					}
+					if(f.leg.destinationAirport.id == 67 && arc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.readyTime >= Parameter.airport2567ParkingLimitEnd){
+						scenario.airport67ClosureFlightArcList.add(arc);
+					}
 				}
 			//}						
 		}else {
@@ -146,20 +153,6 @@ public class NetworkConstructor {
 				arc.landingTime = arc.takeoffTime+flyTime;
 				
 				arc.readyTime = arc.landingTime + Parameter.MIN_BUFFER_TIME;
-										
-				if(f.id == 1136 && arc.takeoffTime == 11155){
-					System.out.println("we find this flight："+isWithinSmalGapRegionOrigin+" "+isWithinSmalGapRegionDestination+" "+f.leg.originAirport.id+"->"+f.leg.destinationAirport.id+"  "+arc.takeoffTime+" "+arc.landingTime+" "+Parameter.airportFirstTimeWindowStart+":"+Parameter.airportFirstTimeWindowEnd+"  "+Parameter.airportSecondTimeWindowStart+":"+Parameter.airportSecondTimeWindowEnd+"  "+f.isSmallGapRequired+"  "+((i*presetGap)%givenGap));
-				
-					if(scenario.affectedAirportSet.contains(f.leg.originAirport.id)) {
-						int t = f.initialTakeoffT + i*presetGap;
-						System.out.println("come here:"+t);
-						if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
-							isWithinSmalGapRegionOrigin = true;
-						}else {
-							continue;
-						}
-					}
-				}
 				
 				if(!arc.checkViolation()){
 					
@@ -215,12 +208,21 @@ public class NetworkConstructor {
 					//加入对应的起降时间点
 					if(isWithinSmalGapRegionOrigin) {
 						int t = f.initialTakeoffT + i*presetGap;
+						
 						List<FlightArc> faList = scenario.airportFlightArcMap.get(f.leg.originAirport.id+"_"+t);
 						faList.add(arc);
 					}else if(isWithinSmalGapRegionDestination){
 						int t = f.initialLandingT + i*presetGap;
 						List<FlightArc> faList = scenario.airportFlightArcMap.get(f.leg.destinationAirport.id+"_"+t);
 						faList.add(arc);
+					}
+					
+					//加入停机约束
+					if(f.leg.destinationAirport.id == 25 && arc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.readyTime >= Parameter.airport2567ParkingLimitEnd){
+						scenario.airport25ClosureFlightArcList.add(arc);
+					}
+					if(f.leg.destinationAirport.id == 67 && arc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.readyTime >= Parameter.airport2567ParkingLimitEnd){
+						scenario.airport67ClosureFlightArcList.add(arc);
 					}
 				}
 			}
@@ -264,6 +266,7 @@ public class NetworkConstructor {
 	}
 	
 	public List<ConnectingArc> generateArcForConnectingFlightPair(Aircraft aircraft, ConnectingFlightpair cf, int givenGap, boolean isGenerateArcForEachFlight, Scenario scenario){
+		
 		List<ConnectingArc> generatedConnectingArcList = new ArrayList<>();
 		
 		int presetGap = 5;
@@ -309,6 +312,14 @@ public class NetworkConstructor {
 				
 				ca.calculateCost();
 				generatedConnectingArcList.add(ca);
+				
+				//加入25和67停机约束
+				if(cf.firstFlight.leg.destinationAirport.id == 25 && ca.firstArc.landingTime <= Parameter.airport2567ParkingLimitStart && ca.secondArc.takeoffTime >= Parameter.airport2567ParkingLimitEnd){
+					scenario.airport25ClosureConnectingArcList.add(ca);
+				}
+				if(cf.firstFlight.leg.destinationAirport.id == 67 && ca.firstArc.landingTime <= Parameter.airport2567ParkingLimitStart && ca.secondArc.takeoffTime >= Parameter.airport2567ParkingLimitEnd){
+					scenario.airport25ClosureConnectingArcList.add(ca);
+				}
 			}
 		}else {
 			//otherwise, create a set of connecting arcs for this connecting flight
@@ -389,6 +400,7 @@ public class NetworkConstructor {
 			
 			for(FlightArc firstArc:firstFlightArcList){
 				
+				
 				if(cf.secondFlight.isAllowtoBringForward){
 					int startIndex = Parameter.MAX_LEAD_TIME/presetGap;
 
@@ -467,31 +479,34 @@ public class NetworkConstructor {
 				
 				for(int i=0;i<=endIndex;i++){
 					
+					
 					boolean isWithinAffectedRegionOrigin2 = false;
 					boolean isWithinAffectedRegionDestination2 = false;
 					
+				
+					if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.originAirport.id)) {
+						int t = cf.secondFlight.initialTakeoffT + i*presetGap;
+						
+						if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+							isWithinAffectedRegionOrigin2 = true;
+						}
+					}else if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.destinationAirport.id)) {
+						int t = cf.secondFlight.initialLandingT + i*presetGap;
+				
+						if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+							isWithinAffectedRegionDestination2 = true;
+						}
+					}
+					
 					if (!cf.secondFlight.isSmallGapRequired) {
-						if((i*presetGap)%givenGap != 0) {
+						if((i*presetGap)%givenGap != 0) {						
 							continue;
 						}
 					}else {
 						if((i*presetGap)%givenGap != 0) {
-							if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.originAirport.id)) {
-								int t = cf.secondFlight.initialTakeoffT + i*presetGap;
-								if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
-									isWithinAffectedRegionOrigin2 = true;
-								}else {
-									continue;
-								}
-							}else if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.destinationAirport.id)) {
-								int t = cf.secondFlight.initialLandingT + i*presetGap;
-								if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
-									isWithinAffectedRegionDestination2 = true;
-								}else {
-									continue;
-								}
-							}
-							
+							if(!isWithinAffectedRegionOrigin2 && !isWithinAffectedRegionDestination2){
+								continue;
+							}						
 						}
 					}
 					
@@ -525,6 +540,7 @@ public class NetworkConstructor {
 							ca.calculateCost();
 							generatedConnectingArcList.add(ca);
 							
+							
 							if(!isWithinAffectedRegionOrigin2 && !isWithinAffectedRegionDestination2 ) {
 								break;								
 							}
@@ -544,14 +560,25 @@ public class NetworkConstructor {
 					List<ConnectingArc> caList = scenario.airportConnectingArcMap.get(arc.firstArc.flight.leg.destinationAirport.id+"_"+arc.firstArc.landingTime);
 					caList.add(arc);
 				}
+				
 				if(arc.secondArc.isWithinAffectedRegionOrigin) {
 					List<ConnectingArc> caList = scenario.airportConnectingArcMap.get(arc.secondArc.flight.leg.originAirport.id+"_"+arc.secondArc.takeoffTime);
+					
 					caList.add(arc);
 				}
 				if(arc.secondArc.isWithinAffectedRegionDestination) {
 					List<ConnectingArc> caList = scenario.airportConnectingArcMap.get(arc.secondArc.flight.leg.destinationAirport.id+"_"+arc.secondArc.landingTime);
 					caList.add(arc);
 				}
+				
+				//加入25和67停机约束
+				if(cf.firstFlight.leg.destinationAirport.id == 25 && arc.firstArc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.secondArc.takeoffTime >= Parameter.airport2567ParkingLimitEnd){
+					scenario.airport25ClosureConnectingArcList.add(arc);
+				}
+				if(cf.firstFlight.leg.destinationAirport.id == 67 && arc.firstArc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.secondArc.takeoffTime >= Parameter.airport2567ParkingLimitEnd){
+					scenario.airport25ClosureConnectingArcList.add(arc);
+				}
+				
 				
 				//设置第一个arc
 				arc.firstArc.isIncludedInConnecting = true;
@@ -751,6 +778,14 @@ public class NetworkConstructor {
 								isFound = true;
 							}
 						}						
+					}
+					
+					if(n1.airport.id == 25 && n1.time <= Parameter.airport2567ParkingLimitStart && n2.time >=Parameter.airport2567ParkingLimitEnd){
+						System.out.println("this way");
+						scenario.airport25ClosureGroundArcList.add(groundArc);
+					}
+					if(n1.airport.id == 67 && n1.time <= Parameter.airport2567ParkingLimitStart && n2.time >=Parameter.airport2567ParkingLimitEnd){
+						scenario.airport67ClosureGroundArcList.add(groundArc);
 					}
 					
 					/*if(!groundArc.checkViolation()){
