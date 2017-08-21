@@ -42,7 +42,7 @@ public class NetworkConstructor {
 		
 		if(!f.isIncludedInTimeWindow) {
 			//因为在调整窗口外，不存在单独的联程航班
-			if(!f.isIncludedInConnecting){
+			//if(!f.isIncludedInConnecting){
 				//如果该航班在调整时间窗口外
 				if(f.initialAircraft.id == aircraft.id) {			
 					arc = new FlightArc();
@@ -65,7 +65,7 @@ public class NetworkConstructor {
 					
 					generatedFlightArcList.add(arc);
 				}
-			}						
+			//}						
 		}else {
 			//2.1 check whether f can be brought forward and generate earliness arcs
 			

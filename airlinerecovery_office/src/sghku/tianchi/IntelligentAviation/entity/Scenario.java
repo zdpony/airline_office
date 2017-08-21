@@ -54,6 +54,8 @@ public class Scenario {
 	public Map<Integer, List<GroundArc>> affectedGroundArcMap = new HashMap<>();
 	public Map<Integer, Integer> affectedGroundArcLimitMap = new HashMap<>();
 	
+	//short connection
+	public Map<String,Integer> shortConnectionMap = new HashMap<>();
 
 	public Scenario() {
 
@@ -314,6 +316,8 @@ public class Scenario {
 					}
 					f1.isShortConnection = true;
 					f1.shortConnectionTime = connT;
+					
+					shortConnectionMap.put(f1.id+"_"+f2.id, connT);
 				}
 			}
 		}

@@ -90,6 +90,17 @@ public class FlightReschedulingConsideringPassenger {
 			for(int i=0;i<a.fixedFlightList.size()-1;i++){
 				Flight f1 = a.fixedFlightList.get(i);
 				Flight f2 = a.fixedFlightList.get(i+1);
+				
+				f1.isShortConnection = false;
+				f2.isShortConnection = false;
+				
+				if(!f1.isStraightened && !f2.isStraightened) {
+					Integer connT = scenario.shortConnectionMap.get(f1.id+"_"+f2.id);
+					if(connT != null) {
+						f1.isShortConnection = true;
+						f1.shortConnectionTime = connT;
+					}
+				}
 				if((f1.actualLandingT+(f1.isShortConnection?f1.shortConnectionTime:50)) > f2.actualTakeoffT){
 					System.out.println("connection error  "+f1.actualLandingT+"  "+f2.actualTakeoffT+" "+f1.isIncludedInTimeWindow+" "+f2.isIncludedInTimeWindow+" "+f1.isShortConnection+" "+f1.shortConnectionTime+" "+f1.id+" "+f2.id);
 				}
@@ -125,7 +136,20 @@ public class FlightReschedulingConsideringPassenger {
 		NetworkConstructor networkConstructor = new NetworkConstructor();
 		for (Aircraft aircraft : candidateAircraftList) {	
 			for (Flight f : aircraft.singleFlightList) {
-				List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
+				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
+				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, 5, scenario);
+				
+				boolean isFound = false;
+				for(FlightArc arc:faList) {
+					if(arc.takeoffTime == f.actualTakeoffT) {
+						isFound = true;
+						break;
+					}
+				}
+				
+				if(!isFound) {
+					System.out.println("not found "+faList.size()+"  "+f.id+"  "+aircraft.id+" "+f.isIncludedInTimeWindow+" "+f.isIncludedInConnecting);
+				}
 			}
 		}
 		
