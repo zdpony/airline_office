@@ -107,27 +107,29 @@ public class NetworkConstructor {
 				boolean isWithinSmalGapRegionOrigin = false;
 				boolean isWithinSmalGapRegionDestination = false;
 				
+				if(scenario.affectedAirportSet.contains(f.leg.originAirport.id)) {
+					int t = f.initialTakeoffT + i*presetGap;
+					if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+						isWithinSmalGapRegionOrigin = true;
+					}
+				}else if(scenario.affectedAirportSet.contains(f.leg.destinationAirport.id)) {
+					int t = f.initialLandingT + i*presetGap;
+					if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+						isWithinSmalGapRegionDestination = true;
+					}
+				}
+				
 				if (!f.isSmallGapRequired) {
 					if((i*presetGap)%givenGap != 0) {
 						continue;
+					}else{
+						
 					}
 				}else {
 					if((i*presetGap)%givenGap != 0) {
-						if(scenario.affectedAirportSet.contains(f.leg.originAirport.id)) {
-							int t = f.initialTakeoffT + i*presetGap;
-							if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
-								isWithinSmalGapRegionOrigin = true;
-							}else {
-								continue;
-							}
-						}else if(scenario.affectedAirportSet.contains(f.leg.destinationAirport.id)) {
-							int t = f.initialLandingT + i*presetGap;
-							if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
-								isWithinSmalGapRegionDestination = true;
-							}else {
-								continue;
-							}
-						}						
+						if(!isWithinSmalGapRegionOrigin && !isWithinSmalGapRegionDestination){
+							continue;
+						}
 					}
 				}
 								
@@ -145,6 +147,19 @@ public class NetworkConstructor {
 				
 				arc.readyTime = arc.landingTime + Parameter.MIN_BUFFER_TIME;
 										
+				if(f.id == 1136 && arc.takeoffTime == 11155){
+					System.out.println("we find this flight："+isWithinSmalGapRegionOrigin+" "+isWithinSmalGapRegionDestination+" "+f.leg.originAirport.id+"->"+f.leg.destinationAirport.id+"  "+arc.takeoffTime+" "+arc.landingTime+" "+Parameter.airportFirstTimeWindowStart+":"+Parameter.airportFirstTimeWindowEnd+"  "+Parameter.airportSecondTimeWindowStart+":"+Parameter.airportSecondTimeWindowEnd+"  "+f.isSmallGapRequired+"  "+((i*presetGap)%givenGap));
+				
+					if(scenario.affectedAirportSet.contains(f.leg.originAirport.id)) {
+						int t = f.initialTakeoffT + i*presetGap;
+						System.out.println("come here:"+t);
+						if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+							isWithinSmalGapRegionOrigin = true;
+						}else {
+							continue;
+						}
+					}
+				}
 				
 				if(!arc.checkViolation()){
 					
@@ -370,28 +385,27 @@ public class NetworkConstructor {
 					boolean isWithinAffectedRegionOrigin1 = false;
 					boolean isWithinAffectedRegionDestination1 = false;
 					
+					if(scenario.affectedAirportSet.contains(cf.firstFlight.leg.originAirport.id)) {
+						int t = cf.firstFlight.initialTakeoffT + i*presetGap;
+						if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+							isWithinAffectedRegionOrigin1 = true;
+						}
+					}else if(scenario.affectedAirportSet.contains(cf.firstFlight.leg.destinationAirport.id)) {
+						int t = cf.firstFlight.initialLandingT + i*presetGap;
+						if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+							isWithinAffectedRegionDestination1 = true;
+						}
+					}
+					
 					if (!cf.firstFlight.isSmallGapRequired) {
 						if((i*presetGap)%givenGap != 0) {
 							continue;
 						}
 					}else {
 						if((i*presetGap)%givenGap != 0) {
-							if(scenario.affectedAirportSet.contains(cf.firstFlight.leg.originAirport.id)) {
-								int t = cf.firstFlight.initialTakeoffT + i*presetGap;
-								if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
-									isWithinAffectedRegionOrigin1 = true;
-								}else {
-									continue;
-								}
-							}else if(scenario.affectedAirportSet.contains(cf.firstFlight.leg.destinationAirport.id)) {
-								int t = cf.firstFlight.initialLandingT + i*presetGap;
-								if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
-									isWithinAffectedRegionDestination1 = true;
-								}else {
-									continue;
-								}
+							if(!isWithinAffectedRegionOrigin1 && !isWithinAffectedRegionDestination1){
+								continue;
 							}
-							
 						}
 					}
 										
@@ -427,28 +441,27 @@ public class NetworkConstructor {
 						boolean isWithinAffectedRegionOrigin2 = false;
 						boolean isWithinAffectedRegionDestination2 = false;
 							
+						if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.originAirport.id)) {
+							int t = cf.secondFlight.initialTakeoffT + i*presetGap;
+							if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+								isWithinAffectedRegionOrigin2 = true;
+							}
+						}else if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.destinationAirport.id)) {
+							int t = cf.secondFlight.initialLandingT + i*presetGap;
+							if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+								isWithinAffectedRegionDestination2 = true;
+							}
+						}
+						
 						if (!cf.secondFlight.isSmallGapRequired) {
 							if((i*presetGap)%givenGap != 0) {
 								continue;
 							}
 						}else {
 							if((i*presetGap)%givenGap != 0) {
-								if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.originAirport.id)) {
-									int t = cf.secondFlight.initialTakeoffT + i*presetGap;
-									if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
-										isWithinAffectedRegionOrigin2 = true;
-									}else {
-										continue;
-									}
-								}else if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.destinationAirport.id)) {
-									int t = cf.secondFlight.initialLandingT + i*presetGap;
-									if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
-										isWithinAffectedRegionDestination2 = true;
-									}else {
-										continue;
-									}
-								}
-								
+								if(!isWithinAffectedRegionOrigin2 && !isWithinAffectedRegionDestination2){
+									continue;
+								}								
 							}
 						}
 						

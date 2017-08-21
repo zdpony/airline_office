@@ -34,7 +34,8 @@ public class LinearRecoveryModelWithPartialFixed {
 		//前面两个循环求解线性松弛模型
 		//runOneIteration(70,true);
 		//runOneIteration(50, true);
-		runOneIteration(10, true);
+		//runOneIteration(10, true);
+		runOneIteration(16, false);
 		//最后一个循环直接解整数规划模型
 		//runOneIteration(32, false);
 		
@@ -45,6 +46,8 @@ public class LinearRecoveryModelWithPartialFixed {
 	public static void runOneIteration(int fixNumber, boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 
+		System.out.println("初始:"+scenario.airportCapacityMap.get("50_11155"));
+		
 		AircraftPathReader scheduleReader = new AircraftPathReader();
 		
 		//读取已经固定的飞机路径
@@ -193,6 +196,8 @@ public class LinearRecoveryModelWithPartialFixed {
 				}
 			}		
 		}
+		
+		System.out.println("更新后:"+scenario.airportCapacityMap.get("50_11155"));
 		
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
 		solver(scenario, candidateAircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);

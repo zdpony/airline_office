@@ -217,11 +217,19 @@ public class AircraftPathReader {
 				Integer value = airportCapacityMapClone.get(f1.actualOrigin.id + "_" + f1.actualTakeoffT);
 				if (value != null) {
 					airportCapacityMapClone.put(f1.actualOrigin.id + "_" + f1.actualTakeoffT, value - 1);
+					
+					if(value - 1 < 0){
+						System.out.println("info takeoff:"+f1.id+" "+f1.actualTakeoffT);
+					}
 				}
 
 				value = airportCapacityMapClone.get(f1.actualDestination.id + "_" + f1.actualLandingT);
 				if (value != null) {
 					airportCapacityMapClone.put(f1.actualDestination.id + "_" + f1.actualLandingT, value - 1);
+					
+					if(value - 1 < 0){
+						System.out.println("info landing:"+f1.id+" "+f1.actualLandingT);
+					}
 				}
 			}
 			
@@ -229,7 +237,8 @@ public class AircraftPathReader {
 				int value = airportCapacityMapClone.get(key);
 				if(value < 0){
 					isFeasible = false;
-					System.out.println("this way 7");
+					System.out.println("this way 7 ");
+					
 				}
 			}
 		}
@@ -276,6 +285,27 @@ public class AircraftPathReader {
 
 		Collections.sort(lvList, new LineValueComparator());
 
+		/*int nnnn = 0;
+
+		for (int i = 0; i < lvList.size(); i++) {
+			System.out.println("index:"+i);
+			LineValue lv = lvList.get(i);
+
+			if (check(lv.line, scenario)) {
+				update(lv.line, scenario);
+				// System.out.println(lv.line);
+				
+				nnnn++;
+
+				if (nnnn >= number) {
+					break;
+				}
+			} else {
+				System.out.println("violation " + i);
+			}
+		}
+		System.exit(1);*/
+		
 		try {
 			MyFile.creatTxtFile("fixschedule");
 		} catch (IOException e) {
@@ -307,7 +337,7 @@ public class AircraftPathReader {
 				System.out.println("violation " + i);
 			}
 		}
-		System.exit(1);
+		
 		// System.out.println("nnn:"+nnn);
 	}
 
@@ -390,11 +420,17 @@ public class AircraftPathReader {
 
 			Integer value = scenario.airportCapacityMap.get(f1.actualOrigin.id + "_" + f1.actualTakeoffT);
 			if (value != null) {
+				if("50_11155".equals(f1.actualOrigin.id + "_" + f1.actualTakeoffT)){
+					System.out.println("one takeoff "+f1.id+" "+f1.actualTakeoffT);
+				}
 				scenario.airportCapacityMap.put(f1.actualOrigin.id + "_" + f1.actualTakeoffT, value - 1);
 			}
 
 			value = scenario.airportCapacityMap.get(f1.actualDestination.id + "_" + f1.actualLandingT);
 			if (value != null) {
+				if("50_11155".equals(f1.actualDestination.id + "_" + f1.actualLandingT)){
+					System.out.println("one landing "+f1.id+" "+f1.actualLandingT);
+				}
 				scenario.airportCapacityMap.put(f1.actualDestination.id + "_" + f1.actualLandingT, value - 1);
 			}
 		}

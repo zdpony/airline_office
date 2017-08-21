@@ -577,7 +577,30 @@ public class CplexModelForPureAircraft {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-									
+					
+					String key = "50_11155";
+					List<FlightArc> faList = sce.airportFlightArcMap.get(key);
+					List<ConnectingArc> caList = sce.airportConnectingArcMap.get(key);
+					
+					for(FlightArc arc:faList){
+						if(arc.flight.id == 1136){
+							System.out.println("this flight:"+arc.takeoffTime);
+						}
+					}
+					
+					System.out.println("related flight list:"+faList.size());
+					System.out.println("related connecting list:"+caList.size());
+					
+					for(FlightArc arc:faList) {
+						if(arc.fractionalFlow > 1e-6){
+							System.out.println("arc:"+arc.flight.id+" "+arc.takeoffTime+" "+arc.landingTime);
+						}
+					}
+					for(ConnectingArc arc:caList) {
+						if(arc.fractionalFlow > 1e-6){
+							System.out.println("arc："+arc.firstArc.flight.id+" "+arc.firstArc.takeoffTime+" "+arc.firstArc.landingTime+" "+arc.secondArc.flight.id+" "+arc.secondArc.takeoffTime+" "+arc.secondArc.landingTime);
+						}
+					}
 				}
 			
 			}else{
