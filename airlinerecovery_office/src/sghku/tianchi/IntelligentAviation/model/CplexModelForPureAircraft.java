@@ -49,6 +49,9 @@ public class CplexModelForPureAircraft {
 			}else{
 				cplex.setOut(null);				
 			}
+			
+			/*cplex.setParam(IloCplex.Param.RootAlgorithm,
+                    IloCplex.Algorithm.Network);*/
 
 			List<FlightArc> flightArcList = new ArrayList<>();
 			List<ConnectingArc> connectingArcList = new ArrayList<>();

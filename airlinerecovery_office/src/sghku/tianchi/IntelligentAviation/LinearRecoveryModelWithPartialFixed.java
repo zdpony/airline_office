@@ -32,8 +32,9 @@ public class LinearRecoveryModelWithPartialFixed {
 		Parameter.isPassengerCostConsidered = false;
 		
 		//前面两个循环求解线性松弛模型
-		runOneIteration(70,true);
-		//runOneIteration(40, true);
+		//runOneIteration(70,true);
+		//runOneIteration(50, true);
+		runOneIteration(10, true);
 		//最后一个循环直接解整数规划模型
 		//runOneIteration(32, false);
 		
@@ -44,7 +45,6 @@ public class LinearRecoveryModelWithPartialFixed {
 	public static void runOneIteration(int fixNumber, boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 
-		
 		AircraftPathReader scheduleReader = new AircraftPathReader();
 		
 		//读取已经固定的飞机路径
@@ -161,7 +161,7 @@ public class LinearRecoveryModelWithPartialFixed {
 						Flight f1 = a.fixedFlightList.get(i);
 						Flight f2 = a.fixedFlightList.get(i+1);
 					
-						if(!f1.actualDestination.equals(f1.actualOrigin)) {
+						if(!f1.actualDestination.equals(f2.actualOrigin)) {
 							System.out.println("error aircraft routes");
 						}
 						if(f1.actualLandingT >= f2.actualTakeoffT) {
