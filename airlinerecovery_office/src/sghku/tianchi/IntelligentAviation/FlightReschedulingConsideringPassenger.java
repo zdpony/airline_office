@@ -142,12 +142,12 @@ public class FlightReschedulingConsideringPassenger {
 		}
 		
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
-		solver(scenario, scenario.aircraftList, candidateFlightList, isFractional);
+		solver(scenario, scenario.aircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);
 			
 	}
 	
 	//求解线性松弛模型或者整数规划模型
-	public static void solver(Scenario scenario, List<Aircraft> candidateAircraftList, List<Flight> candidateFlightList, boolean isFractional) {
+	public static void solver(Scenario scenario, List<Aircraft> candidateAircraftList, List<Flight> candidateFlightList, List<ConnectingFlightpair> candidateConnectingFlightList, boolean isFractional) {
 		buildNetwork(scenario, candidateAircraftList, candidateFlightList, 5);
 
 		List<FlightSection> flightSectionList = new ArrayList<>();
@@ -165,7 +165,7 @@ public class FlightReschedulingConsideringPassenger {
 		//Solution solution = model.run(candidateAircraftList, candidateFlightList, new ArrayList(), scenario.airportList,scenario, isFractional, true, false);		
 
 		CplexModel model = new CplexModel();
-		model.run(candidateAircraftList, candidateFlightList, new ArrayList(), scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, isFractional, true, false);
+		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, isFractional, true, false);
 
 		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
 		outputResultWithPassenger.writeResult(scenario, "firstresult821.csv");
