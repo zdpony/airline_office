@@ -50,10 +50,10 @@ public class Scenario {
 	public List<String> keyList = new ArrayList<>();
 	public Map<String, List<FlightArc>> airportFlightArcMap = new HashMap<>();
 	public Map<String, List<ConnectingArc>> airportConnectingArcMap = new HashMap<>();
-	public Map<String, Integer> airportCapacityMap = new HashMap<>();
+	public Map<String, Integer> affectAirportLdnTkfCapacityMap = new HashMap<>();  //landing & takeoff capacity of affected airport 
 
-	public Map<Integer, List<GroundArc>> affectedGroundArcMap = new HashMap<>();
-	public Map<Integer, Integer> affectedGroundArcLimitMap = new HashMap<>();
+	public Map<Integer, List<GroundArc>> affectedAirportCoverParkLimitGroundArcMap = new HashMap<>();
+	public Map<Integer, Integer> affectedAirportParkingLimitMap = new HashMap<>();
 
 	// short connection
 	public Map<String, Integer> shortConnectionMap = new HashMap<>();
@@ -68,6 +68,9 @@ public class Scenario {
 	public List<ConnectingArc> airport25ClosureConnectingArcList = new ArrayList<>();
 	public List<ConnectingArc> airport67ClosureConnectingArcList = new ArrayList<>();
 
+	public int airport25ParkingLimit = 11;
+	public int airport67ParkingLimit = 7;
+	
 	public Scenario() {
 
 	}
@@ -176,7 +179,7 @@ public class Scenario {
 		}
 
 		// 初始化机场流量限制
-		for (long i = Parameter.airportFirstTimeWindowStart; i <= Parameter.airportFirstTimeWindowEnd; i += 5) {
+		for (long i = Parameter.airportBeforeTyphoonTimeWindowStart; i <= Parameter.airportBeforeTyphoonTimeWindowEnd; i += 5) {
 			keyList.add("49_" + i);
 			keyList.add("50_" + i);
 			keyList.add("61_" + i);
@@ -189,12 +192,12 @@ public class Scenario {
 			airportConnectingArcMap.put("50_" + i, new ArrayList<>());
 			airportConnectingArcMap.put("61_" + i, new ArrayList<>());
 
-			airportCapacityMap.put("49_" + i, 2);
-			airportCapacityMap.put("50_" + i, 2);
-			airportCapacityMap.put("61_" + i, 2);
+			affectAirportLdnTkfCapacityMap.put("49_" + i, 2);
+			affectAirportLdnTkfCapacityMap.put("50_" + i, 2);
+			affectAirportLdnTkfCapacityMap.put("61_" + i, 2);
 		}
 
-		for (long i = Parameter.airportSecondTimeWindowStart; i <= Parameter.airportSecondTimeWindowEnd; i += 5) {
+		for (long i = Parameter.airportAfterTyphoonTimeWindowStart; i <= Parameter.airportAfterTyphoonTimeWindowEnd; i += 5) {
 			keyList.add("49_" + i);
 			keyList.add("50_" + i);
 			keyList.add("61_" + i);
@@ -207,9 +210,9 @@ public class Scenario {
 			airportConnectingArcMap.put("50_" + i, new ArrayList<>());
 			airportConnectingArcMap.put("61_" + i, new ArrayList<>());
 
-			airportCapacityMap.put("49_" + i, 2);
-			airportCapacityMap.put("50_" + i, 2);
-			airportCapacityMap.put("61_" + i, 2);
+			affectAirportLdnTkfCapacityMap.put("49_" + i, 2);
+			affectAirportLdnTkfCapacityMap.put("50_" + i, 2);
+			affectAirportLdnTkfCapacityMap.put("61_" + i, 2);
 		}
 		System.out.println("------------------------------------------");
 
@@ -246,14 +249,14 @@ public class Scenario {
 						cf.secondFlight.fixedLandingTime = fa.landingTime;
 
 						String key = cf.secondFlight.leg.originAirport.id + "_" + fa.takeoffTime;
-						Integer num = airportCapacityMap.get(key);
+						Integer num = affectAirportLdnTkfCapacityMap.get(key);
 						if (num != null) {
-							airportCapacityMap.put(key, num - 1);
+							affectAirportLdnTkfCapacityMap.put(key, num - 1);
 						}
 						key = cf.secondFlight.leg.destinationAirport.id + "_" + fa.landingTime;
-						num = airportCapacityMap.get(key);
+						num = affectAirportLdnTkfCapacityMap.get(key);
 						if (num != null) {
-							airportCapacityMap.put(key, num - 1);
+							affectAirportLdnTkfCapacityMap.put(key, num - 1);
 						}
 
 						break;
@@ -748,17 +751,17 @@ public class Scenario {
 						latestT = latestT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
 					}
 
-					if ((earliestT <= Parameter.airportFirstTimeWindowStart
-							&& latestT > Parameter.airportFirstTimeWindowStart)
-							|| (earliestT < Parameter.airportFirstTimeWindowEnd
-									&& latestT >= Parameter.airportFirstTimeWindowEnd)) {
+					if ((earliestT <= Parameter.airportBeforeTyphoonTimeWindowStart
+							&& latestT > Parameter.airportBeforeTyphoonTimeWindowStart)
+							|| (earliestT < Parameter.airportBeforeTyphoonTimeWindowEnd
+									&& latestT >= Parameter.airportBeforeTyphoonTimeWindowEnd)) {
 						f.isSmallGapRequired = true;
 					}
 
-					if ((earliestT <= Parameter.airportSecondTimeWindowStart
-							&& latestT > Parameter.airportSecondTimeWindowStart)
-							|| (earliestT < Parameter.airportSecondTimeWindowEnd
-									&& latestT >= Parameter.airportSecondTimeWindowEnd)) {
+					if ((earliestT <= Parameter.airportAfterTyphoonTimeWindowStart
+							&& latestT > Parameter.airportAfterTyphoonTimeWindowStart)
+							|| (earliestT < Parameter.airportAfterTyphoonTimeWindowEnd
+									&& latestT >= Parameter.airportAfterTyphoonTimeWindowEnd)) {
 						f.isSmallGapRequired = true;
 					}
 				}
@@ -775,17 +778,17 @@ public class Scenario {
 						latestT = latestT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
 					}
 
-					if ((earliestT <= Parameter.airportFirstTimeWindowStart
-							&& latestT > Parameter.airportFirstTimeWindowStart)
-							|| (earliestT < Parameter.airportFirstTimeWindowEnd
-									&& latestT >= Parameter.airportFirstTimeWindowEnd)) {
+					if ((earliestT <= Parameter.airportBeforeTyphoonTimeWindowStart
+							&& latestT > Parameter.airportBeforeTyphoonTimeWindowStart)
+							|| (earliestT < Parameter.airportBeforeTyphoonTimeWindowEnd
+									&& latestT >= Parameter.airportBeforeTyphoonTimeWindowEnd)) {
 						f.isSmallGapRequired = true;
 					}
 
-					if ((earliestT <= Parameter.airportSecondTimeWindowStart
-							&& latestT > Parameter.airportSecondTimeWindowStart)
-							|| (earliestT < Parameter.airportSecondTimeWindowEnd
-									&& latestT >= Parameter.airportSecondTimeWindowEnd)) {
+					if ((earliestT <= Parameter.airportAfterTyphoonTimeWindowStart
+							&& latestT > Parameter.airportAfterTyphoonTimeWindowStart)
+							|| (earliestT < Parameter.airportAfterTyphoonTimeWindowEnd
+									&& latestT >= Parameter.airportAfterTyphoonTimeWindowEnd)) {
 						f.isSmallGapRequired = true;
 					}
 				}
@@ -797,7 +800,7 @@ public class Scenario {
 			if (affectedAirportSet.contains(airport.id)) {
 				for (Failure scene : airport.failureList) {
 					if (scene.type.equals(FailureType.parking)) {
-						affectedGroundArcLimitMap.put(airport.id, scene.parkingLimit);
+						affectedAirportParkingLimitMap.put(airport.id, scene.parkingLimit);
 					}
 				}
 			}
@@ -806,7 +809,7 @@ public class Scenario {
 		// 初始化affectedGroundArcMap
 		for (int airportId : affectedAirportSet) {
 			List<GroundArc> gaList = new ArrayList<>();
-			affectedGroundArcMap.put(airportId, gaList);
+			affectedAirportCoverParkLimitGroundArcMap.put(airportId, gaList);
 		}
 	}
 

@@ -102,15 +102,17 @@ public class Parameter {
 	public static double aircraftChangeCostSmall = 5;
 	public static double passengerCancelCost = 4;
 	
-	public static long airportFirstTimeWindowStart = 6*1440+15*60;
-	public static long airportFirstTimeWindowEnd = 6*1440+16*60;
+	public static long airportBeforeTyphoonTimeWindowStart = 6*1440+15*60;
+	public static long airportBeforeTyphoonTimeWindowEnd = 6*1440+16*60;
 	
-	public static long airportSecondTimeWindowStart = 7*1440+17*60;
-	public static long airportSecondTimeWindowEnd = 7*1440+19*60;
+	public static long airportAfterTyphoonTimeWindowStart = 7*1440+17*60;
+	public static long airportAfterTyphoonTimeWindowEnd = 7*1440+19*60;
 	
-	public static long airport2567ParkingLimitStart = 10320;
-	public static long airport2567ParkingLimitEnd = 10321;
-
+	public static long airport49_50_61ParkingLimitStart = 6*1440 + 17*60;
+	public static long airport49_50_61ParkingLimitEnd = 6*1440 + 17*60 + 1;
+	
+	public static long airport25_67ParkingLimitStart = 7*1440 + 4*60;
+	public static long airport25_67ParkingLimitEnd = 7*1440 + 4*60 + 1;
 	
 	public static boolean isPassengerCostConsidered = false;
 	public static boolean isReadFixedRoutes = false;

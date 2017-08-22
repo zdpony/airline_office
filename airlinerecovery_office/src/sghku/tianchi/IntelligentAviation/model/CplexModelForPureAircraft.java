@@ -235,18 +235,18 @@ public class CplexModelForPureAircraft {
 					airportConstraint.addTerm(1, beta[arc.id]);
 				}
 				
-				cplex.addLe(airportConstraint, sce.airportCapacityMap.get(key));
+				cplex.addLe(airportConstraint, sce.affectAirportLdnTkfCapacityMap.get(key));
 			}
 			
 			//9. 停机约束
 			for(Integer airport:sce.affectedAirportSet) {
 				IloLinearNumExpr parkingConstraint = cplex.linearNumExpr();
-				List<GroundArc> gaList = sce.affectedGroundArcMap.get(airport);
+				List<GroundArc> gaList = sce.affectedAirportCoverParkLimitGroundArcMap.get(airport);
 				for(GroundArc ga:gaList) {
 					parkingConstraint.addTerm(1, y[ga.id]);					
 				}
 				
-				cplex.addLe(parkingConstraint, sce.affectedGroundArcLimitMap.get(airport));
+				cplex.addLe(parkingConstraint, sce.affectedAirportParkingLimitMap.get(airport));
 			}
 			
 			if(cplex.solve()){

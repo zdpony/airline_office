@@ -30,9 +30,10 @@ public class LinearRecoveryModelWithPartialFixed {
 	public static void main(String[] args) {
 
 		Parameter.isPassengerCostConsidered = false;
+		Parameter.isReadFixedRoutes = true;
 		
 		//前面两个循环求解线性松弛模型
-		//runOneIteration(70,true);
+		//runOneIteration(70,true);   //(iteration结束后固定住的aircraft route，是否解LP)
 		//runOneIteration(50, true);
 		//runOneIteration(10, true);
 		runOneIteration(16, false);
@@ -45,25 +46,6 @@ public class LinearRecoveryModelWithPartialFixed {
 		
 	public static void runOneIteration(int fixNumber, boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
-
-		AircraftPathReader scheduleReader = new AircraftPathReader();
-		
-		//读取已经固定的飞机路径
-		Scanner sn = null;
-		try {
-			sn = new Scanner(new File("fixschedule"));
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		while(sn.hasNextLine()) {
-			String nextLine = sn.nextLine().trim();
-			
-			if(nextLine.equals("")) {
-				break;
-			}
-			scheduleReader.read(nextLine, scenario);
-		}
 		
 		List<Flight> candidateFlightList = new ArrayList<>();
 		List<ConnectingFlightpair> candidateConnectingFlightList = new ArrayList<>();
@@ -73,7 +55,8 @@ public class LinearRecoveryModelWithPartialFixed {
 		for(Flight f:scenario.flightList) {
 			if(!f.isFixed) {
 				if(f.isIncludedInConnecting) {
-					if(!f.brotherFlight.isFixed) {
+					//如果联程航班另一截没被fix，则加入candidate，否则只能cancel（因为联程必须同一个飞机）
+					if(!f.brotherFlight.isFixed) {  
 						candidateFlightList.add(f);					
 					}
 				}else {
@@ -86,6 +69,12 @@ public class LinearRecoveryModelWithPartialFixed {
 				candidateConnectingFlightList.add(cf);
 			}				
 		}
+		
+		//将所有candidate flight设置为not cancel
+		for(Flight f:candidateFlightList){
+			f.isCancelled = false;
+		}
+		
 		for(Aircraft a:scenario.aircraftList) {
 			if(!a.isFixed) {
 				candidateAircraftList.add(a);
@@ -107,10 +96,10 @@ public class LinearRecoveryModelWithPartialFixed {
 		for(Flight f:scenario.flightList) {
 			if(f.isFixed) {			
 				if(scenario.affectedAirportSet.contains(f.actualOrigin)) {
-					for(long i=Parameter.airportFirstTimeWindowStart;i<=Parameter.airportFirstTimeWindowEnd;i+=5) {
+					for(long i=Parameter.airportBeforeTyphoonTimeWindowStart;i<=Parameter.airportBeforeTyphoonTimeWindowEnd;i+=5) {
 						if(i == f.actualTakeoffT) {
-							int n = scenario.airportCapacityMap.get(f.actualOrigin.id+"_"+i);
-							scenario.airportCapacityMap.put(f.actualOrigin.id+"_"+i, n-1);
+							int n = scenario.affectAirportLdnTkfCapacityMap.get(f.actualOrigin.id+"_"+i);
+							scenario.affectAirportLdnTkfCapacityMap.put(f.actualOrigin.id+"_"+i, n-1);
 							
 							if(n-1 < 0) {
 								System.out.println("error : negative capacity");
@@ -118,10 +107,10 @@ public class LinearRecoveryModelWithPartialFixed {
 						}
 					}
 					
-					for(long i=Parameter.airportSecondTimeWindowStart;i<=Parameter.airportSecondTimeWindowEnd;i+=5) {
+					for(long i=Parameter.airportAfterTyphoonTimeWindowStart;i<=Parameter.airportAfterTyphoonTimeWindowEnd;i+=5) {
 						if(i == f.actualTakeoffT) {
-							int n = scenario.airportCapacityMap.get(f.actualOrigin.id+"_"+i);
-							scenario.airportCapacityMap.put(f.actualOrigin.id+"_"+i, n-1);
+							int n = scenario.affectAirportLdnTkfCapacityMap.get(f.actualOrigin.id+"_"+i);
+							scenario.affectAirportLdnTkfCapacityMap.put(f.actualOrigin.id+"_"+i, n-1);
 							
 							if(n-1 < 0) {
 								System.out.println("error : negative capacity");
@@ -129,10 +118,10 @@ public class LinearRecoveryModelWithPartialFixed {
 						}
 					}					
 				}else if(scenario.affectedAirportSet.contains(f.actualDestination)) {
-					for(long i=Parameter.airportFirstTimeWindowStart;i<=Parameter.airportFirstTimeWindowEnd;i+=5) {
+					for(long i=Parameter.airportBeforeTyphoonTimeWindowStart;i<=Parameter.airportBeforeTyphoonTimeWindowEnd;i+=5) {
 						if(i == f.actualLandingT) {
-							int n = scenario.airportCapacityMap.get(f.actualDestination.id+"_"+i);
-							scenario.airportCapacityMap.put(f.actualDestination.id+"_"+i, n-1);
+							int n = scenario.affectAirportLdnTkfCapacityMap.get(f.actualDestination.id+"_"+i);
+							scenario.affectAirportLdnTkfCapacityMap.put(f.actualDestination.id+"_"+i, n-1);
 							
 							if(n-1 < 0) {
 								System.out.println("error : negative capacity");
@@ -140,10 +129,10 @@ public class LinearRecoveryModelWithPartialFixed {
 						}
 					}
 					
-					for(long i=Parameter.airportSecondTimeWindowStart;i<=Parameter.airportSecondTimeWindowEnd;i+=5) {
+					for(long i=Parameter.airportAfterTyphoonTimeWindowStart;i<=Parameter.airportAfterTyphoonTimeWindowEnd;i+=5) {
 						if(i == f.actualLandingT) {
-							int n = scenario.airportCapacityMap.get(f.actualDestination.id+"_"+i);
-							scenario.airportCapacityMap.put(f.actualDestination.id+"_"+i, n-1);
+							int n = scenario.affectAirportLdnTkfCapacityMap.get(f.actualDestination.id+"_"+i);
+							scenario.affectAirportLdnTkfCapacityMap.put(f.actualDestination.id+"_"+i, n-1);
 							
 							if(n-1 < 0) {
 								System.out.println("error : negative capacity");
@@ -170,17 +159,34 @@ public class LinearRecoveryModelWithPartialFixed {
 						}
 						
 						if(scenario.affectedAirportSet.contains(f1.actualDestination.id)) {
-							for(GroundArc ga:scenario.affectedGroundArcMap.get(f1.actualDestination.id)) {
-								if(f1.actualLandingT+Parameter.MIN_BUFFER_TIME <= ga.fromNode.time && f2.actualTakeoffT >= ga.toNode.time) {
-									int limit = scenario.affectedGroundArcLimitMap.get(f1.actualDestination.id);
-									scenario.affectedGroundArcLimitMap.put(f1.actualDestination.id, limit-1);
-									
-									if(limit-1 < 0) {
-										System.out.println("negative airport limit");
-									}
+							if(f1.actualLandingT <= Parameter.airport49_50_61ParkingLimitStart && f2.actualTakeoffT >= Parameter.airport49_50_61ParkingLimitEnd) {
+								int limit = scenario.affectedAirportParkingLimitMap.get(f1.actualDestination.id);
+								scenario.affectedAirportParkingLimitMap.put(f1.actualDestination.id, limit-1);
+								
+								if(limit-1 < 0) {
+									System.out.println("negative airport limit");
 								}
 							}
-							
+						}
+						
+						//判断25和67机场停机约束
+						if(f1.actualDestination.id == 25){
+							if(f1.actualLandingT <= Parameter.airport25_67ParkingLimitStart && f2.actualTakeoffT >= Parameter.airport25_67ParkingLimitEnd) {
+								scenario.airport25ParkingLimit--;
+								
+								if(scenario.airport25ParkingLimit< 0) {
+									System.out.println("negative airport limit");
+								}
+							}
+						}
+						if(f1.actualDestination.id == 67){
+							if(f1.actualLandingT <= Parameter.airport25_67ParkingLimitStart && f2.actualTakeoffT >= Parameter.airport25_67ParkingLimitEnd) {
+								scenario.airport67ParkingLimit--;
+								
+								if(scenario.airport67ParkingLimit< 0) {
+									System.out.println("negative airport limit");
+								}
+							}
 						}
 					}
 				}		
@@ -192,20 +198,19 @@ public class LinearRecoveryModelWithPartialFixed {
 				if(a.finalAircraftNumber[type] < 0){
 					System.out.println("error "+a.finalAircraftNumber+" "+a.id);
 				}
-				if(a.finalAircraftNumber[type] != 0){
-					System.out.println("base imbalance");
-				}
 			}		
 		}
-		System.exit(1);
+		
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
 		solver(scenario, candidateAircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);
 		//根据线性松弛模型来确定新的需要固定的飞机路径
+		AircraftPathReader scheduleReader = new AircraftPathReader();
 		scheduleReader.fixAircraftRoute(scenario, fixNumber);		
 	}
 	
 	//求解线性松弛模型或者整数规划模型
 	public static void solver(Scenario scenario, List<Aircraft> candidateAircraftList, List<Flight> candidateFlightList, List<ConnectingFlightpair> candidateConnectingFlightList, boolean isFractional) {
+		//创建网络模型
 		buildNetwork(scenario, candidateAircraftList, candidateFlightList, candidateConnectingFlightList, 60);
 		
 		//System.exit(1);
@@ -227,8 +232,7 @@ public class LinearRecoveryModelWithPartialFixed {
 			}
 					
 			for(ConnectingFlightpair cf:candidateConnectingFlightList) {				
-				if (!a.checkFlyViolation(cf)) {
-					
+				if (!a.checkFlyViolation(cf)) {					
 					a.connectingFlightList.add(cf);
 				}
 			}

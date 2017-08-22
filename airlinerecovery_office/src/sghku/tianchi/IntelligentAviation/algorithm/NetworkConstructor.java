@@ -65,10 +65,10 @@ public class NetworkConstructor {
 					
 					generatedFlightArcList.add(arc);
 				
-					if(f.leg.destinationAirport.id == 25 && arc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.readyTime >= Parameter.airport2567ParkingLimitEnd){
+					if(f.leg.destinationAirport.id == 25 && arc.landingTime <= Parameter.airport25_67ParkingLimitStart && arc.readyTime >= Parameter.airport25_67ParkingLimitEnd){
 						scenario.airport25ClosureFlightArcList.add(arc);
 					}
-					if(f.leg.destinationAirport.id == 67 && arc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.readyTime >= Parameter.airport2567ParkingLimitEnd){
+					if(f.leg.destinationAirport.id == 67 && arc.landingTime <= Parameter.airport25_67ParkingLimitStart && arc.readyTime >= Parameter.airport25_67ParkingLimitEnd){
 						scenario.airport67ClosureFlightArcList.add(arc);
 					}
 				}
@@ -116,12 +116,12 @@ public class NetworkConstructor {
 				
 				if(scenario.affectedAirportSet.contains(f.leg.originAirport.id)) {
 					int t = f.initialTakeoffT + i*presetGap;
-					if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+					if((t >= Parameter.airportBeforeTyphoonTimeWindowStart && t <= Parameter.airportBeforeTyphoonTimeWindowEnd) || (t >= Parameter.airportAfterTyphoonTimeWindowStart && t <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
 						isWithinSmalGapRegionOrigin = true;
 					}
 				}else if(scenario.affectedAirportSet.contains(f.leg.destinationAirport.id)) {
 					int t = f.initialLandingT + i*presetGap;
-					if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+					if((t >= Parameter.airportBeforeTyphoonTimeWindowStart && t <= Parameter.airportBeforeTyphoonTimeWindowEnd) || (t >= Parameter.airportAfterTyphoonTimeWindowStart && t <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
 						isWithinSmalGapRegionDestination = true;
 					}
 				}
@@ -224,10 +224,10 @@ public class NetworkConstructor {
 					}
 					
 					//加入停机约束
-					if(f.leg.destinationAirport.id == 25 && arc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.readyTime >= Parameter.airport2567ParkingLimitEnd){
+					if(f.leg.destinationAirport.id == 25 && arc.landingTime <= Parameter.airport25_67ParkingLimitStart && arc.readyTime >= Parameter.airport25_67ParkingLimitEnd){
 						scenario.airport25ClosureFlightArcList.add(arc);
 					}
-					if(f.leg.destinationAirport.id == 67 && arc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.readyTime >= Parameter.airport2567ParkingLimitEnd){
+					if(f.leg.destinationAirport.id == 67 && arc.landingTime <= Parameter.airport25_67ParkingLimitStart && arc.readyTime >= Parameter.airport25_67ParkingLimitEnd){
 						scenario.airport67ClosureFlightArcList.add(arc);
 					}
 				}
@@ -320,10 +320,10 @@ public class NetworkConstructor {
 				generatedConnectingArcList.add(ca);
 				
 				//加入25和67停机约束
-				if(cf.firstFlight.leg.destinationAirport.id == 25 && ca.firstArc.landingTime <= Parameter.airport2567ParkingLimitStart && ca.secondArc.takeoffTime >= Parameter.airport2567ParkingLimitEnd){
+				if(cf.firstFlight.leg.destinationAirport.id == 25 && ca.firstArc.landingTime <= Parameter.airport25_67ParkingLimitStart && ca.secondArc.takeoffTime >= Parameter.airport25_67ParkingLimitEnd){
 					scenario.airport25ClosureConnectingArcList.add(ca);
 				}
-				if(cf.firstFlight.leg.destinationAirport.id == 67 && ca.firstArc.landingTime <= Parameter.airport2567ParkingLimitStart && ca.secondArc.takeoffTime >= Parameter.airport2567ParkingLimitEnd){
+				if(cf.firstFlight.leg.destinationAirport.id == 67 && ca.firstArc.landingTime <= Parameter.airport25_67ParkingLimitStart && ca.secondArc.takeoffTime >= Parameter.airport25_67ParkingLimitEnd){
 					scenario.airport25ClosureConnectingArcList.add(ca);
 				}
 			}
@@ -360,12 +360,12 @@ public class NetworkConstructor {
 					
 					if(scenario.affectedAirportSet.contains(cf.firstFlight.leg.originAirport.id)) {
 						int t = cf.firstFlight.initialTakeoffT + i*presetGap;
-						if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+						if((t >= Parameter.airportBeforeTyphoonTimeWindowStart && t <= Parameter.airportBeforeTyphoonTimeWindowEnd) || (t >= Parameter.airportAfterTyphoonTimeWindowStart && t <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
 							isWithinAffectedRegionOrigin1 = true;
 						}
 					}else if(scenario.affectedAirportSet.contains(cf.firstFlight.leg.destinationAirport.id)) {
 						int t = cf.firstFlight.initialLandingT + i*presetGap;
-						if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+						if((t >= Parameter.airportBeforeTyphoonTimeWindowStart && t <= Parameter.airportBeforeTyphoonTimeWindowEnd) || (t >= Parameter.airportAfterTyphoonTimeWindowStart && t <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
 							isWithinAffectedRegionDestination1 = true;
 						}
 					}
@@ -417,12 +417,12 @@ public class NetworkConstructor {
 							
 						if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.originAirport.id)) {
 							int t = cf.secondFlight.initialTakeoffT + i*presetGap;
-							if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+							if((t >= Parameter.airportBeforeTyphoonTimeWindowStart && t <= Parameter.airportBeforeTyphoonTimeWindowEnd) || (t >= Parameter.airportAfterTyphoonTimeWindowStart && t <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
 								isWithinAffectedRegionOrigin2 = true;
 							}
 						}else if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.destinationAirport.id)) {
 							int t = cf.secondFlight.initialLandingT + i*presetGap;
-							if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+							if((t >= Parameter.airportBeforeTyphoonTimeWindowStart && t <= Parameter.airportBeforeTyphoonTimeWindowEnd) || (t >= Parameter.airportAfterTyphoonTimeWindowStart && t <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
 								isWithinAffectedRegionDestination2 = true;
 							}
 						}
@@ -493,13 +493,13 @@ public class NetworkConstructor {
 					if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.originAirport.id)) {
 						int t = cf.secondFlight.initialTakeoffT + i*presetGap;
 						
-						if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+						if((t >= Parameter.airportBeforeTyphoonTimeWindowStart && t <= Parameter.airportBeforeTyphoonTimeWindowEnd) || (t >= Parameter.airportAfterTyphoonTimeWindowStart && t <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
 							isWithinAffectedRegionOrigin2 = true;
 						}
 					}else if(scenario.affectedAirportSet.contains(cf.secondFlight.leg.destinationAirport.id)) {
 						int t = cf.secondFlight.initialLandingT + i*presetGap;
 				
-						if((t >= Parameter.airportFirstTimeWindowStart && t <= Parameter.airportFirstTimeWindowEnd) || (t >= Parameter.airportSecondTimeWindowStart && t <= Parameter.airportSecondTimeWindowEnd)) {
+						if((t >= Parameter.airportBeforeTyphoonTimeWindowStart && t <= Parameter.airportBeforeTyphoonTimeWindowEnd) || (t >= Parameter.airportAfterTyphoonTimeWindowStart && t <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
 							isWithinAffectedRegionDestination2 = true;
 						}
 					}
@@ -578,10 +578,10 @@ public class NetworkConstructor {
 				}
 				
 				//加入25和67停机约束
-				if(cf.firstFlight.leg.destinationAirport.id == 25 && arc.firstArc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.secondArc.takeoffTime >= Parameter.airport2567ParkingLimitEnd){
+				if(cf.firstFlight.leg.destinationAirport.id == 25 && arc.firstArc.landingTime <= Parameter.airport25_67ParkingLimitStart && arc.secondArc.takeoffTime >= Parameter.airport25_67ParkingLimitEnd){
 					scenario.airport25ClosureConnectingArcList.add(arc);
 				}
-				if(cf.firstFlight.leg.destinationAirport.id == 67 && arc.firstArc.landingTime <= Parameter.airport2567ParkingLimitStart && arc.secondArc.takeoffTime >= Parameter.airport2567ParkingLimitEnd){
+				if(cf.firstFlight.leg.destinationAirport.id == 67 && arc.firstArc.landingTime <= Parameter.airport25_67ParkingLimitStart && arc.secondArc.takeoffTime >= Parameter.airport25_67ParkingLimitEnd){
 					scenario.airport25ClosureConnectingArcList.add(arc);
 				}
 				
@@ -789,8 +789,8 @@ public class NetworkConstructor {
 					
 					if(!isFound) {
 						if(scenario.affectedAirportSet.contains(airport.id)) {					
-							if(n1.time >= Parameter.airportFirstTimeWindowEnd && n2.time <= Parameter.airportSecondTimeWindowStart) {
-								List<GroundArc> gaList = scenario.affectedGroundArcMap.get(airport.id);
+							if(n1.time <= Parameter.airport49_50_61ParkingLimitStart && n2.time >= Parameter.airport49_50_61ParkingLimitEnd) {
+								List<GroundArc> gaList = scenario.affectedAirportCoverParkLimitGroundArcMap.get(airport.id);
 								gaList.add(groundArc);
 
 								isFound = true;
@@ -798,11 +798,11 @@ public class NetworkConstructor {
 						}						
 					}
 					
-					if(n1.airport.id == 25 && n1.time <= Parameter.airport2567ParkingLimitStart && n2.time >=Parameter.airport2567ParkingLimitEnd){
+					if(n1.airport.id == 25 && n1.time <= Parameter.airport25_67ParkingLimitStart && n2.time >=Parameter.airport25_67ParkingLimitEnd){
 						System.out.println("this way");
 						scenario.airport25ClosureGroundArcList.add(groundArc);
 					}
-					if(n1.airport.id == 67 && n1.time <= Parameter.airport2567ParkingLimitStart && n2.time >=Parameter.airport2567ParkingLimitEnd){
+					if(n1.airport.id == 67 && n1.time <= Parameter.airport25_67ParkingLimitStart && n2.time >=Parameter.airport25_67ParkingLimitEnd){
 						scenario.airport67ClosureGroundArcList.add(groundArc);
 					}
 					
@@ -853,7 +853,7 @@ public class NetworkConstructor {
 					for(int j=1;j<aircraft.nodeListArray[aircraft.initialLocation.id-1].size();j++){
 						Node n = aircraft.nodeListArray[aircraft.initialLocation.id-1].get(j);
 						
-						if(n.time >= Parameter.airportSecondTimeWindowStart) {
+						if(n.time >= Parameter.airportAfterTyphoonTimeWindowStart) {
 							GroundArc arc = new GroundArc();
 							arc.fromNode = sourceNode;
 							arc.toNode = n;
@@ -908,7 +908,7 @@ public class NetworkConstructor {
 						for(int j=aircraft.nodeListArray[airport.id-1].size()-1;j>=1;j--) {
 							Node lastNode = aircraft.nodeListArray[airport.id-1].get(j);
 							
-							if(lastNode.time < Parameter.airportFirstTimeWindowEnd) {
+							if(lastNode.time < Parameter.airportBeforeTyphoonTimeWindowEnd) {
 								GroundArc arc = new GroundArc();
 								arc.fromNode = lastNode;
 								arc.toNode = sinkNode;

@@ -177,8 +177,8 @@ public class AircraftPathReader {
 		// 检查停机约束
 		if (isFeasible) {
 			Map<Integer, Integer> affectedGroundArcLimitMapClone = new HashMap<>();
-			for (int key : scenario.affectedGroundArcLimitMap.keySet()) {
-				affectedGroundArcLimitMapClone.put(key, scenario.affectedGroundArcLimitMap.get(key));
+			for (int key : scenario.affectedAirportParkingLimitMap.keySet()) {
+				affectedGroundArcLimitMapClone.put(key, scenario.affectedAirportParkingLimitMap.get(key));
 			}
 
 			for (int i = 0; i < flightList.size() - 1; i++) {
@@ -188,7 +188,7 @@ public class AircraftPathReader {
 				boolean isFound = false;
 				if (scenario.affectedAirportSet.contains(f1.actualDestination.id)) {
 					for (int t = f1.actualLandingT + 1; t <= f2.actualTakeoffT - 1; t++) {
-						if (t >= Parameter.airportFirstTimeWindowEnd && t <= Parameter.airportSecondTimeWindowStart) {
+						if (t >= Parameter.airportBeforeTyphoonTimeWindowEnd && t <= Parameter.airportAfterTyphoonTimeWindowStart) {
 							isFound = true;
 							break;
 						}
@@ -201,7 +201,7 @@ public class AircraftPathReader {
 				}
 			}
 
-			for (int key : scenario.affectedGroundArcLimitMap.keySet()) {
+			for (int key : scenario.affectedAirportParkingLimitMap.keySet()) {
 				if (affectedGroundArcLimitMapClone.get(key) < 0) {
 					isFeasible = false;
 					System.out.println("this way 6");
@@ -212,8 +212,8 @@ public class AircraftPathReader {
 		// 检查起降约束
 		if (isFeasible) {
 			Map<String, Integer> airportCapacityMapClone = new HashMap<>();
-			for (String key : scenario.airportCapacityMap.keySet()) {
-				airportCapacityMapClone.put(key, scenario.airportCapacityMap.get(key));
+			for (String key : scenario.affectAirportLdnTkfCapacityMap.keySet()) {
+				airportCapacityMapClone.put(key, scenario.affectAirportLdnTkfCapacityMap.get(key));
 			}
 
 			for (int i = 0; i < flightList.size(); i++) {
@@ -406,7 +406,7 @@ public class AircraftPathReader {
 			boolean isFound = false;
 			if (scenario.affectedAirportSet.contains(f1.actualDestination.id)) {
 				for (int t = f1.actualLandingT + 1; t <= f2.actualTakeoffT - 1; t++) {
-					if (t >= Parameter.airportFirstTimeWindowEnd && t <= Parameter.airportSecondTimeWindowStart) {
+					if (t >= Parameter.airportBeforeTyphoonTimeWindowEnd && t <= Parameter.airportAfterTyphoonTimeWindowStart) {
 						isFound = true;
 						break;
 					}
@@ -414,8 +414,8 @@ public class AircraftPathReader {
 			}
 
 			if (isFound) {
-				int value = scenario.affectedGroundArcLimitMap.get(f1.actualDestination.id);
-				scenario.affectedGroundArcLimitMap.put(f1.actualDestination.id, value - 1);
+				int value = scenario.affectedAirportParkingLimitMap.get(f1.actualDestination.id);
+				scenario.affectedAirportParkingLimitMap.put(f1.actualDestination.id, value - 1);
 			}
 		}
 
@@ -423,20 +423,20 @@ public class AircraftPathReader {
 		for (int i = 0; i < flightList.size(); i++) {
 			Flight f1 = flightList.get(i);
 
-			Integer value = scenario.airportCapacityMap.get(f1.actualOrigin.id + "_" + f1.actualTakeoffT);
+			Integer value = scenario.affectAirportLdnTkfCapacityMap.get(f1.actualOrigin.id + "_" + f1.actualTakeoffT);
 			if (value != null) {
 				if("50_11155".equals(f1.actualOrigin.id + "_" + f1.actualTakeoffT)){
 					System.out.println("one takeoff "+f1.id+" "+f1.actualTakeoffT);
 				}
-				scenario.airportCapacityMap.put(f1.actualOrigin.id + "_" + f1.actualTakeoffT, value - 1);
+				scenario.affectAirportLdnTkfCapacityMap.put(f1.actualOrigin.id + "_" + f1.actualTakeoffT, value - 1);
 			}
 
-			value = scenario.airportCapacityMap.get(f1.actualDestination.id + "_" + f1.actualLandingT);
+			value = scenario.affectAirportLdnTkfCapacityMap.get(f1.actualDestination.id + "_" + f1.actualLandingT);
 			if (value != null) {
 				if("50_11155".equals(f1.actualDestination.id + "_" + f1.actualLandingT)){
 					System.out.println("one landing "+f1.id+" "+f1.actualLandingT);
 				}
-				scenario.airportCapacityMap.put(f1.actualDestination.id + "_" + f1.actualLandingT, value - 1);
+				scenario.affectAirportLdnTkfCapacityMap.put(f1.actualDestination.id + "_" + f1.actualLandingT, value - 1);
 			}
 		}
 	}

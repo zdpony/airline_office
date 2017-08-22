@@ -282,18 +282,18 @@ public class CplexModel {
 					airportConstraint.addTerm(1, beta[arc.id]);
 				}
 				
-				cplex.addLe(airportConstraint, sce.airportCapacityMap.get(key));
+				cplex.addLe(airportConstraint, sce.affectAirportLdnTkfCapacityMap.get(key));
 			}
 			
 			//9. 停机约束
 			for(Integer airport:sce.affectedAirportSet) {
 				IloLinearNumExpr parkingConstraint = cplex.linearNumExpr();
-				List<GroundArc> gaList = sce.affectedGroundArcMap.get(airport);
+				List<GroundArc> gaList = sce.affectedAirportCoverParkLimitGroundArcMap.get(airport);
 				for(GroundArc ga:gaList) {
 					parkingConstraint.addTerm(1, y[ga.id]);					
 				}
 				
-				cplex.addLe(parkingConstraint, sce.affectedGroundArcLimitMap.get(airport));
+				cplex.addLe(parkingConstraint, sce.affectedAirportParkingLimitMap.get(airport));
 			}
 			
 			//10. 25 和 67 停机约束
@@ -307,7 +307,7 @@ public class CplexModel {
 			for(ConnectingArc arc:sce.airport25ClosureConnectingArcList){
 				parkingConstraint25.addTerm(1, beta[arc.id]);
 			}
-			cplex.addLe(parkingConstraint25, 11);
+			cplex.addLe(parkingConstraint25, sce.airport25ParkingLimit);
 			
 			IloLinearNumExpr parkingConstraint67 = cplex.linearNumExpr();
 			for(GroundArc ga:sce.airport67ClosureGroundArcList){
@@ -319,7 +319,7 @@ public class CplexModel {
 			for(ConnectingArc arc:sce.airport67ClosureConnectingArcList){
 				parkingConstraint67.addTerm(1, beta[arc.id]);
 			}
-			cplex.addLe(parkingConstraint67, 7);
+			cplex.addLe(parkingConstraint67, sce.airport67ParkingLimit);
 			
 			if(cplex.solve()){
 		
@@ -577,12 +577,12 @@ public class CplexModel {
 							
 							for(FlightArc arc:faList) {
 								if(cplex.getValue(x[arc.id]) > 1e-6){
-									System.out.println("key:"+key+" "+arc.flight.id+" "+Parameter.airportFirstTimeWindowStart+"->"+Parameter.airportFirstTimeWindowEnd);
+									System.out.println("key:"+key+" "+arc.flight.id+" "+Parameter.airportBeforeTyphoonTimeWindowStart+"->"+Parameter.airportBeforeTyphoonTimeWindowEnd);
 								}
 							}
 							for(ConnectingArc arc:caList) {
 								if(cplex.getValue(beta[arc.id]) > 1e-6){
-									System.out.println("key:"+key+" "+arc.firstArc.flight.id+" "+arc.secondArc.flight.id+" "+Parameter.airportFirstTimeWindowStart+"->"+Parameter.airportFirstTimeWindowEnd);
+									System.out.println("key:"+key+" "+arc.firstArc.flight.id+" "+arc.secondArc.flight.id+" "+Parameter.airportBeforeTyphoonTimeWindowStart+"->"+Parameter.airportBeforeTyphoonTimeWindowEnd);
 								}
 							}
 						}
