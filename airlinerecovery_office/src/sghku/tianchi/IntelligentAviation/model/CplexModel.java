@@ -282,8 +282,8 @@ public class CplexModel {
 			//8. 机场起降约束
 			for(String key:sce.keyList) {
 				IloLinearNumExpr airportConstraint = cplex.linearNumExpr();
-				List<FlightArc> faList = sce.airportFlightArcMap.get(key);
-				List<ConnectingArc> caList = sce.airportConnectingArcMap.get(key);
+				List<FlightArc> faList = sce.airportTimeFlightArcMap.get(key);
+				List<ConnectingArc> caList = sce.airportTimeConnectingArcMap.get(key);
 				
 				for(FlightArc arc:faList) {
 					airportConstraint.addTerm(1, x[arc.id]);
@@ -311,7 +311,7 @@ public class CplexModel {
 			for(GroundArc ga:sce.airport25ClosureGroundArcList){
 				parkingConstraint25.addTerm(1, y[ga.id]);
 			}
-			for(FlightArc arc:sce.airport25ClosureFlightArcList){
+			for(FlightArc arc:sce.airport25ParkingFlightArcList){
 				parkingConstraint25.addTerm(1, x[arc.id]);
 			}
 			for(ConnectingArc arc:sce.airport25ClosureConnectingArcList){
@@ -323,7 +323,7 @@ public class CplexModel {
 			for(GroundArc ga:sce.airport67ClosureGroundArcList){
 				parkingConstraint67.addTerm(1, y[ga.id]);
 			}
-			for(FlightArc arc:sce.airport67ClosureFlightArcList){
+			for(FlightArc arc:sce.airport67ParkingFlightArcList){
 				parkingConstraint67.addTerm(1, x[arc.id]);
 			}
 			for(ConnectingArc arc:sce.airport67ClosureConnectingArcList){
@@ -542,8 +542,8 @@ public class CplexModel {
 					
 					for(String key:sce.keyList) {
 						if(key.startsWith("49_")){
-							List<FlightArc> faList = sce.airportFlightArcMap.get(key);
-							List<ConnectingArc> caList = sce.airportConnectingArcMap.get(key);
+							List<FlightArc> faList = sce.airportTimeFlightArcMap.get(key);
+							List<ConnectingArc> caList = sce.airportTimeConnectingArcMap.get(key);
 							
 							for(FlightArc arc:faList) {
 								if(cplex.getValue(x[arc.id]) > 1e-6){

@@ -99,7 +99,7 @@ public class FlightArc {
 			
 			if(Parameter.isPassengerCostConsidered) {
 				if(flight.isIncludedInConnecting) {
-					//首先考虑联程乘客，如果其中一段属于联程航班，则代表对应的联程乘客取消
+					//首先考虑联程乘客，如果其中一段属于联程航班，则代表另一截cancel了，则对应的联程乘客取消
 					cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost/2.0;
 				}
 				
@@ -107,16 +107,17 @@ public class FlightArc {
 				for(TransferPassenger tp:flight.firstPassengerTransferList) {
 					cost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
 				}
+				for(TransferPassenger tp:flight.secondPassengerTransferList){
+					cost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
+				}
 				
 				//考虑普通乘客的延误
 				int remainingCapacity = aircraft.passengerCapacity;
-				remainingCapacity = remainingCapacity - flight.transferPassengerNumber;
+				remainingCapacity = remainingCapacity - flight.transferPassengerNumber;  //预留座位给中转乘客--假设中转一定能成功
 				int actualNum = Math.min(remainingCapacity, flight.normalPassengerNumber);
 							
 				cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
-				if(flight.id == 1897 && delay == 5){
-					System.out.println("current cost:"+cost+" "+actualNum+" "+ExcelOperator.getPassengerDelayParameter(delay));
-				}
+		
 			}			
 		}
 	}

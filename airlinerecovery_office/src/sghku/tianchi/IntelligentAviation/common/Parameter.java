@@ -116,5 +116,5 @@ public class Parameter {
 	
 	public static boolean isPassengerCostConsidered = false;
 	public static boolean isReadFixedRoutes = false;
-	public static boolean isOnlyConsiderDisruptedPassenger = false;
+	public static boolean onlySignChangeDisruptedPassenger = false;
 }

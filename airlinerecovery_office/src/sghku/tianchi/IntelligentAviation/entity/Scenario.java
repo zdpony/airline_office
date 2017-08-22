@@ -48,8 +48,8 @@ public class Scenario {
 	public Set<Integer> affectedAirportSet = new HashSet();
 
 	public List<String> keyList = new ArrayList<>();
-	public Map<String, List<FlightArc>> airportFlightArcMap = new HashMap<>();
-	public Map<String, List<ConnectingArc>> airportConnectingArcMap = new HashMap<>();
+	public Map<String, List<FlightArc>> airportTimeFlightArcMap = new HashMap<>();
+	public Map<String, List<ConnectingArc>> airportTimeConnectingArcMap = new HashMap<>();
 	public Map<String, Integer> affectAirportLdnTkfCapacityMap = new HashMap<>();  //landing & takeoff capacity of affected airport 
 
 	public Map<Integer, List<GroundArc>> affectedAirportCoverParkLimitGroundArcMap = new HashMap<>();
@@ -62,8 +62,8 @@ public class Scenario {
 	public List<GroundArc> airport25ClosureGroundArcList = new ArrayList<>();
 	public List<GroundArc> airport67ClosureGroundArcList = new ArrayList<>();
 
-	public List<FlightArc> airport25ClosureFlightArcList = new ArrayList<>();
-	public List<FlightArc> airport67ClosureFlightArcList = new ArrayList<>();
+	public List<FlightArc> airport25ParkingFlightArcList = new ArrayList<>();
+	public List<FlightArc> airport67ParkingFlightArcList = new ArrayList<>();
 
 	public List<ConnectingArc> airport25ClosureConnectingArcList = new ArrayList<>();
 	public List<ConnectingArc> airport67ClosureConnectingArcList = new ArrayList<>();
@@ -184,13 +184,13 @@ public class Scenario {
 			keyList.add("50_" + i);
 			keyList.add("61_" + i);
 
-			airportFlightArcMap.put("49_" + i, new ArrayList<>());
-			airportFlightArcMap.put("50_" + i, new ArrayList<>());
-			airportFlightArcMap.put("61_" + i, new ArrayList<>());
+			airportTimeFlightArcMap.put("49_" + i, new ArrayList<>());
+			airportTimeFlightArcMap.put("50_" + i, new ArrayList<>());
+			airportTimeFlightArcMap.put("61_" + i, new ArrayList<>());
 
-			airportConnectingArcMap.put("49_" + i, new ArrayList<>());
-			airportConnectingArcMap.put("50_" + i, new ArrayList<>());
-			airportConnectingArcMap.put("61_" + i, new ArrayList<>());
+			airportTimeConnectingArcMap.put("49_" + i, new ArrayList<>());
+			airportTimeConnectingArcMap.put("50_" + i, new ArrayList<>());
+			airportTimeConnectingArcMap.put("61_" + i, new ArrayList<>());
 
 			affectAirportLdnTkfCapacityMap.put("49_" + i, 2);
 			affectAirportLdnTkfCapacityMap.put("50_" + i, 2);
@@ -202,13 +202,13 @@ public class Scenario {
 			keyList.add("50_" + i);
 			keyList.add("61_" + i);
 
-			airportFlightArcMap.put("49_" + i, new ArrayList<>());
-			airportFlightArcMap.put("50_" + i, new ArrayList<>());
-			airportFlightArcMap.put("61_" + i, new ArrayList<>());
+			airportTimeFlightArcMap.put("49_" + i, new ArrayList<>());
+			airportTimeFlightArcMap.put("50_" + i, new ArrayList<>());
+			airportTimeFlightArcMap.put("61_" + i, new ArrayList<>());
 
-			airportConnectingArcMap.put("49_" + i, new ArrayList<>());
-			airportConnectingArcMap.put("50_" + i, new ArrayList<>());
-			airportConnectingArcMap.put("61_" + i, new ArrayList<>());
+			airportTimeConnectingArcMap.put("49_" + i, new ArrayList<>());
+			airportTimeConnectingArcMap.put("50_" + i, new ArrayList<>());
+			airportTimeConnectingArcMap.put("61_" + i, new ArrayList<>());
 
 			affectAirportLdnTkfCapacityMap.put("49_" + i, 2);
 			affectAirportLdnTkfCapacityMap.put("50_" + i, 2);
@@ -268,7 +268,7 @@ public class Scenario {
 		}
 
 		// 生成单程乘客行程
-		if(Parameter.isOnlyConsiderDisruptedPassenger){
+		if(Parameter.onlySignChangeDisruptedPassenger){
 			//只生产disrupted itinerary
 			for (Flight f : flightList) {
 				if (f.isIncludedInTimeWindow) {
@@ -704,7 +704,7 @@ public class Scenario {
 
 				inFlight.firstPassengerTransferList.add(transferPassenger);
 				outFlight.secondPassengerTransferList.add(transferPassenger);
-
+				
 				transferPassengerList.add(transferPassenger);
 			}
 		} catch (FileNotFoundException e) {
@@ -735,7 +735,7 @@ public class Scenario {
 		affectedAirportSet.add(50);
 		affectedAirportSet.add(61);
 
-		for (Flight f : flightList) {
+	/*	for (Flight f : flightList) {
 
 			if (f.isIncludedInTimeWindow) {
 				if (affectedAirportSet.contains(f.leg.originAirport.id)) {
@@ -793,7 +793,7 @@ public class Scenario {
 					}
 				}
 			}
-		}
+		}*/
 
 		// 读取台风影响下的停机数
 		for (Airport airport : airportList) {

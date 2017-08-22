@@ -225,8 +225,8 @@ public class CplexModelForPureAircraft {
 			//8. 机场起降约束
 			for(String key:sce.keyList) {
 				IloLinearNumExpr airportConstraint = cplex.linearNumExpr();
-				List<FlightArc> faList = sce.airportFlightArcMap.get(key);
-				List<ConnectingArc> caList = sce.airportConnectingArcMap.get(key);
+				List<FlightArc> faList = sce.airportTimeFlightArcMap.get(key);
+				List<ConnectingArc> caList = sce.airportTimeConnectingArcMap.get(key);
 				
 				for(FlightArc arc:faList) {
 					airportConstraint.addTerm(1, x[arc.id]);

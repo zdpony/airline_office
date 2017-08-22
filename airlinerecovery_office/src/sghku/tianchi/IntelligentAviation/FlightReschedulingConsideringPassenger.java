@@ -35,7 +35,7 @@ public class FlightReschedulingConsideringPassenger {
 
 		Parameter.isPassengerCostConsidered = true;
 		Parameter.isReadFixedRoutes = true;
-		Parameter.isOnlyConsiderDisruptedPassenger = true;
+		Parameter.onlySignChangeDisruptedPassenger = true;
 		
 		runOneIteration(false);
 		

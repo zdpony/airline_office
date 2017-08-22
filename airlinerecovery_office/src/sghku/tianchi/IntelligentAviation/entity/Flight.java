@@ -102,7 +102,7 @@ public class Flight {
 	
 	public double totalConnectingCancellationCost = 0;
 	
-	public boolean isSmallGapRequired = false;
+	//public boolean isSmallGapRequired = false;
 	
 	//对于联程拉直航班对应的属性
 	public Airport actualOrigin = null;

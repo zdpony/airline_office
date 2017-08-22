@@ -452,7 +452,7 @@ public class ExcelOperator {
     }
     
     public static double getPassengerDelayParameter(int delay) {
-    	if(delay == 0){
+    	if(delay <= 0){
     		return 0.;
     	}else if(delay <= 2*60 && delay > 0) {
     		return 1.;
