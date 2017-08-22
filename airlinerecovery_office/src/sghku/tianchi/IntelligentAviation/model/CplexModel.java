@@ -508,6 +508,31 @@ public class CplexModel {
 							fsi.volume = cplex.getValue(passX[i]);
 						}
 					}
+					
+					Flight f485 = sce.flightList.get(484);
+					for(FlightSection fs:f485.flightSectionList){
+						double capacity = 0;
+						for(FlightArc arc:fs.flightArcList){
+							if(arc.isIncludedInConnecting) {
+								capacity += arc.passengerCapacity * cplex.getValue(beta[arc.connectingArc.id]);
+								if(cplex.getValue(beta[arc.connectingArc.id]) > 1e-6){
+									System.out.println("this way 1:"+(cplex.getValue(beta[arc.connectingArc.id])));
+								}
+							}else {
+								capacity += arc.passengerCapacity * cplex.getValue(x[arc .id]);
+								if(cplex.getValue(x[arc .id]) > 1e-6){
+									System.out.println("this way 2:"+(cplex.getValue(x[arc .id])));
+								}
+							}
+						}
+						
+						for(FlightSectionItinerary fsi: fs.flightSectionItineraryList){
+							
+							if(fsi.volume > 1e-6){
+								System.out.println("itinerary "+fsi.itinerary.flight.id+" assigned to flight "+fs.flight.id+"  volume:"+fsi.volume+"  capacity:"+capacity+"  unit cost:"+fsi.unitCost);								
+							}
+						}
+					}				
 
 					int cancelN1 = 0;
 					int cancelN2 = 0;
