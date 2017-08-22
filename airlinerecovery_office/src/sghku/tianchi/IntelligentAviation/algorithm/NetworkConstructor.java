@@ -596,15 +596,11 @@ public class NetworkConstructor {
 				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.connectedPassengerNumber;
 				//减去转乘乘客
 				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.transferPassengerNumber;
-				if(arc.firstArc.flight.id == 947){
-					System.out.println("flight 947 stage 1:"+arc.firstArc.passengerCapacity);
-				}
+				
 				if(Parameter.isOnlyConsiderDisruptedPassenger){
 					//减去普通乘客
 					arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.normalPassengerNumber;
-					if(arc.firstArc.flight.id == 947){
-						System.out.println("flight 947 stage 2:"+arc.firstArc.passengerCapacity);
-					}
+					
 				}
 				
 				//剩下的则为有效座位

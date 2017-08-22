@@ -19,7 +19,10 @@ import sghku.tianchi.IntelligentAviation.entity.ConnectingArc;
 import sghku.tianchi.IntelligentAviation.entity.ConnectingFlightpair;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
 import sghku.tianchi.IntelligentAviation.entity.FlightArc;
+import sghku.tianchi.IntelligentAviation.entity.FlightSection;
+import sghku.tianchi.IntelligentAviation.entity.FlightSectionItinerary;
 import sghku.tianchi.IntelligentAviation.entity.GroundArc;
+import sghku.tianchi.IntelligentAviation.entity.Itinerary;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
 import sghku.tianchi.IntelligentAviation.entity.Solution;
 import sghku.tianchi.IntelligentAviation.model.CplexModel;
@@ -27,6 +30,7 @@ import sghku.tianchi.IntelligentAviation.model.CplexModelForPureAircraft;
 import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 
 public class LinearRecoveryModelWithPartialFixed {
+	public static int gap = 15;
 	public static void main(String[] args) {
 
 		Parameter.isPassengerCostConsidered = false;
@@ -36,7 +40,7 @@ public class LinearRecoveryModelWithPartialFixed {
 		//runOneIteration(70,true);   //(iteration结束后固定住的aircraft route，是否解LP)
 		//runOneIteration(50, true);
 		//runOneIteration(10, true);
-		runOneIteration(16, false);
+		runOneIteration(70, true);
 		//最后一个循环直接解整数规划模型
 		//runOneIteration(32, false);
 		
@@ -46,6 +50,18 @@ public class LinearRecoveryModelWithPartialFixed {
 		
 	public static void runOneIteration(int fixNumber, boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
+		
+		//设定每一个flight都被affect到
+		int changedNum = 0;
+		for(Flight f:scenario.flightList){
+			if(f.isIncludedInTimeWindow){
+				if(!f.isAffected){
+					changedNum++;
+				}
+				f.isAffected = true;
+			}
+		}
+		System.out.println("changedNum:"+changedNum);
 		
 		List<Flight> candidateFlightList = new ArrayList<>();
 		List<ConnectingFlightpair> candidateConnectingFlightList = new ArrayList<>();
@@ -211,12 +227,12 @@ public class LinearRecoveryModelWithPartialFixed {
 	//求解线性松弛模型或者整数规划模型
 	public static void solver(Scenario scenario, List<Aircraft> candidateAircraftList, List<Flight> candidateFlightList, List<ConnectingFlightpair> candidateConnectingFlightList, boolean isFractional) {
 		//创建网络模型
-		buildNetwork(scenario, candidateAircraftList, candidateFlightList, candidateConnectingFlightList, 60);
+		buildNetwork(scenario, candidateAircraftList, candidateFlightList, candidateConnectingFlightList, gap);
 		
 		//System.exit(1);
 		//求解CPLEX模型
-		CplexModelForPureAircraft model = new CplexModelForPureAircraft();
-		Solution solution = model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList,scenario, isFractional, true, true);		
+		CplexModel model = new CplexModel();
+		Solution solution = model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList,scenario, new ArrayList(), new ArrayList(), new ArrayList(), isFractional, true, true);		
 	}
 
 	// 构建时空网络流模型
@@ -267,14 +283,10 @@ public class LinearRecoveryModelWithPartialFixed {
 				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, gap, scenario);
 			}
 
-			int nnn = 0;
 			for (ConnectingFlightpair cf : aircraft.connectingFlightList) {
 				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, gap,
 						false, scenario);
-				nnn += caList.size();
-			}
-			
-			System.out.println("nnn:"+nnn);
+			}			
 		}
 		
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
