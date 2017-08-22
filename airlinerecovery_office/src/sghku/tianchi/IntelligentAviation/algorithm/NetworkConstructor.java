@@ -197,6 +197,10 @@ public class NetworkConstructor {
 						arc.passengerCapacity = aircraft.passengerCapacity;			
 						//减去转乘乘客
 						arc.passengerCapacity = arc.passengerCapacity - f.transferPassengerNumber;
+						if(Parameter.isOnlyConsiderDisruptedPassenger){
+							//减去普通乘客
+							arc.passengerCapacity = arc.passengerCapacity - f.normalPassengerNumber;
+						}
 						//剩下的则为有效座位
 						arc.passengerCapacity = Math.max(0, arc.passengerCapacity);
 					}
@@ -590,6 +594,10 @@ public class NetworkConstructor {
 				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.connectedPassengerNumber;
 				//减去转乘乘客
 				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.transferPassengerNumber;
+				if(Parameter.isOnlyConsiderDisruptedPassenger){
+					//减去普通乘客
+					arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.normalPassengerNumber;
+				}
 				
 				//剩下的则为有效座位
 				arc.firstArc.passengerCapacity = Math.max(0, arc.firstArc.passengerCapacity);
@@ -618,11 +626,12 @@ public class NetworkConstructor {
 				arc.secondArc.passengerCapacity = aircraft.passengerCapacity;		
 				//减去联程乘客
 				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.firstFlight.connectedPassengerNumber;
-				if(arc.secondArc.flight.id == 620){
-					System.out.println("step 1:"+arc.secondArc.passengerCapacity);
-				}
 				//减去转乘乘客
 				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.transferPassengerNumber;
+				if(Parameter.isOnlyConsiderDisruptedPassenger){
+					//减去普通乘客
+					arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.normalPassengerNumber;
+				}
 				
 				//剩下的则为有效座位
 				arc.secondArc.passengerCapacity = Math.max(0, arc.secondArc.passengerCapacity);

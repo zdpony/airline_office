@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
+import sghku.tianchi.IntelligentAviation.AircraftPathReader;
 import sghku.tianchi.IntelligentAviation.common.ExcelOperator;
 import sghku.tianchi.IntelligentAviation.common.Parameter;
 import sghku.tianchi.IntelligentAviation.comparator.FlightComparator;
@@ -57,16 +58,16 @@ public class Scenario {
 	// short connection
 	public Map<String, Integer> shortConnectionMap = new HashMap<>();
 
-	//限制25和67
+	// 限制25和67
 	public List<GroundArc> airport25ClosureGroundArcList = new ArrayList<>();
 	public List<GroundArc> airport67ClosureGroundArcList = new ArrayList<>();
 
 	public List<FlightArc> airport25ClosureFlightArcList = new ArrayList<>();
 	public List<FlightArc> airport67ClosureFlightArcList = new ArrayList<>();
-	
+
 	public List<ConnectingArc> airport25ClosureConnectingArcList = new ArrayList<>();
 	public List<ConnectingArc> airport67ClosureConnectingArcList = new ArrayList<>();
-	
+
 	public Scenario() {
 
 	}
@@ -168,6 +169,11 @@ public class Scenario {
 			f.actualLandingT = f.initialLandingT;
 			f.actualTakeoffT = f.initialTakeoffT;
 		}
+		
+		//是否需要读取飞机固定的路径
+		if(Parameter.isReadFixedRoutes){
+			readFixedRoutes();
+		}
 
 		// 初始化机场流量限制
 		for (long i = Parameter.airportFirstTimeWindowStart; i <= Parameter.airportFirstTimeWindowEnd; i += 5) {
@@ -225,7 +231,7 @@ public class Scenario {
 		for (ConnectingFlightpair cf : connectingFlightList) {
 			if (!cf.firstFlight.isIncludedInTimeWindow && cf.secondFlight.isIncludedInTimeWindow) {
 
-				System.out.println("we find this exception : flight"+cf.secondFlight.id);
+				System.out.println("we find this exception : flight" + cf.secondFlight.id);
 				for (int i = 0; i <= 432; i++) {
 					FlightArc fa = new FlightArc();
 					fa.flight = cf.secondFlight;
@@ -239,18 +245,17 @@ public class Scenario {
 						cf.secondFlight.fixedTakeoffTime = fa.takeoffTime;
 						cf.secondFlight.fixedLandingTime = fa.landingTime;
 
-						String key = cf.secondFlight.leg.originAirport.id+"_"+fa.takeoffTime;
+						String key = cf.secondFlight.leg.originAirport.id + "_" + fa.takeoffTime;
 						Integer num = airportCapacityMap.get(key);
-						if(num != null){
-							airportCapacityMap.put(key, num-1);
+						if (num != null) {
+							airportCapacityMap.put(key, num - 1);
 						}
-						key = cf.secondFlight.leg.destinationAirport.id+"_"+fa.landingTime;
+						key = cf.secondFlight.leg.destinationAirport.id + "_" + fa.landingTime;
 						num = airportCapacityMap.get(key);
-						if(num != null){
-							airportCapacityMap.put(key, num-1);
+						if (num != null) {
+							airportCapacityMap.put(key, num - 1);
 						}
-						
-						
+
 						break;
 					}
 				}
@@ -260,17 +265,42 @@ public class Scenario {
 		}
 
 		// 生成单程乘客行程
-		for (Flight f : flightList) {
-			if (f.isIncludedInTimeWindow) {
-				Itinerary ite = new Itinerary();
-				ite.flight = f;
-				ite.volume = f.normalPassengerNumber;
+		if(Parameter.isOnlyConsiderDisruptedPassenger){
+			//只生产disrupted itinerary
+			for (Flight f : flightList) {
+				if (f.isIncludedInTimeWindow) {
+					int capacity = f.aircraft.passengerCapacity;
+					if(f.isCancelled){
+						capacity = 0;
+					}
+					int totalVolume = f.connectedPassengerNumber + f.passengerNumber;
+					int cancelNum = Math.max(0, totalVolume-capacity);
+					cancelNum = Math.min(cancelNum, f.normalPassengerNumber);
+					
+					if(cancelNum > 0){
+						Itinerary ite = new Itinerary();
+						ite.flight = f;
+						ite.volume = f.normalPassengerNumber;
 
-				f.itinerary = ite;
+						f.itinerary = ite;
 
-				itineraryList.add(ite);
+						itineraryList.add(ite);
+					}					
+				}
 			}
-		}
+		}else{
+			for (Flight f : flightList) {
+				if (f.isIncludedInTimeWindow) {
+					Itinerary ite = new Itinerary();
+					ite.flight = f;
+					ite.volume = f.normalPassengerNumber;
+
+					f.itinerary = ite;
+
+					itineraryList.add(ite);
+				}
+			}
+		}		
 
 		// 为每一个行程检测可以替代的航班
 		for (Itinerary ite : itineraryList) {
@@ -777,6 +807,36 @@ public class Scenario {
 		for (int airportId : affectedAirportSet) {
 			List<GroundArc> gaList = new ArrayList<>();
 			affectedGroundArcMap.put(airportId, gaList);
+		}
+	}
+
+	// 读取飞机固定的路径
+	public void readFixedRoutes() {
+		// 1.初始化，所有的航班取消
+		for (Flight f : this.flightList) {
+			f.isCancelled = true;
+			f.aircraft = f.initialAircraft;
+			f.actualTakeoffT = f.initialTakeoffT;
+			f.actualLandingT = f.initialLandingT;
+		}
+
+		AircraftPathReader scheduleReader = new AircraftPathReader();
+
+		// 读取已经固定的飞机路径
+		Scanner sn = null;
+		try {
+			sn = new Scanner(new File("fixschedule"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		while (sn.hasNextLine()) {
+			String nextLine = sn.nextLine().trim();
+
+			if (nextLine.equals("")) {
+				break;
+			}
+			scheduleReader.read(nextLine, this);
 		}
 	}
 }

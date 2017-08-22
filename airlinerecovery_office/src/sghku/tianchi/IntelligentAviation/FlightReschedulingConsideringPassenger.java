@@ -34,6 +34,8 @@ public class FlightReschedulingConsideringPassenger {
 	public static void main(String[] args) {
 
 		Parameter.isPassengerCostConsidered = true;
+		Parameter.isReadFixedRoutes = true;
+		Parameter.isOnlyConsiderDisruptedPassenger = true;
 		
 		runOneIteration(false);
 		
@@ -43,7 +45,7 @@ public class FlightReschedulingConsideringPassenger {
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 		System.out.println("---------------this way ---------");
 		
-		//1.初始化，所有的航班取消
+		/*//1.初始化，所有的航班取消
 		for(Flight f:scenario.flightList){
 			f.isCancelled = true;
 			f.aircraft = f.initialAircraft;
@@ -68,7 +70,7 @@ public class FlightReschedulingConsideringPassenger {
 				break;
 			}
 			scheduleReader.read(nextLine, scenario);
-		}
+		}*/
 		
 		List<Flight> candidateFlightList = new ArrayList<>();
 		List<ConnectingFlightpair> candidateConnectingFlightList = new ArrayList<>();
