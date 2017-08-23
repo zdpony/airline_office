@@ -100,7 +100,7 @@ public class FlightArc {
 			if(Parameter.isPassengerCostConsidered) {
 				if(flight.isIncludedInConnecting) {
 					//首先考虑联程乘客，如果其中一段属于联程航班，则代表另一截cancel了，则对应的联程乘客取消
-					cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost/2.0;
+					cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
 				}
 				
 				//考虑中转乘客的延误

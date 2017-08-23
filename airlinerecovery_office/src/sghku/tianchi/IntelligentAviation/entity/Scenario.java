@@ -283,7 +283,7 @@ public class Scenario {
 					if(cancelNum > 0){
 						Itinerary ite = new Itinerary();
 						ite.flight = f;
-						ite.volume = f.normalPassengerNumber;
+						ite.volume = cancelNum;
 
 						f.itinerary = ite;
 
@@ -311,16 +311,15 @@ public class Scenario {
 
 				if (f.isIncludedInTimeWindow && f.leg.equals(ite.flight.leg) && f.id != ite.flight.id) {
 					// 判断该航班是否可以承载该行程
+					
 					int earliestT = f.initialTakeoffT - (f.isAllowtoBringForward ? Parameter.MAX_LEAD_TIME : 0);
-					// int latestT = f.initialTakeoffT +
-					// (f.isDomestic?Parameter.MAX_DELAY_DOMESTIC_TIME:Parameter.MAX_DELAY_INTERNATIONAL_TIME);
-
-					if (ite.flight.initialTakeoffT >= earliestT
-							&& ite.flight.initialTakeoffT + 48 * 60 >= f.initialTakeoffT) {
+					int latestT = f.initialTakeoffT + (f.isDomestic?Parameter.MAX_DELAY_DOMESTIC_TIME:Parameter.MAX_DELAY_INTERNATIONAL_TIME);
+					
+					if(latestT >= ite.flight.initialTakeoffT && earliestT <= ite.flight.initialTakeoffT + 48*60){
 						ite.candidateFlightList.add(f);
 					}
 				}
-			}
+			}		
 		}
 
 		// 生成flight section itinerary
@@ -333,9 +332,10 @@ public class Scenario {
 			cf.secondFlight.totalConnectingCancellationCost += cf.secondFlight.connectedPassengerNumber
 					* Parameter.passengerCancelCost;
 		}
-
-		for (Flight f : flightList) {
-			f.totalConnectingCancellationCost = f.totalConnectingCancellationCost / 2.0;
+		// 把flight上中转首段乘客的cancel cost 也加到connecting cost里，方便加入model的z coefficient
+		// 因为中转首段cancel也影响后段，所以*2
+		for(Flight f:flightList){
+			f.totalConnectingCancellationCost += f.firstTransferPassengerNumber * Parameter.passengerCancelCost * 2;
 		}
 
 		checkTyphoonAffectedFlights();
@@ -569,11 +569,11 @@ public class Scenario {
 				}
 
 				for (int d : delayOptionList) {
-					int t = ite.flight.initialTakeoffT + d;
+					int tkfTime = ite.flight.initialTakeoffT + d;
 
-					if (t >= earlistT && t <= latestT) {
+					if (tkfTime >= earlistT && tkfTime <= latestT) {
 
-						f.discreteTimePointSet.add(t);
+						f.discreteTimePointSet.add(tkfTime);
 					}
 				}
 			}
