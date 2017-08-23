@@ -30,11 +30,11 @@ import sghku.tianchi.IntelligentAviation.model.CplexModelForPureAircraft;
 import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 
 public class LinearRecoveryModelWithPartialFixed {
-	public static int gap = 15;
+	public static int gap = 60;
 	public static void main(String[] args) {
 
 		Parameter.isPassengerCostConsidered = false;
-		Parameter.isReadFixedRoutes = true;
+		Parameter.isReadFixedRoutes = false;
 		
 		//前面两个循环求解线性松弛模型
 		//runOneIteration(70,true);   //(iteration结束后固定住的aircraft route，是否解LP)
