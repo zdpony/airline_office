@@ -345,40 +345,10 @@ public class Scenario {
 			for (int i = 0; i < a.flightList.size() - 1; i++) {
 				Flight f1 = a.flightList.get(i);
 				Flight f2 = a.flightList.get(i + 1);
-				/*
-				 * if(f2.isIncludedInTimeWindow){
-				 * 
-				 * }else{ int connT = f2.initialTakeoffT - f1.initialLandingT;
-				 * 
-				 * if(connT < Parameter.MIN_BUFFER_TIME){
-				 * if(f1.isIncludedInTimeWindow || f2.isIncludedInTimeWindow){
-				 * System.out.
-				 * println("short connection exists in adjustable time window!"
-				 * ); System.exit(1); } f1.isShortConnection = true;
-				 * f1.shortConnectionTime = connT; }
-				 * 
-				 * }
-				 */
-
+				
 				int connT = f2.initialTakeoffT - f1.initialLandingT;
 
 				if (connT < Parameter.MIN_BUFFER_TIME) {
-					if (f1.isIncludedInTimeWindow || f2.isIncludedInTimeWindow) {
-						if (f1.isIncludedInConnecting && f2.isIncludedInConnecting) {
-
-						} else {
-							// System.out.println("short connection exists in
-							// adjustable time window! "+f1.id+" "+f2.id+"
-							// "+f1.isIncludedInConnecting+"
-							// "+f2.isIncludedInConnecting+"
-							// "+f1.isIncludedInTimeWindow+"
-							// "+f2.isIncludedInTimeWindow+"
-							// "+(f2.initialTakeoffT-f1.initialLandingT)+"
-							// "+Parameter.airportSecondTimeWindowStart+"
-							// "+f2.initialTakeoffT);
-							// System.exit(1);
-						}
-					}
 					f1.isShortConnection = true;
 					f1.shortConnectionTime = connT;
 
@@ -634,9 +604,9 @@ public class Scenario {
 
 					if (delay1 >= 0 && delay2 >= 0) {
 
-						if (delay2 <= 6 * 60) {
-							fsi.unitCost = 0.1;
-						} else if (delay2 <= 24 * 60 && delay1 >= 6 * 60) {
+						if (delay2 < 6 * 60) {
+							fsi.unitCost = 0.01;
+						} else if (delay2 < 24 * 60 && delay1 >= 6 * 60) {
 							fsi.unitCost = 0.5;
 						} else if (delay2 <= 48 * 60 && delay1 >= 24 * 60) {
 							fsi.unitCost = 1;
@@ -734,66 +704,6 @@ public class Scenario {
 		affectedAirportSet.add(49);
 		affectedAirportSet.add(50);
 		affectedAirportSet.add(61);
-
-	/*	for (Flight f : flightList) {
-
-			if (f.isIncludedInTimeWindow) {
-				if (affectedAirportSet.contains(f.leg.originAirport.id)) {
-					int earliestT = f.initialTakeoffT;
-					int latestT = f.initialTakeoffT;
-
-					if (f.isAllowtoBringForward) {
-						earliestT = earliestT - Parameter.MAX_LEAD_TIME;
-					}
-					if (f.isDomestic) {
-						latestT = latestT + Parameter.MAX_DELAY_DOMESTIC_TIME;
-					} else {
-						latestT = latestT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
-					}
-
-					if ((earliestT <= Parameter.airportBeforeTyphoonTimeWindowStart
-							&& latestT > Parameter.airportBeforeTyphoonTimeWindowStart)
-							|| (earliestT < Parameter.airportBeforeTyphoonTimeWindowEnd
-									&& latestT >= Parameter.airportBeforeTyphoonTimeWindowEnd)) {
-						f.isSmallGapRequired = true;
-					}
-
-					if ((earliestT <= Parameter.airportAfterTyphoonTimeWindowStart
-							&& latestT > Parameter.airportAfterTyphoonTimeWindowStart)
-							|| (earliestT < Parameter.airportAfterTyphoonTimeWindowEnd
-									&& latestT >= Parameter.airportAfterTyphoonTimeWindowEnd)) {
-						f.isSmallGapRequired = true;
-					}
-				}
-				if (affectedAirportSet.contains(f.leg.destinationAirport.id)) {
-					int earliestT = f.initialLandingT;
-					int latestT = f.initialLandingT;
-
-					if (f.isAllowtoBringForward) {
-						earliestT = earliestT - Parameter.MAX_LEAD_TIME;
-					}
-					if (f.isDomestic) {
-						latestT = latestT + Parameter.MAX_DELAY_DOMESTIC_TIME;
-					} else {
-						latestT = latestT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
-					}
-
-					if ((earliestT <= Parameter.airportBeforeTyphoonTimeWindowStart
-							&& latestT > Parameter.airportBeforeTyphoonTimeWindowStart)
-							|| (earliestT < Parameter.airportBeforeTyphoonTimeWindowEnd
-									&& latestT >= Parameter.airportBeforeTyphoonTimeWindowEnd)) {
-						f.isSmallGapRequired = true;
-					}
-
-					if ((earliestT <= Parameter.airportAfterTyphoonTimeWindowStart
-							&& latestT > Parameter.airportAfterTyphoonTimeWindowStart)
-							|| (earliestT < Parameter.airportAfterTyphoonTimeWindowEnd
-									&& latestT >= Parameter.airportAfterTyphoonTimeWindowEnd)) {
-						f.isSmallGapRequired = true;
-					}
-				}
-			}
-		}*/
 
 		// 读取台风影响下的停机数
 		for (Airport airport : airportList) {
