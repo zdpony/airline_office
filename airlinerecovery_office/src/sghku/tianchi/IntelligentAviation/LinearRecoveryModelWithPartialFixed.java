@@ -30,7 +30,7 @@ import sghku.tianchi.IntelligentAviation.model.CplexModelForPureAircraft;
 import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 
 public class LinearRecoveryModelWithPartialFixed {
-	public static int gap = 15;
+	public static int gap = 30;
 	public static void main(String[] args) {
 
 		Parameter.isPassengerCostConsidered = false;
