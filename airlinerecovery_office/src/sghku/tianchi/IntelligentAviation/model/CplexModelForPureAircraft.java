@@ -107,7 +107,7 @@ public class CplexModelForPureAircraft {
 			for(int i=0;i<flightList.size();i++){
 				Flight f = flightList.get(i);
 				//z[i] = cplex.boolVar();
-				f.IDInCPLEXModel = i;
+				f.idInCplexModel = i;
 				z[i] = cplex.numVar(0, 1);
 
 				if(Parameter.isPassengerCostConsidered){
@@ -207,7 +207,7 @@ public class CplexModelForPureAircraft {
 					for (FlightArc arc : cf.firstFlight.flightarcList) {
 						cont.addTerm(1, x[arc.id]);
 					}
-					cont.addTerm(-1, z[cf.secondFlight.IDInCPLEXModel]);
+					cont.addTerm(-1, z[cf.secondFlight.idInCplexModel]);
 
 					cplex.addLe(cont, 0);
 
@@ -216,7 +216,7 @@ public class CplexModelForPureAircraft {
 					for (FlightArc arc : cf.secondFlight.flightarcList) {
 						cont.addTerm(1, x[arc.id]);		
 					}
-					cont.addTerm(-1, z[cf.firstFlight.IDInCPLEXModel]);
+					cont.addTerm(-1, z[cf.firstFlight.idInCplexModel]);
 
 					cplex.addLe(cont, 0);
 				}

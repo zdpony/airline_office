@@ -117,7 +117,7 @@ public class CplexModel {
 			for(int i=0;i<flightList.size();i++){
 				Flight f = flightList.get(i);
 				//z[i] = cplex.boolVar();
-				f.IDInCPLEXModel = i;
+				f.idInCplexModel = i;
 				z[i] = cplex.numVar(0, 1);
 
 				if(Parameter.isPassengerCostConsidered){
@@ -131,8 +131,8 @@ public class CplexModel {
 				for(int i=0;i<flightSectionItineraryList.size();i++) {
 					FlightSectionItinerary fsi = flightSectionItineraryList.get(i);
 					fsi.id = i;	 
-					//passX[i] = cplex.numVar(0, fsi.itinerary.volume);
-					passX[i] = cplex.intVar(0, fsi.itinerary.volume);
+					passX[i] = cplex.numVar(0, fsi.itinerary.volume);
+					//passX[i] = cplex.intVar(0, fsi.itinerary.volume);
 					
 					obj.addTerm(fsi.unitCost, passX[i]);
 				}
@@ -200,7 +200,7 @@ public class CplexModel {
 				/*if(!f.isLatest){
 					flightSelectionConstraint.addTerm(1, z[i]);
 				}*/
-				if(isCancelAllowed){
+				if(isCancelAllowed){  //因为已经fix route，算schedule
 					if(f.isIncludedInTimeWindow){
 						flightSelectionConstraint.addTerm(1, z[i]);	
 					}
@@ -233,7 +233,7 @@ public class CplexModel {
 					for (FlightArc arc : cf.firstFlight.flightarcList) {
 						cont.addTerm(1, x[arc.id]);
 					}
-					cont.addTerm(-1, z[cf.secondFlight.IDInCPLEXModel]);
+					cont.addTerm(-1, z[cf.secondFlight.idInCplexModel]);  //防止两个flight被不同飞机飞
 
 					cplex.addLe(cont, 0);
 
@@ -242,7 +242,7 @@ public class CplexModel {
 					for (FlightArc arc : cf.secondFlight.flightarcList) {
 						cont.addTerm(1, x[arc.id]);		
 					}
-					cont.addTerm(-1, z[cf.firstFlight.IDInCPLEXModel]);
+					cont.addTerm(-1, z[cf.firstFlight.idInCplexModel]);
 
 					cplex.addLe(cont, 0);
 				}

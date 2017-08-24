@@ -42,7 +42,7 @@ public class Aircraft {
  	
  	//该飞机对应的网络中点集合
 	public Map<Integer, Node>[] nodeMapArray = new HashMap[Parameter.TOTAL_AIRPORT_NUM];
-	public List<Node>[] nodeListArray = new ArrayList[Parameter.TOTAL_AIRPORT_NUM];
+	public List<Node>[] nodeListArray = new ArrayList[Parameter.TOTAL_AIRPORT_NUM];  //node list for each airport
 	
 	//该飞机网络里面的source和sink点
 	public Node sourceNode;

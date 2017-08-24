@@ -61,7 +61,7 @@ public class Flight {
 	public List<ConnectingArc> connectingarcList = new ArrayList<>();
 
 	// 在CPLEX模型中该航班对应的ID
-	public int IDInCPLEXModel;
+	public int idInCplexModel;
 
 	/**
 	 * 以下属性为最终航班状态

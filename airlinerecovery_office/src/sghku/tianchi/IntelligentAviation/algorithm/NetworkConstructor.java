@@ -747,8 +747,7 @@ public class NetworkConstructor {
 			sinkNode.isSink = true;
 			aircraft.sinkNode = sinkNode;
 					
-			//3. sort nodes of each airport
-			
+			//3. sort nodes of each airport			
 			for(int i=0;i<airportList.size();i++){
 				for(Integer key:aircraft.nodeMapArray[i].keySet()){
 					aircraft.nodeListArray[i].add(aircraft.nodeMapArray[i].get(key));
@@ -785,7 +784,6 @@ public class NetworkConstructor {
 					}
 					
 					if(n1.airport.id == 25 && n1.time <= Parameter.airport25_67ParkingLimitStart && n2.time >=Parameter.airport25_67ParkingLimitEnd){
-						System.out.println("this way");
 						scenario.airport25ClosureGroundArcList.add(groundArc);
 					}
 					if(n1.airport.id == 67 && n1.time <= Parameter.airport25_67ParkingLimitStart && n2.time >=Parameter.airport25_67ParkingLimitEnd){
@@ -803,7 +801,7 @@ public class NetworkConstructor {
 			}
 			
 			//4. construct source and sink arcs
-			//如果至少有一个对应该机场的点生成
+			//连接source和每个飞机初始机场的第一个点
 			if(aircraft.nodeListArray[aircraft.initialLocation.id-1].size() > 0) {
 				Node firstNode = aircraft.nodeListArray[aircraft.initialLocation.id-1].get(0);
 				
@@ -833,7 +831,7 @@ public class NetworkConstructor {
 					}
 				}				
 			}*/
-			//对停机限制的机场飞机可以刚开停靠
+			//对停机限制的机场飞机可以刚开始停靠
 			if(scenario.affectedAirportSet.contains(aircraft.initialLocation.id)){
 				if(aircraft.nodeListArray[aircraft.initialLocation.id-1].size() > 0){
 					for(int j=1;j<aircraft.nodeListArray[aircraft.initialLocation.id-1].size();j++){
@@ -891,10 +889,10 @@ public class NetworkConstructor {
 			for(Airport airport:airportList){
 				if(aircraft.nodeListArray[airport.id-1].size() > 0){
 					if(scenario.affectedAirportSet.contains(airport.id)){
-						for(int j=aircraft.nodeListArray[airport.id-1].size()-1;j>=1;j--) {
+						for(int j=aircraft.nodeListArray[airport.id-1].size()-2;j>=0;j--) {
 							Node lastNode = aircraft.nodeListArray[airport.id-1].get(j);
 							
-							if(lastNode.time < Parameter.airportBeforeTyphoonTimeWindowEnd) {
+							if(lastNode.time <= Parameter.airportBeforeTyphoonTimeWindowEnd) {
 								GroundArc arc = new GroundArc();
 								arc.fromNode = lastNode;
 								arc.toNode = sinkNode;
@@ -926,7 +924,7 @@ public class NetworkConstructor {
 				}
 			}
 			
-			//4.2 生成直接从source node连接到sink node的arc
+			/*//4.2 生成直接从source node连接到sink node的arc
 			GroundArc arc = new GroundArc();
 			arc.fromNode = sourceNode;
 			arc.toNode = sinkNode;
@@ -935,10 +933,10 @@ public class NetworkConstructor {
 			sourceNode.flowoutGroundArcList.add(arc);
 			sinkNode.flowinGroundArcList.add(arc);
 			aircraft.groundArcList.add(arc);			
-			aircraft.initialLocation.sinkArcList[aircraft.type-1].add(arc);
+			aircraft.initialLocation.sinkArcList[aircraft.type-1].add(arc);*/
 			
 			//5. construct turn-around arc
-			arc = new GroundArc();
+			GroundArc arc = new GroundArc();
 			arc.fromNode = sinkNode;
 			arc.toNode = sourceNode;
 			arc.aircraft = aircraft;
