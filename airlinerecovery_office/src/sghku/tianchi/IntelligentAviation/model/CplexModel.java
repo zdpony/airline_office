@@ -35,7 +35,11 @@ import sghku.tianchi.IntelligentAviation.entity.TransferPassenger;
 
 public class CplexModel {
 	public IloCplex cplex;
-
+	
+	public double totalSignChangeDelayCost = 0;
+	public double totalOriginalPassengerDelayCost = 0;
+	public double totalPassengerCancelCost = 0;
+	
 	//the network flow model for initial problem solving
 
 	public Solution run(List<Aircraft> aircraftList, List<Flight> flightList, List<ConnectingFlightpair> cfList, List<Airport> airportList, Scenario sce, List<FlightSection> flightSectionList, List<Itinerary> itineraryList, List<FlightSectionItinerary> flightSectionItineraryList, boolean isFractional, boolean isAllowToCancelSingleFlightInAnConnectingFlight, boolean isCancelAllowed){
@@ -121,7 +125,7 @@ public class CplexModel {
 				z[i] = cplex.numVar(0, 1);
 
 				if(Parameter.isPassengerCostConsidered){
-					obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingCancellationCost, z[i]);					
+					obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingCancellationCost + Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2, z[i]);					
 				}else{
 					obj.addTerm(f.importance*Parameter.COST_CANCEL, z[i]);
 				}			
@@ -514,6 +518,14 @@ public class CplexModel {
 							if(cplex.getValue(passX[i]) > 1e-6){
 								//更新具体转签行程信息
 								fsi.volume = cplex.getValue(passX[i]);
+								//add signChangeDelayCost to verify the cost setting
+								totalSignChangeDelayCost += fsi.volume * (fsi.unitCost==0.01? 0:fsi.unitCost);								
+							}
+							
+						}
+						for(int i=0;i<itineraryList.size();i++) {
+							if(cplex.getValue(passCancel[i])>1e-6){
+								totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
 							}
 						}
 					}					
@@ -532,7 +544,7 @@ public class CplexModel {
 						Flight f = flightList.get(i);
 						if(cplex.getValue(z[i]) > 1e-6){
 							solution.cancelledFlightList.add(f);
-							
+							totalPassengerCancelCost += f.connectedPassengerNumber*Parameter.passengerCancelCost;
 							cancelN2++;
 						}
 					}
@@ -559,6 +571,9 @@ public class CplexModel {
 							
 							//System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
 							totalArcCost += fa.cost;
+							totalOriginalPassengerDelayCost += fa.delayCost;
+							totalPassengerCancelCost += fa.connPssgrCclDueToAnotherCclCost;
+							totalPassengerCancelCost += fa.connPssgrCclDueToStraightenCost;
 						}
 					}
 					//System.out.println("totalArcCost:"+totalArcCost);
@@ -567,6 +582,7 @@ public class CplexModel {
 					for(ConnectingArc arc:connectingArcList){
 						if(cplex.getValue(beta[arc.id]) > 1e-6){
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
+							totalPassengerCancelCost += arc.pssgrCclCost;
 						}
 					}
 					for(GroundArc ga:groundArcList){
@@ -577,7 +593,7 @@ public class CplexModel {
 										
 					StringBuilder sb = new StringBuilder();
 					for(Aircraft a:aircraftList){
-						System.out.println("aircraft:"+a.id);
+						//System.out.println("aircraft:"+a.id);
 						boolean isContinue = true;
 						
 						while(isContinue){
@@ -694,6 +710,8 @@ public class CplexModel {
 						}
 					}
 					System.out.println("numOfMissedConnections:"+numOfMissedConnections);
+					System.out.println("totalSignChangeDelayCost:"+totalSignChangeDelayCost);
+					
 				}
 			
 			}else{

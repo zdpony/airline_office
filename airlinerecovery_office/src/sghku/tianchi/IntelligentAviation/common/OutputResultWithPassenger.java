@@ -105,9 +105,9 @@ public class OutputResultWithPassenger {
 					
 					if(isSignChange){
 
-						System.out.println("previous:"+signChangeSb.toString());
+						//System.out.println("previous:"+signChangeSb.toString());
 						signChangeSb.deleteCharAt(signChangeSb.length()-1);  //delete the last &
-						System.out.println("after:"+signChangeSb.toString());
+						//System.out.println("after:"+signChangeSb.toString());
 
 					}
 				}
