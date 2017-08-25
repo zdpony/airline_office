@@ -75,8 +75,7 @@ public class NetworkConstructor {
 			//}						
 		}else {
 			//2.1 check whether f can be brought forward and generate earliness arcs
-			
-			boolean isFixScheduleFound = false;
+
 			
 			int startIndex = 0;
 			int endIndex = 0;
@@ -246,15 +245,10 @@ public class NetworkConstructor {
 						scenario.airport67ParkingFlightArcList.add(arc);
 					}
 					
-					if(arc.takeoffTime == f.actualTakeoffT){
-						isFixScheduleFound = true;
-					}
 				}
 			}
 			
-			if(!isFixScheduleFound){
-				System.out.println("error not found! "+f.id+" "+f.flightarcList.size()+" "+f.actualTakeoffT+" "+(f.actualTakeoffT-f.initialTakeoffT)+" "+f.leg.originAirport.id+" "+f.leg.destinationAirport.id+" "+f.isAffected);
-			}
+
 		}
 		
 		

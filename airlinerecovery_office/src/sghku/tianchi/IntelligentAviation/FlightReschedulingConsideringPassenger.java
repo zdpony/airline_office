@@ -38,7 +38,7 @@ import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 public class FlightReschedulingConsideringPassenger {
 	public static void main(String[] args) {
 
-		Parameter.isPassengerCostConsidered = true;
+		Parameter.isPassengerCostConsidered = false;
 		Parameter.isReadFixedRoutes = true;
 		Parameter.onlySignChangeDisruptedPassenger = true;
 		
@@ -97,7 +97,7 @@ public class FlightReschedulingConsideringPassenger {
 					f1.isShortConnection = true;
 					f1.shortConnectionTime = connT;
 				}
-				
+
 				if((f1.actualLandingT+(f1.isShortConnection?f1.shortConnectionTime:50)) > f2.actualTakeoffT){
 					System.out.println("connection error  "+f1.actualLandingT+"  "+f2.actualTakeoffT+" "+f1.isIncludedInTimeWindow+" "+f2.isIncludedInTimeWindow+" "+f1.isShortConnection+" "+f1.shortConnectionTime+" "+f1.id+" "+f2.id+" "+f1.leg.destinationAirport.id);
 				}
