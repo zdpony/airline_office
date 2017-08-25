@@ -121,6 +121,8 @@ public class Flight {
 	
 	public List<FlightSectionItinerary> signChangeItineraryList = new ArrayList<>();
 
+	public int earlyLimit = 0;
+	public int delayLimit = 0;
 	
 	// 初始化该航班所对应的网络模型
 	public void init() {

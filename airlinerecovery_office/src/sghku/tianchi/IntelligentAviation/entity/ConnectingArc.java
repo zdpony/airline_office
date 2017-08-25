@@ -24,7 +24,6 @@ public class ConnectingArc {
 	public int flow;
 	public double fractionalFlow;
 
-	
 	// to verify the cost setting
 	public double pssgrCclCostDueToInsufficientSeat;
 	public double pssgrCclCostDueToInsufficientSeat1;
@@ -32,7 +31,7 @@ public class ConnectingArc {
 	public double delayCost;
 	
 	public int fulfilledDemand;
-	
+
 	//计算该联程arc的成本
 	public void calculateCost(){
 		/*//1. 计算换飞机型号的成本

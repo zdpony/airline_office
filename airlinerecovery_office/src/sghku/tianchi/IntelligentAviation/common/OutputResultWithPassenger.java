@@ -97,8 +97,11 @@ public class OutputResultWithPassenger {
 					for(FlightSectionItinerary fsi:f.itinerary.flightSectionItineraryList){
 						if(fsi.volume > 1e-6){
 							if(fsi.flightSection.flight.id != f.id){
-								signChangeSb.append(fsi.flightSection.flight.id +":"+(int)Math.round(fsi.volume)+"&");
-								isSignChange = true;
+								int num = (int)Math.round(fsi.volume);
+								if(num > 0){
+									signChangeSb.append(fsi.flightSection.flight.id +":"+(int)Math.round(fsi.volume)+"&");
+									isSignChange = true;
+								}		
 							}
 						}
 					}
