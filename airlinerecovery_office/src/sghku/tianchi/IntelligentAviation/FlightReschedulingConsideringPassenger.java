@@ -38,7 +38,7 @@ import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 public class FlightReschedulingConsideringPassenger {
 	public static void main(String[] args) {
 
-		Parameter.isPassengerCostConsidered = false;
+		Parameter.isPassengerCostConsidered = true;
 		Parameter.isReadFixedRoutes = true;
 		Parameter.onlySignChangeDisruptedPassenger = true;
 		
@@ -73,6 +73,7 @@ public class FlightReschedulingConsideringPassenger {
 					
 					f1.connectingFlightpair.secondFlight.isStraightened = true;
 					System.out.println("one straightened flight");
+					
 				}
 				
 				if (!a.checkFlyViolation(f1)) {
@@ -121,6 +122,7 @@ public class FlightReschedulingConsideringPassenger {
 		
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
 		solver(scenario, scenario.aircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);
+		
 			
 	}
 	

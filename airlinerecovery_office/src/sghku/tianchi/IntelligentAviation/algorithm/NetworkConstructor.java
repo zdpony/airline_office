@@ -205,15 +205,19 @@ public class NetworkConstructor {
 						}
 						
 						//乘客容量
-						arc.passengerCapacity = aircraft.passengerCapacity;			
+						arc.passengerCapacity = aircraft.passengerCapacity;	
+						
+						
 						//减去转乘乘客
 						arc.passengerCapacity = arc.passengerCapacity - f.transferPassengerNumber;
+						
 						//如果该航班是联程航班，则代表联程航班已经被取消，所以不需要在考虑对应的联程乘客
 						
 						if(Parameter.onlySignChangeDisruptedPassenger){
 							//减去普通乘客
 							arc.passengerCapacity = arc.passengerCapacity - f.normalPassengerNumber;
 						}
+						
 						//剩下的则为有效座位
 						arc.passengerCapacity = Math.max(0, arc.passengerCapacity);
 					}

@@ -276,7 +276,13 @@ public class Scenario {
 					if(f.isCancelled){
 						capacity = 0;
 					}
-					int totalVolume = f.connectedPassengerNumber + f.passengerNumber;
+					int totalVolume = 0;
+					if(f.isIncludedInConnecting && f.brotherFlight.isCancelled){
+						totalVolume = f.passengerNumber;
+					}else{
+						totalVolume = f.connectedPassengerNumber + f.passengerNumber;
+					}
+					
 					int cancelNum = Math.max(0, totalVolume-capacity);
 					cancelNum = Math.min(cancelNum, f.normalPassengerNumber);
 					
@@ -740,7 +746,7 @@ public class Scenario {
 		// 读取已经固定的飞机路径
 		Scanner sn = null;
 		try {
-			sn = new Scanner(new File("fixschedule"));
+			sn = new Scanner(new File("fixschedule_rachel"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
