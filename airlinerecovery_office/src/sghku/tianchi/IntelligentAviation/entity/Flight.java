@@ -118,6 +118,8 @@ public class Flight {
 	
 	//转签乘客信息
 	public Itinerary itinerary;
+	
+	public List<FlightSectionItinerary> signChangeItineraryList = new ArrayList<>();
 
 	
 	// 初始化该航班所对应的网络模型

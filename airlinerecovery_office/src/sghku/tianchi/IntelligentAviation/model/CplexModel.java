@@ -12,6 +12,7 @@ import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumVar;
 import ilog.cplex.IloCplex;
 import ilog.cplex.IloCplex.Param.MIP.Strategy;
+import sghku.tianchi.IntelligentAviation.common.ExcelOperator;
 import sghku.tianchi.IntelligentAviation.common.MyFile;
 import sghku.tianchi.IntelligentAviation.common.Parameter;
 import sghku.tianchi.IntelligentAviation.comparator.FlightComparator2;
@@ -35,23 +36,23 @@ import sghku.tianchi.IntelligentAviation.entity.TransferPassenger;
 
 public class CplexModel {
 	public IloCplex cplex;
-	
+
 	public double totalSignChangeDelayCost = 0;
 	public double totalOriginalPassengerDelayCost = 0;
 	public double totalPassengerCancelCost = 0;
-	
+
 	//the network flow model for initial problem solving
 
 	public Solution run(List<Aircraft> aircraftList, List<Flight> flightList, List<ConnectingFlightpair> cfList, List<Airport> airportList, Scenario sce, List<FlightSection> flightSectionList, List<Itinerary> itineraryList, List<FlightSectionItinerary> flightSectionItineraryList, boolean isFractional, boolean isAllowToCancelSingleFlightInAnConnectingFlight, boolean isCancelAllowed){
 		Solution solution = new Solution();
 		solution.involvedAircraftList.addAll(aircraftList);
-		
+
 		try {
-				
+
 			cplex = new IloCplex();
-			
+
 			if(isFractional){
-				
+
 			}else{
 				//cplex.setOut(null);				
 			}
@@ -75,21 +76,21 @@ public class CplexModel {
 			}
 
 			System.out.println("start solving:"+flightArcList.size()+" "+connectingArcList.size()+" "+groundArcList.size()+" "+nodeList.size()+" "+ flightList.size());
-			
-			
+
+
 			IloNumVar[] x = new IloNumVar[flightArcList.size()];
 			IloNumVar[] beta = new IloNumVar[connectingArcList.size()];
 			IloNumVar[] y = new IloNumVar[groundArcList.size()];
 			IloNumVar[] z = new IloNumVar[flightList.size()];
-			
+
 			IloNumVar[] passX = null;
 			IloNumVar[] passCancel = null;
-			
+
 			if(Parameter.isPassengerCostConsidered){
 				passX = new IloNumVar[flightSectionItineraryList.size()];
 				passCancel = new IloNumVar[itineraryList.size()];
 			}
-			
+
 			//IloNumVar[] gamma = new IloNumVar[airportList.size()];
 
 			IloLinearNumExpr obj = cplex.linearNumExpr();
@@ -100,7 +101,7 @@ public class CplexModel {
 				}else{
 					x[i] = cplex.boolVar();
 				}
-				
+
 				obj.addTerm(flightArcList.get(i).cost, x[i]);
 				flightArcList.get(i).id = i;
 			}
@@ -130,14 +131,14 @@ public class CplexModel {
 					obj.addTerm(f.importance*Parameter.COST_CANCEL, z[i]);
 				}			
 			}
-			
+
 			if(Parameter.isPassengerCostConsidered){
 				for(int i=0;i<flightSectionItineraryList.size();i++) {
 					FlightSectionItinerary fsi = flightSectionItineraryList.get(i);
 					fsi.id = i;	 
 					passX[i] = cplex.numVar(0, fsi.itinerary.volume);
 					//passX[i] = cplex.intVar(0, fsi.itinerary.volume);
-					
+
 					obj.addTerm(fsi.unitCost, passX[i]);
 				}
 				for(int i=0;i<itineraryList.size();i++) {
@@ -147,7 +148,7 @@ public class CplexModel {
 					obj.addTerm(Parameter.passengerCancelCost, passCancel[i]);
 				}
 			}		
-					
+
 			cplex.addMinimize(obj);
 
 			//1. flow balance constraints
@@ -217,20 +218,20 @@ public class CplexModel {
 				for(int j=0;j<Parameter.TOTAL_AIRCRAFTTYPE_NUM;j++) {
 					IloLinearNumExpr baseConstraint = cplex.linearNumExpr();
 					for(GroundArc arc:airport.sinkArcList[j]){
-		
+
 						baseConstraint.addTerm(1, y[arc.id]);
 					}
 
 					cplex.addEq(baseConstraint, airport.finalAircraftNumber[j]);
 				}			
 			}
-			
+
 			// 5. 对于每一个联程航班，两趟航班必须由同一个飞机执行
 			if(isAllowToCancelSingleFlightInAnConnectingFlight) {
 				for (ConnectingFlightpair cf : cfList) {
-					
+
 					IloLinearNumExpr cont = cplex.linearNumExpr();
-					
+
 					for (FlightArc arc : cf.firstFlight.flightarcList) {
 						cont.addTerm(1, x[arc.id]);
 					}
@@ -248,7 +249,7 @@ public class CplexModel {
 					cplex.addLe(cont, 0);
 				}
 			}
-			
+
 			if(Parameter.isPassengerCostConsidered){
 				//6. 乘客相关约束
 				for(Itinerary ite:itineraryList) {
@@ -257,17 +258,17 @@ public class CplexModel {
 						iteNumConstraint.addTerm(1, passX[fsi.id]); 
 					}
 					iteNumConstraint.addTerm(1, passCancel[ite.id]);
-					
+
 					cplex.addEq(iteNumConstraint, ite.volume);
 				}
-				
+
 				//7. 座位相关约束
 				for(FlightSection fs:flightSectionList) {
 					IloLinearNumExpr seatConstraint = cplex.linearNumExpr();
 					for(FlightSectionItinerary fsi:fs.flightSectionItineraryList) {
 						seatConstraint.addTerm(1, passX[fsi.id]);
 					}
-					
+
 					for(FlightArc arc:fs.flightArcList) {
 						if(arc.isIncludedInConnecting) {
 							seatConstraint.addTerm(-arc.passengerCapacity, beta[arc.connectingArc.id]);
@@ -275,27 +276,27 @@ public class CplexModel {
 							seatConstraint.addTerm(-arc.passengerCapacity, x[arc .id]);						
 						}
 					}
-					
+
 					cplex.addLe(seatConstraint, 0);
 				}
 			}
-			
+
 			//8. 机场起降约束
 			for(String key:sce.keyList) {
 				IloLinearNumExpr airportConstraint = cplex.linearNumExpr();
 				List<FlightArc> faList = sce.airportTimeFlightArcMap.get(key);
 				List<ConnectingArc> caList = sce.airportTimeConnectingArcMap.get(key);
-				
+
 				for(FlightArc arc:faList) {
 					airportConstraint.addTerm(1, x[arc.id]);
 				}
 				for(ConnectingArc arc:caList) {
 					airportConstraint.addTerm(1, beta[arc.id]);
 				}
-				
+
 				cplex.addLe(airportConstraint, sce.affectAirportLdnTkfCapacityMap.get(key));
 			}
-			
+
 			//9. 停机约束
 			for(Integer airport:sce.affectedAirportSet) {
 				IloLinearNumExpr parkingConstraint = cplex.linearNumExpr();
@@ -303,10 +304,10 @@ public class CplexModel {
 				for(GroundArc ga:gaList) {
 					parkingConstraint.addTerm(1, y[ga.id]);					
 				}
-				
+
 				cplex.addLe(parkingConstraint, sce.affectedAirportParkingLimitMap.get(airport));
 			}
-			
+
 			//10. 25 和 67 停机约束
 			IloLinearNumExpr parkingConstraint25 = cplex.linearNumExpr();
 			for(GroundArc ga:sce.airport25ClosureGroundArcList){
@@ -319,7 +320,7 @@ public class CplexModel {
 				parkingConstraint25.addTerm(1, beta[arc.id]);
 			}
 			cplex.addLe(parkingConstraint25, sce.airport25ParkingLimit);
-			
+
 			IloLinearNumExpr parkingConstraint67 = cplex.linearNumExpr();
 			for(GroundArc ga:sce.airport67ClosureGroundArcList){
 				parkingConstraint67.addTerm(1, y[ga.id]);
@@ -331,28 +332,28 @@ public class CplexModel {
 				parkingConstraint67.addTerm(1, beta[arc.id]);
 			}
 			cplex.addLe(parkingConstraint67, sce.airport67ParkingLimit);
-			
+
 			if(cplex.solve()){
-		
+
 				if(isFractional){
 					System.out.println("fractional value:"+cplex.getObjValue()+"  ");
-				
+
 					Parameter.fractionalObjective = cplex.getObjValue();
-					
+
 					try {
 						File file = new File("linearsolution.csv");
 						if(file.exists()){
 							file.delete();
 						}
-						
+
 						MyFile.creatTxtFile("linearsolution.csv");
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
-					
+
 					for(FlightArc fa:flightArcList){
-						
+
 						if(cplex.getValue(x[fa.id])>1e-6){
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);
 						}
@@ -367,15 +368,15 @@ public class CplexModel {
 							ga.fractionalFlow = cplex.getValue(y[ga.id]);
 						}
 					}
-					
+
 					StringBuilder sb = new StringBuilder();
 					for(Aircraft a:aircraftList){
 						System.out.println("aircraft:"+a.id);
 						boolean isContinue = true;
-						
+
 						while(isContinue){
 							Node currentNode = a.sourceNode;
-							
+
 							double flowOut = 0;
 							for(FlightArc arc:currentNode.flowoutFlightArcList){
 								flowOut += arc.fractionalFlow;
@@ -386,15 +387,15 @@ public class CplexModel {
 							for(GroundArc arc:currentNode.flowoutGroundArcList){
 								flowOut += arc.fractionalFlow;
 							}
-							
+
 							System.out.println("flow out:"+flowOut);
 							if(flowOut > 1e-6){
-								
+
 								Path p = new Path();
 								p.aircraft = a;
-								
+
 								while(!currentNode.isSink){
-									
+
 									double maximumFlow = -1e-6;
 									FlightArc maxFlightArc = null;
 									ConnectingArc maxConnectingArc = null;
@@ -407,7 +408,7 @@ public class CplexModel {
 											maxGroundArc = null;
 										}
 									}
-									
+
 									for(ConnectingArc arc:currentNode.flowoutConnectingArcList){
 										if(arc.fractionalFlow > maximumFlow){
 											maximumFlow = arc.fractionalFlow;
@@ -416,7 +417,7 @@ public class CplexModel {
 											maxGroundArc = null;
 										}
 									}
-									
+
 									for(GroundArc arc:currentNode.flowoutGroundArcList){
 										if(arc.fractionalFlow > maximumFlow){
 											maximumFlow = arc.fractionalFlow;
@@ -425,7 +426,7 @@ public class CplexModel {
 											maxGroundArc = arc;
 										}
 									}
-									
+
 									if(maxFlightArc != null){
 										currentNode = maxFlightArc.toNode; 
 										p.flightArcList.add(maxFlightArc);
@@ -438,9 +439,9 @@ public class CplexModel {
 										currentNode = maxGroundArc.toNode;
 										p.groundArcList.add(maxGroundArc);
 									}
-									
+
 								}	
-								
+
 
 								p.value = 1.0;
 								for(FlightArc arc:p.flightArcList){
@@ -452,7 +453,7 @@ public class CplexModel {
 								for(GroundArc arc:p.groundArcList){
 									p.value = Math.min(p.value, arc.fractionalFlow);
 								}
-								
+
 								for(FlightArc arc:p.flightArcList){
 									arc.fractionalFlow = arc.fractionalFlow - p.value;
 								}
@@ -462,56 +463,68 @@ public class CplexModel {
 								for(GroundArc arc:p.groundArcList){
 									arc.fractionalFlow = arc.fractionalFlow - p.value;
 								}
-								
+
 								System.out.println("p value:"+p.value);
-								
+
 								sb.append(p.toString()+"\n");
 							}else{
 								isContinue = false;
 							}
-							
+
 						}					
 					}
-					
+
 					try {
 						MyFile.writeTxtFile(sb.toString());
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					
+
 				}else{
 					//if we solve it integrally 
 					System.out.println("solve: obj = "+cplex.getObjValue());
-					
+
 					solution.objValue = cplex.getObjValue();
 					Parameter.objective += cplex.getObjValue();
 					
+					int totalFulfilledDemand1 = 0;
+					int totalFulfilledDemand2 = 0;
+					int totalFulfilledDemand3 = 0;
 					
 					for(FlightArc fa:flightArcList){
-						
+
 						if(cplex.getValue(x[fa.id])>1e-6){
 							solution.selectedFlightArcList.add(fa);
-							
+
 							//更新flight arc的时间
 							fa.flight.actualTakeoffT = fa.takeoffTime;
 							fa.flight.actualLandingT = fa.landingTime;
+
+							fa.flight.aircraft = fa.aircraft;
+
+							totalFulfilledDemand1 += fa.fulfilledDemand*cplex.getValue(x[fa.id]);
 						}
 					}
 					for(ConnectingArc arc:connectingArcList){
 						if(cplex.getValue(beta[arc.id]) > 1e-6){
-							
+
 							solution.selectedConnectingArcList.add(arc);
 							//更新flight arc的时间
 
 							arc.connectingFlightPair.firstFlight.actualTakeoffT = arc.firstArc.takeoffTime;
 							arc.connectingFlightPair.firstFlight.actualLandingT = arc.firstArc.landingTime;
-							
+
 							arc.connectingFlightPair.secondFlight.actualTakeoffT = arc.secondArc.takeoffTime;
 							arc.connectingFlightPair.secondFlight.actualLandingT = arc.secondArc.landingTime;
+
+							arc.connectingFlightPair.firstFlight.aircraft = arc.aircraft;
+							arc.connectingFlightPair.secondFlight.aircraft = arc.aircraft;
+							
+							totalFulfilledDemand2 += arc.fulfilledDemand*cplex.getValue(beta[arc.id]);
 						}
 					}
-					
+
 					if(Parameter.isPassengerCostConsidered){
 						for(int i=0;i<flightSectionItineraryList.size();i++) {
 							FlightSectionItinerary fsi = flightSectionItineraryList.get(i);
@@ -519,9 +532,12 @@ public class CplexModel {
 								//更新具体转签行程信息
 								fsi.volume = cplex.getValue(passX[i]);
 								//add signChangeDelayCost to verify the cost setting
-								totalSignChangeDelayCost += fsi.volume * (fsi.unitCost==0.01? 0:fsi.unitCost);								
+								totalSignChangeDelayCost += fsi.volume * (fsi.unitCost==0.01? 0:fsi.unitCost);	
+								fsi.flightSection.flight.signChangeItineraryList.add(fsi);
+								
+								totalFulfilledDemand3 += fsi.volume;
 							}
-							
+
 						}
 						for(int i=0;i<itineraryList.size();i++) {
 							if(cplex.getValue(passCancel[i])>1e-6){
@@ -529,7 +545,7 @@ public class CplexModel {
 							}
 						}
 					}					
-					
+
 					int cancelN1 = 0;
 					int cancelN2 = 0;
 					for(int i=0;i<flightList.size();i++){
@@ -538,37 +554,41 @@ public class CplexModel {
 							cancelN1++;
 						}
 					}
-					
-					
+
+					System.out.println("totalFulfilledDemand:"+totalFulfilledDemand1+" "+totalFulfilledDemand2+" "+totalFulfilledDemand3);
+					System.out.println("totalFulfilledDemand:"+(totalFulfilledDemand1+totalFulfilledDemand2+totalFulfilledDemand3));
+
 					for(int i=0;i<flightList.size();i++){
 						Flight f = flightList.get(i);
 						if(cplex.getValue(z[i]) > 1e-6){
+							f.isCancelled = true;
 							solution.cancelledFlightList.add(f);
-							totalPassengerCancelCost += f.connectedPassengerNumber*Parameter.passengerCancelCost;
+							totalPassengerCancelCost += f.connectedPassengerNumber*Parameter.passengerCancelCost
+									+Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2;
 							cancelN2++;
 						}
 					}
-					
+
 					System.out.println("saved flights:"+cancelN1+" "+cancelN2);
-					
+
 					try {
 						File file = new File("linearsolution.csv");
 						if(file.exists()){
 							file.delete();
 						}
-						
+
 						MyFile.creatTxtFile("linearsolution.csv");
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
-					
+
 					double totalArcCost = 0;
 					for(FlightArc fa:flightArcList){
-						
+
 						if(cplex.getValue(x[fa.id])>1e-6){
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);
-							
+
 							//System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
 							totalArcCost += fa.cost;
 							totalOriginalPassengerDelayCost += fa.delayCost;
@@ -577,12 +597,13 @@ public class CplexModel {
 						}
 					}
 					//System.out.println("totalArcCost:"+totalArcCost);
-					
-					
+
+
 					for(ConnectingArc arc:connectingArcList){
 						if(cplex.getValue(beta[arc.id]) > 1e-6){
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
-							totalPassengerCancelCost += arc.pssgrCclCost;
+							totalPassengerCancelCost += arc.pssgrCclCostDueToInsufficientSeat;
+							totalOriginalPassengerDelayCost += arc.delayCost;
 						}
 					}
 					for(GroundArc ga:groundArcList){
@@ -590,15 +611,15 @@ public class CplexModel {
 							ga.fractionalFlow = cplex.getValue(y[ga.id]);
 						}
 					}
-										
+
 					StringBuilder sb = new StringBuilder();
 					for(Aircraft a:aircraftList){
 						//System.out.println("aircraft:"+a.id);
 						boolean isContinue = true;
-						
+
 						while(isContinue){
 							Node currentNode = a.sourceNode;
-							
+
 							double flowOut = 0;
 							for(FlightArc arc:currentNode.flowoutFlightArcList){
 								flowOut += arc.fractionalFlow;
@@ -609,15 +630,15 @@ public class CplexModel {
 							for(GroundArc arc:currentNode.flowoutGroundArcList){
 								flowOut += arc.fractionalFlow;
 							}
-							
+
 							//System.out.println("flow out:"+flowOut);
 							if(flowOut > 1e-6){
-								
+
 								Path p = new Path();
 								p.aircraft = a;
-								
+
 								while(!currentNode.isSink){
-									
+
 									double maximumFlow = -1e-6;
 									FlightArc maxFlightArc = null;
 									ConnectingArc maxConnectingArc = null;
@@ -630,7 +651,7 @@ public class CplexModel {
 											maxGroundArc = null;
 										}
 									}
-									
+
 									for(ConnectingArc arc:currentNode.flowoutConnectingArcList){
 										if(arc.fractionalFlow > maximumFlow){
 											maximumFlow = arc.fractionalFlow;
@@ -639,7 +660,7 @@ public class CplexModel {
 											maxGroundArc = null;
 										}
 									}
-									
+
 									for(GroundArc arc:currentNode.flowoutGroundArcList){
 										if(arc.fractionalFlow > maximumFlow){
 											maximumFlow = arc.fractionalFlow;
@@ -648,7 +669,7 @@ public class CplexModel {
 											maxGroundArc = arc;
 										}
 									}
-									
+
 									if(maxFlightArc != null){
 										currentNode = maxFlightArc.toNode; 
 										p.flightArcList.add(maxFlightArc);
@@ -661,9 +682,9 @@ public class CplexModel {
 										currentNode = maxGroundArc.toNode;
 										p.groundArcList.add(maxGroundArc);
 									}
-									
+
 								}	
-								
+
 
 								p.value = 1.0;
 								for(FlightArc arc:p.flightArcList){
@@ -675,7 +696,7 @@ public class CplexModel {
 								for(GroundArc arc:p.groundArcList){
 									p.value = Math.min(p.value, arc.fractionalFlow);
 								}
-								
+
 								for(FlightArc arc:p.flightArcList){
 									arc.fractionalFlow = arc.fractionalFlow - p.value;
 								}
@@ -685,24 +706,24 @@ public class CplexModel {
 								for(GroundArc arc:p.groundArcList){
 									arc.fractionalFlow = arc.fractionalFlow - p.value;
 								}
-								
+
 								//System.out.println("p value:"+p.value);
-								
+
 								sb.append(p.toString()+"\n");
 							}else{
 								isContinue = false;
 							}
-							
+
 						}					
 					}
-					
+
 					try {
 						MyFile.writeTxtFile(sb.toString());
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-											
+
 					int numOfMissedConnections = 0;
 					for(TransferPassenger pt:sce.transferPassengerList){
 						if(pt.inFlight.actualLandingT + pt.minTurnaroundTime > pt.outFlight.actualTakeoffT){
@@ -710,21 +731,85 @@ public class CplexModel {
 						}
 					}
 					System.out.println("numOfMissedConnections:"+numOfMissedConnections);
-					System.out.println("totalSignChangeDelayCost:"+totalSignChangeDelayCost);
-					
+					System.out.println("totalSignChangeDelayCost (measured by model):"+totalSignChangeDelayCost);
+					System.out.println("totalCancelCost (measured by model):"+totalPassengerCancelCost);
+					System.out.println("totalDelayCost (measured by model):"+totalOriginalPassengerDelayCost);
+
+					double madeUpCancelCost = 0;
+					double deductDelayCost = 0;
+
+					for(TransferPassenger pt: sce.transferPassengerList){
+						//count the cancel of second transfer which are not counted
+						if(!pt.inFlight.isCancelled && pt.outFlight.isCancelled){
+							madeUpCancelCost += pt.volume* Parameter.passengerCancelCost;  
+						}
+
+						//count miss-connection
+						else if(!pt.inFlight.isCancelled && !pt.outFlight.isCancelled){
+							if(pt.inFlight.actualLandingT + pt.minTurnaroundTime > pt.outFlight.actualTakeoffT){
+								int secondDelay = Math.max(0, pt.outFlight.actualTakeoffT - pt.outFlight.initialTakeoffT);
+								madeUpCancelCost += pt.volume* Parameter.passengerCancelCost; 
+								deductDelayCost += pt.volume*ExcelOperator.getPassengerDelayParameter(secondDelay);
+							}
+							//capacity not enough (due to aircraft change)
+							/*	else{
+								madeUpCancelCost += Math.min(pt.inFlight.transferPassengerNumber, pt.inFlight.connectedPassengerNumber + 
+										pt.inFlight.transferPassengerNumber - pt.inFlight.aircraft.passengerCapacity)*Parameter.passengerCancelCost ;
+								madeUpCancelCost += Math.min(pt.outFlight.transferPassengerNumber, pt.outFlight.connectedPassengerNumber + 
+										pt.outFlight.transferPassengerNumber - pt.outFlight.aircraft.passengerCapacity)*Parameter.passengerCancelCost ;
+							}*/
+						}
+
+
+					}
+					System.out.println("Cancel that was not calculated: "+madeUpCancelCost);
+					System.out.println("Delay that was incorrectly calculated: "+deductDelayCost);
+
+					for(Flight f:sce.flightList){
+						if(f.isIncludedInTimeWindow){
+							double totalCost = 0;
+							for(FlightArc arc:f.flightarcList){
+								if(cplex.getValue(x[arc.id]) > 1e-5){
+									if(f.isStraightened){
+										totalCost += arc.connPssgrCclDueToStraightenCost;
+									}else{
+										totalCost += arc.connPssgrCclDueToAnotherCclCost;
+									}									
+								}
+							}
+							if(!f.isStraightened){
+								
+								for(ConnectingArc arc:f.connectingarcList){
+									if(cplex.getValue(beta[arc.id]) > 1e-5){
+										if(f.connectingFlightpair.firstFlight.id == f.id){
+											totalCost += arc.pssgrCclCostDueToInsufficientSeat1;
+										}else{
+											totalCost += arc.pssgrCclCostDueToInsufficientSeat2;
+										}
+									}
+									
+								}
+							}
+
+							double cancelVolume = cplex.getValue(passCancel[f.itinerary.id]);
+							totalCost += 4*cancelVolume;
+							System.out.println(f.id+" "+totalCost);
+						}
+						
+					}
 				}
-			
+
 			}else{
 				System.out.println("Infeasible!!!");
 			}
-			
+
 			cplex.end();
 		} catch (IloException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		return solution;
 	}
-	
+
 }

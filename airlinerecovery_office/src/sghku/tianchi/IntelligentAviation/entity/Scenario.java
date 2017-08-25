@@ -266,6 +266,8 @@ public class Scenario {
 				cf.secondFlight.isIncludedInTimeWindow = false;
 			}
 		}
+		
+		
 
 		// 生成单程乘客行程
 		if(Parameter.onlySignChangeDisruptedPassenger){

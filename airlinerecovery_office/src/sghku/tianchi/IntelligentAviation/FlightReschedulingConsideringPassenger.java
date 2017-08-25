@@ -38,7 +38,7 @@ import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 public class FlightReschedulingConsideringPassenger {
 	public static void main(String[] args) {
 
-		Parameter.isPassengerCostConsidered = false;
+		Parameter.isPassengerCostConsidered = true;
 		Parameter.isReadFixedRoutes = true;
 		Parameter.onlySignChangeDisruptedPassenger = true;
 		
@@ -48,6 +48,17 @@ public class FlightReschedulingConsideringPassenger {
 		
 	public static void runOneIteration(boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
+		
+		int floatedPassenger = 0;
+		for(Flight f:scenario.flightList){
+			if(!f.isIncludedInTimeWindow){
+				if(f.passengerNumber+f.connectedPassengerNumber > f.passengerCapacity){
+					floatedPassenger += f.passengerNumber+f.connectedPassengerNumber - f.passengerCapacity;
+				}
+			}
+		}
+		System.out.println("floatedPassenger:"+floatedPassenger);
+
 		
 		System.out.println("---------------this way ---------");
 		

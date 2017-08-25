@@ -26,9 +26,12 @@ public class ConnectingArc {
 
 	
 	// to verify the cost setting
-	public double pssgrCclCost;
+	public double pssgrCclCostDueToInsufficientSeat;
+	public double pssgrCclCostDueToInsufficientSeat1;
+	public double pssgrCclCostDueToInsufficientSeat2;
 	public double delayCost;
 	
+	public int fulfilledDemand;
 	
 	//计算该联程arc的成本
 	public void calculateCost(){
@@ -84,7 +87,10 @@ public class ConnectingArc {
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay);
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay);
 			
-			pssgrCclCost += cancelConnectingPassenger * Parameter.passengerCancelCost * 2; //record conn cancel cost
+			pssgrCclCostDueToInsufficientSeat += cancelConnectingPassenger * Parameter.passengerCancelCost * 2; //record conn cancel cost
+			pssgrCclCostDueToInsufficientSeat1 += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
+			pssgrCclCostDueToInsufficientSeat2 += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
+
 			delayCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record conn delay cost
 			delayCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record conn delay cost
 			
@@ -111,7 +117,11 @@ public class ConnectingArc {
 			delayCost += Math.min(connectingFlightPair.secondFlight.normalPassengerNumber, passengerCapacity2) * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record normal-pssgr delay cost
 			
 			
-			//普通乘客的取消成本不在arc中计算
+			
+			if(firstArc.flight.isIncludedInTimeWindow){
+				fulfilledDemand += flyConnectingPassenger*2 + connectingFlightPair.firstFlight.transferPassengerNumber +
+						connectingFlightPair.secondFlight.transferPassengerNumber + Math.min(connectingFlightPair.firstFlight.normalPassengerNumber, passengerCapacity1) + Math.min(connectingFlightPair.secondFlight.normalPassengerNumber, passengerCapacity2);				
+			}
 		}		
 	}
 	

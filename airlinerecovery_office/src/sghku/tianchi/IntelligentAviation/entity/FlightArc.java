@@ -53,6 +53,8 @@ public class FlightArc {
 	public boolean isWithinAffectedRegionOrigin = false;
 	public boolean isWithinAffectedRegionDestination = false;
 	
+	public int fulfilledDemand = 0;
+	
 	//打印信息
 	public String getTime(){
 		return "["+takeoffTime+","+landingTime+","+readyTime+"]";
@@ -91,6 +93,9 @@ public class FlightArc {
 				delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);  //record delay cost of connecting pssgr on flight
 				connPssgrCclDueToStraightenCost += cancelNum*Parameter.passengerCancelCost; //record cancel cost due to straighten
 				
+				if(flight.connectingFlightpair.firstFlight.isIncludedInTimeWindow){
+					fulfilledDemand = actualNum*2;					
+				}
 			}		
 		}else if(flight.isDeadhead){
 			cost += Parameter.COST_DEADHEAD;
@@ -114,6 +119,9 @@ public class FlightArc {
 					//首先考虑联程乘客，如果其中一段属于联程航班，则代表另一截cancel了，对应的联程乘客必须取消
 					cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
 					connPssgrCclDueToAnotherCclCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;  //record conn cancel
+					if(flight.id == 1986){
+						System.out.println("this way : "+flight.brotherFlight.id);
+					}
 				}
 				
 				//考虑中转乘客的延误 -- 假设中转乘客都成功中转
@@ -135,6 +143,9 @@ public class FlightArc {
 				cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
 				delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
 		
+				if(flight.isIncludedInTimeWindow){
+					fulfilledDemand = actualNum + flight.transferPassengerNumber;					
+				}
 			}			
 		}
 	}
