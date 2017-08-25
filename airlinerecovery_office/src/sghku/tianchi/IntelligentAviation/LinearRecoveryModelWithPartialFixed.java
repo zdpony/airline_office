@@ -36,13 +36,13 @@ public class LinearRecoveryModelWithPartialFixed {
 	public static void main(String[] args) {
 
 		Parameter.isPassengerCostConsidered = false;
-		Parameter.isReadFixedRoutes = false;
+		Parameter.isReadFixedRoutes = true;
 		
 		//前面两个循环求解线性松弛模型
 		//runOneIteration(70,true);   //(iteration结束后固定住的aircraft route，是否解LP)
 		//runOneIteration(50, true);
 		//runOneIteration(10, true);
-		runOneIteration(70, true);
+		runOneIteration(12, false);
 		//最后一个循环直接解整数规划模型
 		//runOneIteration(32, false);
 		

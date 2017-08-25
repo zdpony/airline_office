@@ -33,7 +33,7 @@ import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 public class FlightReschedulingConsideringPassenger {
 	public static void main(String[] args) {
 
-		Parameter.isPassengerCostConsidered = true;
+		Parameter.isPassengerCostConsidered = false;
 		Parameter.isReadFixedRoutes = true;
 		Parameter.onlySignChangeDisruptedPassenger = true;
 		
@@ -44,33 +44,6 @@ public class FlightReschedulingConsideringPassenger {
 	public static void runOneIteration(boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 		System.out.println("---------------this way ---------");
-		
-		/*//1.初始化，所有的航班取消
-		for(Flight f:scenario.flightList){
-			f.isCancelled = true;
-			f.aircraft = f.initialAircraft;
-			f.actualTakeoffT = f.initialTakeoffT;
-			f.actualLandingT = f.initialLandingT;
-		}
-		
-		AircraftPathReader scheduleReader = new AircraftPathReader();
-		
-		//读取已经固定的飞机路径
-		Scanner sn = null;
-		try {
-			sn = new Scanner(new File("fixschedule"));
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		while(sn.hasNextLine()) {
-			String nextLine = sn.nextLine().trim();
-			
-			if(nextLine.equals("")) {
-				break;
-			}
-			scheduleReader.read(nextLine, scenario);
-		}*/
 		
 		List<Flight> candidateFlightList = new ArrayList<>();
 		List<ConnectingFlightpair> candidateConnectingFlightList = new ArrayList<>();
@@ -112,13 +85,12 @@ public class FlightReschedulingConsideringPassenger {
 				f1.isShortConnection = false;
 				f2.isShortConnection = false;
 				
-				if(!f1.isStraightened && !f2.isStraightened) {
-					Integer connT = scenario.shortConnectionMap.get(f1.id+"_"+f2.id);
-					if(connT != null) {
-						f1.isShortConnection = true;
-						f1.shortConnectionTime = connT;
-					}
+				Integer connT = scenario.shortConnectionMap.get(f1.id+"_"+f2.id);
+				if(connT != null){
+					f1.isShortConnection = true;
+					f1.shortConnectionTime = connT;
 				}
+							
 				if((f1.actualLandingT+(f1.isShortConnection?f1.shortConnectionTime:50)) > f2.actualTakeoffT){
 					System.out.println("connection error  "+f1.actualLandingT+"  "+f2.actualTakeoffT+" "+f1.isIncludedInTimeWindow+" "+f2.isIncludedInTimeWindow+" "+f1.isShortConnection+" "+f1.shortConnectionTime+" "+f1.id+" "+f2.id);
 				}

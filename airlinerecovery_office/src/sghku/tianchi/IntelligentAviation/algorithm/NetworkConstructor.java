@@ -76,6 +76,8 @@ public class NetworkConstructor {
 		}else {
 			//2.1 check whether f can be brought forward and generate earliness arcs
 			
+			boolean isFixFound = false;
+			
 			int startIndex = 0;
 			int endIndex = 0;
 			
@@ -238,7 +240,15 @@ public class NetworkConstructor {
 					if(f.leg.destinationAirport.id == 67 && arc.landingTime <= Parameter.airport25_67ParkingLimitStart && arc.readyTime >= Parameter.airport25_67ParkingLimitEnd){
 						scenario.airport67ParkingFlightArcList.add(arc);
 					}
+					
+					if(arc.takeoffTime == arc.flight.actualTakeoffT){
+						isFixFound = true;
+					}
 				}
+			}
+			
+			if(!isFixFound){
+				System.out.println("not found:"+f.id+"  "+f.initialTakeoffT+"  "+f.actualTakeoffT);
 			}
 		}
 		

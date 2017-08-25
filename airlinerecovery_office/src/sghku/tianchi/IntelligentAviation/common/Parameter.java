@@ -27,7 +27,7 @@ public class Parameter {
 	public final static int MAX_DELAY_INTERNATIONAL_TIME = 2160;
 	
 	//不受台风影响的航班的delay时间
-	public static int NORMAL_DELAY_TIME = 360;
+	public static int NORMAL_DELAY_TIME = 510;
 	//场景的邻域范围
 	public final static int SCENE_NEIGHBOR = 420;
 	public final static int DEADHEAD_SCALE = 3;
