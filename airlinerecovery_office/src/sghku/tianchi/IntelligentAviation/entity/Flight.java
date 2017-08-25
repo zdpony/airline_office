@@ -114,6 +114,8 @@ public class Flight {
 	public boolean isShortConnection = false;
 	public int shortConnectionTime = 0;
 	
+	public Set<Integer> possibleDelaySet = new HashSet<>();
+	
 	//转签乘客信息
 	public Itinerary itinerary;
 
