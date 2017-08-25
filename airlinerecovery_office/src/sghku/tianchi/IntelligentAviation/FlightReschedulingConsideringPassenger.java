@@ -151,6 +151,8 @@ public class FlightReschedulingConsideringPassenger {
 			flightSectionItineraryList.addAll(ite.flightSectionItineraryList);
 		}
 		
+		
+		
 		//求解CPLEX模型
 		//CplexModelForPureAircraft model = new CplexModelForPureAircraft();
 		//Solution solution = model.run(candidateAircraftList, candidateFlightList, new ArrayList(), scenario.airportList,scenario, isFractional, true, false);		
@@ -164,21 +166,24 @@ public class FlightReschedulingConsideringPassenger {
 
 	// 构建时空网络流模型
 	public static void buildNetwork(Scenario scenario, List<Aircraft> candidateAircraftList, List<Flight> candidateFlightList, int gap) {
-	
+		
 		// 每一个航班生成arc
 
 		// 为每一个飞机的网络模型生成arc
 		NetworkConstructor networkConstructor = new NetworkConstructor();
+
 		for (Aircraft aircraft : candidateAircraftList) {	
+			
 			for (Flight f : aircraft.singleFlightList) {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, 5, scenario);
 			}
-			
+
 			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
 				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, 5, false, scenario);
 			}
 		}
+		
 		
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
 	}

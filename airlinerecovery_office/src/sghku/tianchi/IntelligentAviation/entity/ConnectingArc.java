@@ -26,8 +26,6 @@ public class ConnectingArc {
 
 	// to verify the cost setting
 	public double pssgrCclCostDueToInsufficientSeat;
-	public double pssgrCclCostDueToInsufficientSeat1;
-	public double pssgrCclCostDueToInsufficientSeat2;
 	public double delayCost;
 	
 	public int fulfilledDemand;
@@ -86,10 +84,8 @@ public class ConnectingArc {
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay);
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay);
 			
-			pssgrCclCostDueToInsufficientSeat += cancelConnectingPassenger * Parameter.passengerCancelCost * 2; //record conn cancel cost
-			pssgrCclCostDueToInsufficientSeat1 += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
-			pssgrCclCostDueToInsufficientSeat2 += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
-
+			pssgrCclCostDueToInsufficientSeat += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
+		
 			delayCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record conn delay cost
 			delayCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record conn delay cost
 			

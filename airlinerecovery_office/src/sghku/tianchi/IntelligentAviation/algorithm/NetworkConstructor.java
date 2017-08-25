@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.SynchronousQueue;
 
 import sghku.tianchi.IntelligentAviation.common.Parameter;
 import sghku.tianchi.IntelligentAviation.comparator.NodeComparator;
@@ -76,6 +77,7 @@ public class NetworkConstructor {
 		}else {
 			//2.1 check whether f can be brought forward and generate earliness arcs
 
+			int nnn = 0;
 			
 			int startIndex = 0;
 			int endIndex = 0;
@@ -177,6 +179,10 @@ public class NetworkConstructor {
 							if(arc.takeoffTime >= currentFlightSection.startTime && arc.takeoffTime < currentFlightSection.endTime) {
 								isFound = true;
 								currentFlightSection.flightArcList.add(arc);
+								if(currentFlightSection.startTime == 10930 && currentFlightSection.endTime == 11090){
+									
+									nnn++;
+								}
 								break;
 							}
 						}
@@ -238,8 +244,9 @@ public class NetworkConstructor {
 					
 				}
 			}
-			
-
+			if(f.id == 1333){
+				System.out.println("nnn："+nnn);				
+			}
 		}
 		
 		
@@ -582,6 +589,8 @@ public class NetworkConstructor {
 				}
 				
 			}
+		
+			int nnn = 0;
 			
 			for(ConnectingArc arc:connectingArcList) {
 				//加入到对应的机场
@@ -614,8 +623,8 @@ public class NetworkConstructor {
 				
 				
 				//设置第一个arc
-				arc.firstArc.isIncludedInConnecting = true;
-				arc.firstArc.connectingArc = arc;
+				//arc.firstArc.isIncludedInConnecting = true;
+				//arc.firstArc.connectingArcList.add(arc);
 				
 				//乘客容量
 				arc.firstArc.passengerCapacity = aircraft.passengerCapacity;			
@@ -626,9 +635,13 @@ public class NetworkConstructor {
 				
 				if(Parameter.onlySignChangeDisruptedPassenger){
 					//减去普通乘客
-					arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.normalPassengerNumber;
-					
+					arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.normalPassengerNumber;	
 				}
+
+				/*if(arc.firstArc.flight.id == 1333){
+					System.out.println("flight 1333:"+arc.firstArc.passengerCapacity+" ");
+				}*/
+				
 				
 				//剩下的则为有效座位
 				arc.firstArc.passengerCapacity = Math.max(0, arc.firstArc.passengerCapacity);
@@ -636,8 +649,15 @@ public class NetworkConstructor {
 				boolean isFound = false;
 				for(FlightSection currentFlightSection:cf.firstFlight.flightSectionList) {
 					if(arc.firstArc.takeoffTime >= currentFlightSection.startTime && arc.firstArc.takeoffTime < currentFlightSection.endTime) {
-						currentFlightSection.flightArcList.add(arc.firstArc);
+						//currentFlightSection.flightArcList.add(arc.firstArc);
+						currentFlightSection.connectingFirstArcList.add(arc);
 						isFound = true;
+						
+						/*if(currentFlightSection.flight.id == 1333 && currentFlightSection.startTime == 10930 && currentFlightSection.endTime == 11090){
+							System.out.println("we find this flight section 1: "+arc.firstArc.takeoffTime+" "+arc.secondArc.takeoffTime);
+							nnn++;
+						}*/
+						
 						break;
 					}
 				}
@@ -647,12 +667,18 @@ public class NetworkConstructor {
 						System.out.println("no flight section found! "+arc.firstArc.takeoffTime+" "+cf.firstFlight.flightSectionList.get(cf.firstFlight.flightSectionList.size()-1).endTime);
 						System.exit(1);
 					}
-					cf.firstFlight.flightSectionList.get(cf.firstFlight.flightSectionList.size()-1).flightArcList.add(arc.firstArc);	
+					
+					cf.firstFlight.flightSectionList.get(cf.firstFlight.flightSectionList.size()-1).connectingFirstArcList.add(arc);	
+				
+					/*FlightSection currentFlightSection = cf.firstFlight.flightSectionList.get(cf.firstFlight.flightSectionList.size()-1);
+					if(currentFlightSection.flight.id == 1333 && currentFlightSection.startTime == 10930 && currentFlightSection.endTime == 11090){
+						System.out.println("we find this flight section 2: "+arc.firstArc.takeoffTime+" "+arc.secondArc.takeoffTime);
+					}*/
 				}
 				
 				//设置第二个arc
-				arc.secondArc.isIncludedInConnecting = true;
-				arc.secondArc.connectingArc = arc;
+				//arc.secondArc.isIncludedInConnecting = true;
+				//arc.secondArc.connectingArcList.add(arc);
 				//乘客容量
 				arc.secondArc.passengerCapacity = aircraft.passengerCapacity;		
 				//减去联程乘客
@@ -670,8 +696,12 @@ public class NetworkConstructor {
 				isFound = false;
 				for(FlightSection currentFlightSection:cf.secondFlight.flightSectionList) {
 					if(arc.secondArc.takeoffTime >= currentFlightSection.startTime && arc.secondArc.takeoffTime < currentFlightSection.endTime) {
-						currentFlightSection.flightArcList.add(arc.secondArc);
+						currentFlightSection.connectingSecondArcList.add(arc);
 						isFound = true;
+						
+						/*if(currentFlightSection.flight.id == 1333 && currentFlightSection.startTime == 10930 && currentFlightSection.endTime == 11090){
+							System.out.println("we find this flight section 3: "+arc.firstArc.takeoffTime+" "+arc.secondArc.takeoffTime);
+						}*/
 						break;
 					}
 				}
@@ -681,10 +711,16 @@ public class NetworkConstructor {
 						System.out.println("no flight section found 2! "+arc.secondArc.takeoffTime+" "+cf.secondFlight.flightSectionList.get(cf.secondFlight.flightSectionList.size()-1).endTime);
 						System.exit(1);
 					}
-					cf.secondFlight.flightSectionList.get(cf.secondFlight.flightSectionList.size()-1).flightArcList.add(arc.secondArc);	
+					cf.secondFlight.flightSectionList.get(cf.secondFlight.flightSectionList.size()-1).connectingSecondArcList.add(arc);	
+				
+					/*FlightSection currentFlightSection = cf.firstFlight.flightSectionList.get(cf.firstFlight.flightSectionList.size()-1);
+					if(currentFlightSection.flight.id == 1333 && currentFlightSection.startTime == 10930 && currentFlightSection.endTime == 11090){
+						System.out.println("we find this flight section 4: "+arc.firstArc.takeoffTime+" "+arc.secondArc.takeoffTime);
+					}*/
 				}
 				
 			}
+			
 			
 			/*//3. 为每一个flight生成arc，可以单独取消联程航班中的一段
 			if(isGenerateArcForEachFlight) {
@@ -697,7 +733,14 @@ public class NetworkConstructor {
 					generateArcForFlight(aircraft, cf.secondFlight, givenGap, scenario);
 				}
 			}*/
+		
+			if(cf.firstFlight.id == 1333){
+				System.out.println("nnn："+nnn);
+			}
 		}
+		
+		
+		
 		
 		return generatedConnectingArcList;
 	}

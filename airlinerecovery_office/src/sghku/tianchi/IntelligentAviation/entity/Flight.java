@@ -100,7 +100,7 @@ public class Flight {
 	public int firstTransferPassengerNumber;
 	public int secondTransferPassengerNumber;
 	
-	public double totalConnectingCancellationCost = 0;
+	public double totalConnectingAndTransferCancellationCost = 0;
 	
 	//public boolean isSmallGapRequired = false;
 	

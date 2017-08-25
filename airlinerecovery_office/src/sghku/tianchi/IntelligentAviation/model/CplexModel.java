@@ -47,6 +47,8 @@ public class CplexModel {
 		Solution solution = new Solution();
 		solution.involvedAircraftList.addAll(aircraftList);
 
+		
+		
 		try {
 
 			cplex = new IloCplex();
@@ -126,7 +128,7 @@ public class CplexModel {
 				z[i] = cplex.numVar(0, 1);
 
 				if(Parameter.isPassengerCostConsidered){
-					obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingCancellationCost + Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2, z[i]);					
+					obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingAndTransferCancellationCost, z[i]);					
 				}else{
 					obj.addTerm(f.importance*Parameter.COST_CANCEL, z[i]);
 				}			
@@ -269,12 +271,24 @@ public class CplexModel {
 						seatConstraint.addTerm(1, passX[fsi.id]);
 					}
 
-					for(FlightArc arc:fs.flightArcList) {
+					/*for(FlightArc arc:fs.flightArcList) {
 						if(arc.isIncludedInConnecting) {
-							seatConstraint.addTerm(-arc.passengerCapacity, beta[arc.connectingArc.id]);
+							for(ConnectingArc connArc:arc.connectingArcList){
+								seatConstraint.addTerm(-arc.passengerCapacity, beta[connArc.id]);								
+							}
 						}else {
 							seatConstraint.addTerm(-arc.passengerCapacity, x[arc .id]);						
 						}
+					}*/
+					
+					for(FlightArc arc:fs.flightArcList) {
+						seatConstraint.addTerm(-arc.passengerCapacity, x[arc .id]);						
+					}
+					for(ConnectingArc arc:fs.connectingFirstArcList){
+						seatConstraint.addTerm(-arc.firstArc.passengerCapacity, beta[arc .id]);						
+					}
+					for(ConnectingArc arc:fs.connectingSecondArcList){
+						seatConstraint.addTerm(-arc.secondArc.passengerCapacity, beta[arc .id]);						
 					}
 
 					cplex.addLe(seatConstraint, 0);
@@ -333,6 +347,7 @@ public class CplexModel {
 			}
 			cplex.addLe(parkingConstraint67, sce.airport67ParkingLimit);
 
+			
 			if(cplex.solve()){
 
 				if(isFractional){
@@ -514,7 +529,7 @@ public class CplexModel {
 							//System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
 							totalArcCost += fa.cost;
 							totalOriginalPassengerDelayCost += fa.delayCost;
-							totalPassengerCancelCost += fa.connPssgrCclDueToAnotherCclCost;
+							totalPassengerCancelCost += fa.connPssgrCclDueToSubseqCclCost;
 							totalPassengerCancelCost += fa.connPssgrCclDueToStraightenCost;
 
 						}
@@ -765,30 +780,54 @@ public class CplexModel {
 									if(f.isStraightened){
 										totalCost += arc.connPssgrCclDueToStraightenCost;
 									}else{
-										totalCost += arc.connPssgrCclDueToAnotherCclCost;
+										totalCost += arc.connPssgrCclDueToSubseqCclCost;
 									}									
 								}
 							}
-							if(!f.isStraightened){
-								
+							if(!f.isStraightened){		
 								for(ConnectingArc arc:f.connectingarcList){
-									if(cplex.getValue(beta[arc.id]) > 1e-5){
-										if(f.connectingFlightpair.firstFlight.id == f.id){
-											totalCost += arc.pssgrCclCostDueToInsufficientSeat1;
-										}else{
-											totalCost += arc.pssgrCclCostDueToInsufficientSeat2;
+									if(f.id == arc.firstArc.flight.id){
+										if(cplex.getValue(beta[arc.id]) > 1e-5){
+											totalCost += arc.pssgrCclCostDueToInsufficientSeat;
 										}
-									}
-									
+									}		
 								}
 							}
 
-							double cancelVolume = cplex.getValue(passCancel[f.itinerary.id]);
-							totalCost += 4*cancelVolume;
+							if(f.itinerary != null){
+								double cancelVolume = cplex.getValue(passCancel[f.itinerary.id]);
+								totalCost += 4*cancelVolume;
+							}
+							
+							if(f.isCancelled && !f.isStraightened){
+								totalCost += f.totalConnectingAndTransferCancellationCost;
+							}
 							System.out.println(f.id+" "+totalCost);
 						}
 						
 					}
+					
+					/*//检查itinerary
+					for(FlightSection fs:flightSectionList) {
+						if(fs.flight.id == 1333){
+							System.out.println("--------"+fs.startTime+"->"+fs.endTime+"---------");
+							for(FlightSectionItinerary fsi:fs.flightSectionItineraryList) {
+								System.out.println("转签:"+fsi.itinerary.flight.id+" "+fsi.volume);
+							}
+							
+							for(FlightArc arc:fs.flightArcList) {
+								if(arc.isIncludedInConnecting) {
+									if(cplex.getValue(beta[arc.connectingArc.id]) > 1e-5){
+										System.out.println("座位 联程:"+(arc.passengerCapacity*cplex.getValue(beta[arc.connectingArc.id]))+"  "+cplex.getValue(beta[arc.connectingArc.id])+" "+arc.connectingArc.id+" "+arc.connectingArc.firstArc.takeoffTime+" "+arc.connectingArc.secondArc.takeoffTime);
+									}
+								}else {
+									if(cplex.getValue(x[arc .id]) > 1e-5){
+										System.out.println("座位 单程:"+(arc.passengerCapacity*cplex.getValue(x[arc .id]))+"  "+cplex.getValue(x[arc .id])+" "+arc.id);
+									}
+								}
+							}
+						}				
+					}*/
 				}
 
 			}else{

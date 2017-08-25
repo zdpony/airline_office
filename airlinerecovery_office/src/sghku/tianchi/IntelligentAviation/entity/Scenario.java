@@ -335,15 +335,14 @@ public class Scenario {
 
 		// 计算每一个航班的联程乘客成本
 		for (ConnectingFlightpair cf : connectingFlightList) {
-			cf.firstFlight.totalConnectingCancellationCost += cf.firstFlight.connectedPassengerNumber
+			cf.firstFlight.totalConnectingAndTransferCancellationCost += cf.firstFlight.connectedPassengerNumber
 					* Parameter.passengerCancelCost;
-			cf.secondFlight.totalConnectingCancellationCost += cf.secondFlight.connectedPassengerNumber
-					* Parameter.passengerCancelCost;
+			
 		}
 		// 把flight上中转首段乘客的cancel cost 也加到connecting cost里，方便加入model的z coefficient
 		// 因为中转首段cancel也影响后段，所以*2
 		for(Flight f:flightList){
-			f.totalConnectingCancellationCost += f.firstTransferPassengerNumber * Parameter.passengerCancelCost * 2;
+			f.totalConnectingAndTransferCancellationCost += f.firstTransferPassengerNumber * Parameter.passengerCancelCost * 2;
 		}
 
 		checkTyphoonAffectedFlights();
@@ -748,7 +747,7 @@ public class Scenario {
 		// 读取已经固定的飞机路径
 		Scanner sn = null;
 		try {
-			sn = new Scanner(new File("fixschedule_pony"));
+			sn = new Scanner(new File("fixschedule_rachel"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

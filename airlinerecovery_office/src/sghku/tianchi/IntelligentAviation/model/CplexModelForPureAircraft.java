@@ -111,7 +111,7 @@ public class CplexModelForPureAircraft {
 				z[i] = cplex.numVar(0, 1);
 
 				if(Parameter.isPassengerCostConsidered){
-					obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingCancellationCost, z[i]);					
+					obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingAndTransferCancellationCost, z[i]);					
 				}else{
 					obj.addTerm(f.importance*Parameter.COST_CANCEL, z[i]);
 				}

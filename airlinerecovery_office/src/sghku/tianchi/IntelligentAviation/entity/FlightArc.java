@@ -40,15 +40,15 @@ public class FlightArc {
  	
  	public double delayCostPerPssgr;
  	public double delayCost;
- 	public double connPssgrCclDueToAnotherCclCost;
+ 	public double connPssgrCclDueToSubseqCclCost;
  	
  	public double connPssgrCclDueToStraightenCost;
  	
  	
  	
  	//标记一个arc是否属于一个connecting arc
-	public boolean isIncludedInConnecting = false;
-	public ConnectingArc connectingArc = null;
+	//public boolean isIncludedInConnecting = false;
+	//public List<ConnectingArc> connectingArcList = new ArrayList<>();
 	
 	public boolean isWithinAffectedRegionOrigin = false;
 	public boolean isWithinAffectedRegionDestination = false;
@@ -117,11 +117,14 @@ public class FlightArc {
 			if(Parameter.isPassengerCostConsidered) {
 				if(flight.isIncludedInConnecting) {
 					//首先考虑联程乘客，如果其中一段属于联程航班，则代表另一截cancel了，对应的联程乘客必须取消
-					cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
-					connPssgrCclDueToAnotherCclCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;  //record conn cancel
-					if(flight.id == 1986){
-						System.out.println("this way : "+flight.brotherFlight.id);
+					if(flight.connectingFlightpair.firstFlight.id == flight.id){
+						cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
+						connPssgrCclDueToSubseqCclCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;  //record conn cancel
 					}
+					
+					/*if(flight.id == 1986){
+						System.out.println("this way : "+flight.brotherFlight.id);
+					}*/
 				}
 				
 				//考虑中转乘客的延误 -- 假设中转乘客都成功中转
