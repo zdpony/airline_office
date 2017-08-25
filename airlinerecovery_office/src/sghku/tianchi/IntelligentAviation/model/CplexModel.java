@@ -537,24 +537,6 @@ public class CplexModel {
 						}
 					}
 					
-					for(String key:sce.keyList) {
-						if(key.startsWith("49_")){
-							List<FlightArc> faList = sce.airportTimeFlightArcMap.get(key);
-							List<ConnectingArc> caList = sce.airportTimeConnectingArcMap.get(key);
-							
-							for(FlightArc arc:faList) {
-								if(cplex.getValue(x[arc.id]) > 1e-6){
-									System.out.println("key:"+key+" "+arc.flight.id+" "+Parameter.airportBeforeTyphoonTimeWindowStart+"->"+Parameter.airportBeforeTyphoonTimeWindowEnd);
-								}
-							}
-							for(ConnectingArc arc:caList) {
-								if(cplex.getValue(beta[arc.id]) > 1e-6){
-									System.out.println("key:"+key+" "+arc.firstArc.flight.id+" "+arc.secondArc.flight.id+" "+Parameter.airportBeforeTyphoonTimeWindowStart+"->"+Parameter.airportBeforeTyphoonTimeWindowEnd);
-								}
-							}
-						}
-					}
-					
 					System.out.println("saved flights:"+cancelN1+" "+cancelN2);
 					
 					try {
@@ -575,11 +557,11 @@ public class CplexModel {
 						if(cplex.getValue(x[fa.id])>1e-6){
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);
 							
-							System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
+							//System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
 							totalArcCost += fa.cost;
 						}
 					}
-					System.out.println("totalArcCost:"+totalArcCost);
+					//System.out.println("totalArcCost:"+totalArcCost);
 					
 					
 					for(ConnectingArc arc:connectingArcList){
@@ -612,7 +594,7 @@ public class CplexModel {
 								flowOut += arc.fractionalFlow;
 							}
 							
-							System.out.println("flow out:"+flowOut);
+							//System.out.println("flow out:"+flowOut);
 							if(flowOut > 1e-6){
 								
 								Path p = new Path();
@@ -688,7 +670,7 @@ public class CplexModel {
 									arc.fractionalFlow = arc.fractionalFlow - p.value;
 								}
 								
-								System.out.println("p value:"+p.value);
+								//System.out.println("p value:"+p.value);
 								
 								sb.append(p.toString()+"\n");
 							}else{
