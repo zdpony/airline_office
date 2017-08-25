@@ -75,8 +75,7 @@ public class NetworkConstructor {
 			//}						
 		}else {
 			//2.1 check whether f can be brought forward and generate earliness arcs
-			
-			boolean isFixFound = false;
+
 			
 			int startIndex = 0;
 			int endIndex = 0;
@@ -166,6 +165,7 @@ public class NetworkConstructor {
 				
 				if(!arc.checkViolation()){
 					
+					
 					//如果是调剂航班，不需要做任何处理
 					if(f.isDeadhead) {
 						
@@ -204,15 +204,19 @@ public class NetworkConstructor {
 						}
 						
 						//乘客容量
-						arc.passengerCapacity = aircraft.passengerCapacity;			
+						arc.passengerCapacity = aircraft.passengerCapacity;	
+						
+						
 						//减去转乘乘客
 						arc.passengerCapacity = arc.passengerCapacity - f.transferPassengerNumber;
+						
 						//如果该航班是联程航班，则代表联程航班已经被取消，所以不需要在考虑对应的联程乘客
 						
 						if(Parameter.onlySignChangeDisruptedPassenger){
 							//减去普通乘客
 							arc.passengerCapacity = arc.passengerCapacity - f.normalPassengerNumber;
 						}
+						
 						//剩下的则为有效座位
 						arc.passengerCapacity = Math.max(0, arc.passengerCapacity);
 					}
@@ -241,16 +245,13 @@ public class NetworkConstructor {
 						scenario.airport67ParkingFlightArcList.add(arc);
 					}
 					
-					if(arc.takeoffTime == arc.flight.actualTakeoffT){
-						isFixFound = true;
-					}
 				}
 			}
 			
-			if(!isFixFound){
-				System.out.println("not found:"+f.id+"  "+f.initialTakeoffT+"  "+f.actualTakeoffT);
-			}
+
 		}
+		
+		
 		
 		return generatedFlightArcList;
 	}
@@ -285,6 +286,41 @@ public class NetworkConstructor {
 		arc.calculateCost();
 		
 		generatedFlightArcList.add(arc);
+		
+		//加入对应的起降时间点
+		boolean isOriginInAffectedLdnTkfLimitPeriod = false;
+		boolean isDestinationInAffectedLdnTkfLimitPeriod = false;
+		
+		if(scenario.affectedAirportSet.contains(f.leg.originAirport.id)) {
+			int tkfTime = arc.takeoffTime;
+			if((tkfTime >= Parameter.airportBeforeTyphoonTimeWindowStart && tkfTime <= Parameter.airportBeforeTyphoonTimeWindowEnd) || (tkfTime >= Parameter.airportAfterTyphoonTimeWindowStart && tkfTime <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
+				isOriginInAffectedLdnTkfLimitPeriod = true;
+			}
+		}else if(scenario.affectedAirportSet.contains(f.leg.destinationAirport.id)) {
+			int ldnTime = arc.landingTime;
+			if((ldnTime >= Parameter.airportBeforeTyphoonTimeWindowStart && ldnTime <= Parameter.airportBeforeTyphoonTimeWindowEnd) || (ldnTime >= Parameter.airportAfterTyphoonTimeWindowStart && ldnTime <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
+				isDestinationInAffectedLdnTkfLimitPeriod = true;
+			}
+		}
+		
+		if(isOriginInAffectedLdnTkfLimitPeriod) {
+			int tkfTime = arc.takeoffTime;
+			
+			List<FlightArc> faList = scenario.airportTimeFlightArcMap.get(f.leg.originAirport.id+"_"+tkfTime);
+			faList.add(arc);
+		}else if(isDestinationInAffectedLdnTkfLimitPeriod){
+			int ldnTime = arc.landingTime;
+			List<FlightArc> faList = scenario.airportTimeFlightArcMap.get(f.leg.destinationAirport.id+"_"+ldnTime);
+			faList.add(arc);
+		}
+		
+		//加入停机约束
+		if(f.leg.destinationAirport.id == 25 && arc.landingTime <= Parameter.airport25_67ParkingLimitStart && arc.readyTime >= Parameter.airport25_67ParkingLimitEnd){
+			scenario.airport25ParkingFlightArcList.add(arc);
+		}
+		if(f.leg.destinationAirport.id == 67 && arc.landingTime <= Parameter.airport25_67ParkingLimitStart && arc.readyTime >= Parameter.airport25_67ParkingLimitEnd){
+			scenario.airport67ParkingFlightArcList.add(arc);
+		}
 		
 		return generatedFlightArcList;
 	}

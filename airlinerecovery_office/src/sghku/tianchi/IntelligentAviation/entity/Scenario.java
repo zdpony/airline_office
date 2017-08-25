@@ -276,7 +276,13 @@ public class Scenario {
 					if(f.isCancelled){
 						capacity = 0;
 					}
-					int totalVolume = f.connectedPassengerNumber + f.passengerNumber;
+					int totalVolume = 0;
+					if(f.isIncludedInConnecting && f.brotherFlight.isCancelled){
+						totalVolume = f.passengerNumber;
+					}else{
+						totalVolume = f.connectedPassengerNumber + f.passengerNumber;
+					}
+					
 					int cancelNum = Math.max(0, totalVolume-capacity);
 					cancelNum = Math.min(cancelNum, f.normalPassengerNumber);
 					
@@ -604,14 +610,16 @@ public class Scenario {
 
 					if (delay1 >= 0 && delay2 >= 0) {
 
-						if (delay2 < 6 * 60) {
+						if (delay2 <= 6 * 60) {
 							fsi.unitCost = 0.01;
-						} else if (delay2 < 24 * 60 && delay1 >= 6 * 60) {
+						} else if (delay2 <= 24 * 60 && delay1 >= 6 * 60) {
 							fsi.unitCost = 0.5;
 						} else if (delay2 <= 48 * 60 && delay1 >= 24 * 60) {
 							fsi.unitCost = 1;
 						} else {
-							System.out.println("delay1:" + delay1 + " " + delay2);
+							if(delay1 < 48*60){
+								System.out.println("error delay:" + delay1 + " " + delay2);								
+							}
 						}
 					}
 
@@ -738,7 +746,7 @@ public class Scenario {
 		// 读取已经固定的飞机路径
 		Scanner sn = null;
 		try {
-			sn = new Scanner(new File("fixschedule"));
+			sn = new Scanner(new File("fixschedule_rachel"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

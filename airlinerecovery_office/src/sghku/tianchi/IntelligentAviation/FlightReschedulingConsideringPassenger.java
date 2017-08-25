@@ -5,9 +5,14 @@ import java.io.FileNotFoundException;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.concurrent.SynchronousQueue;
+
+import javax.swing.plaf.synth.SynthSpinnerUI;
 
 import sghku.tianchi.IntelligentAviation.algorithm.NetworkConstructor;
 import sghku.tianchi.IntelligentAviation.clique.Clique;
@@ -43,6 +48,7 @@ public class FlightReschedulingConsideringPassenger {
 		
 	public static void runOneIteration(boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
+		
 		System.out.println("---------------this way ---------");
 		
 		List<Flight> candidateFlightList = new ArrayList<>();
@@ -67,6 +73,7 @@ public class FlightReschedulingConsideringPassenger {
 					
 					f1.connectingFlightpair.secondFlight.isStraightened = true;
 					System.out.println("one straightened flight");
+					
 				}
 				
 				if (!a.checkFlyViolation(f1)) {
@@ -90,9 +97,9 @@ public class FlightReschedulingConsideringPassenger {
 					f1.isShortConnection = true;
 					f1.shortConnectionTime = connT;
 				}
-							
+
 				if((f1.actualLandingT+(f1.isShortConnection?f1.shortConnectionTime:50)) > f2.actualTakeoffT){
-					System.out.println("connection error  "+f1.actualLandingT+"  "+f2.actualTakeoffT+" "+f1.isIncludedInTimeWindow+" "+f2.isIncludedInTimeWindow+" "+f1.isShortConnection+" "+f1.shortConnectionTime+" "+f1.id+" "+f2.id);
+					System.out.println("connection error  "+f1.actualLandingT+"  "+f2.actualTakeoffT+" "+f1.isIncludedInTimeWindow+" "+f2.isIncludedInTimeWindow+" "+f1.isShortConnection+" "+f1.shortConnectionTime+" "+f1.id+" "+f2.id+" "+f1.leg.destinationAirport.id);
 				}
 				
 				if(f1.isIncludedInConnecting && f2.isIncludedInConnecting && f1.brotherFlight.id == f2.id){
@@ -115,6 +122,7 @@ public class FlightReschedulingConsideringPassenger {
 		
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
 		solver(scenario, scenario.aircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);
+		
 			
 	}
 	
@@ -140,7 +148,7 @@ public class FlightReschedulingConsideringPassenger {
 		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, isFractional, true, false);
 
 		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
-		outputResultWithPassenger.writeResult(scenario, "firstresult821.csv");
+		outputResultWithPassenger.writeResult(scenario, "firstresult825.csv");
 	}
 
 	// 构建时空网络流模型
@@ -155,6 +163,7 @@ public class FlightReschedulingConsideringPassenger {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, 5, scenario);
 			}
+			
 			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
 				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, 5, false, scenario);
 			}
