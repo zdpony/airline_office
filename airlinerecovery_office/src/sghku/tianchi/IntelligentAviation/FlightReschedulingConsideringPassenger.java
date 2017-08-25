@@ -5,9 +5,14 @@ import java.io.FileNotFoundException;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.concurrent.SynchronousQueue;
+
+import javax.swing.plaf.synth.SynthSpinnerUI;
 
 import sghku.tianchi.IntelligentAviation.algorithm.NetworkConstructor;
 import sghku.tianchi.IntelligentAviation.clique.Clique;
@@ -33,7 +38,7 @@ import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 public class FlightReschedulingConsideringPassenger {
 	public static void main(String[] args) {
 
-		Parameter.isPassengerCostConsidered = true;
+		Parameter.isPassengerCostConsidered = false;
 		Parameter.isReadFixedRoutes = true;
 		Parameter.onlySignChangeDisruptedPassenger = true;
 		
@@ -43,34 +48,8 @@ public class FlightReschedulingConsideringPassenger {
 		
 	public static void runOneIteration(boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
+		
 		System.out.println("---------------this way ---------");
-		
-		/*//1.初始化，所有的航班取消
-		for(Flight f:scenario.flightList){
-			f.isCancelled = true;
-			f.aircraft = f.initialAircraft;
-			f.actualTakeoffT = f.initialTakeoffT;
-			f.actualLandingT = f.initialLandingT;
-		}
-		
-		AircraftPathReader scheduleReader = new AircraftPathReader();
-		
-		//读取已经固定的飞机路径
-		Scanner sn = null;
-		try {
-			sn = new Scanner(new File("fixschedule"));
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		while(sn.hasNextLine()) {
-			String nextLine = sn.nextLine().trim();
-			
-			if(nextLine.equals("")) {
-				break;
-			}
-			scheduleReader.read(nextLine, scenario);
-		}*/
 		
 		List<Flight> candidateFlightList = new ArrayList<>();
 		List<ConnectingFlightpair> candidateConnectingFlightList = new ArrayList<>();
@@ -112,15 +91,14 @@ public class FlightReschedulingConsideringPassenger {
 				f1.isShortConnection = false;
 				f2.isShortConnection = false;
 				
-				if(!f1.isStraightened && !f2.isStraightened) {
-					Integer connT = scenario.shortConnectionMap.get(f1.id+"_"+f2.id);
-					if(connT != null) {
-						f1.isShortConnection = true;
-						f1.shortConnectionTime = connT;
-					}
+				Integer connT = scenario.shortConnectionMap.get(f1.id+"_"+f2.id);
+				if(connT != null){
+					f1.isShortConnection = true;
+					f1.shortConnectionTime = connT;
 				}
+				
 				if((f1.actualLandingT+(f1.isShortConnection?f1.shortConnectionTime:50)) > f2.actualTakeoffT){
-					System.out.println("connection error  "+f1.actualLandingT+"  "+f2.actualTakeoffT+" "+f1.isIncludedInTimeWindow+" "+f2.isIncludedInTimeWindow+" "+f1.isShortConnection+" "+f1.shortConnectionTime+" "+f1.id+" "+f2.id);
+					System.out.println("connection error  "+f1.actualLandingT+"  "+f2.actualTakeoffT+" "+f1.isIncludedInTimeWindow+" "+f2.isIncludedInTimeWindow+" "+f1.isShortConnection+" "+f1.shortConnectionTime+" "+f1.id+" "+f2.id+" "+f1.leg.destinationAirport.id);
 				}
 				
 				if(f1.isIncludedInConnecting && f2.isIncludedInConnecting && f1.brotherFlight.id == f2.id){
@@ -168,7 +146,7 @@ public class FlightReschedulingConsideringPassenger {
 		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, isFractional, true, false);
 
 		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
-		outputResultWithPassenger.writeResult(scenario, "firstresult821.csv");
+		outputResultWithPassenger.writeResult(scenario, "firstresult825.csv");
 	}
 
 	// 构建时空网络流模型
@@ -183,6 +161,7 @@ public class FlightReschedulingConsideringPassenger {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, 5, scenario);
 			}
+			
 			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
 				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, 5, false, scenario);
 			}

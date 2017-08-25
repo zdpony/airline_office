@@ -197,9 +197,6 @@ public class CplexModel {
 					flightSelectionConstraint.addTerm(1, beta[arc.id]);
 				}
 
-				/*if(!f.isLatest){
-					flightSelectionConstraint.addTerm(1, z[i]);
-				}*/
 				if(isCancelAllowed){  //因为已经fix route，算schedule
 					if(f.isIncludedInTimeWindow){
 						flightSelectionConstraint.addTerm(1, z[i]);	
