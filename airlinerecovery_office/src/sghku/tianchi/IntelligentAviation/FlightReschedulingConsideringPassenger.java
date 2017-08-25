@@ -38,7 +38,7 @@ import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 public class FlightReschedulingConsideringPassenger {
 	public static void main(String[] args) {
 
-		Parameter.isPassengerCostConsidered = false;
+		Parameter.isPassengerCostConsidered = true;
 		Parameter.isReadFixedRoutes = true;
 		Parameter.onlySignChangeDisruptedPassenger = true;
 		

@@ -133,21 +133,7 @@ public class NetworkConstructor {
 						continue;
 					}
 				}
-				
-				/*if (!f.isSmallGapRequired) {
-					if((i*presetGap)%givenGap != 0) {
-						continue;
-					}else{
-						
-					}
-				}else {
-					if((i*presetGap)%givenGap != 0) {
-						if(!isOriginInAffectedLdnTkfLimitPeriod && !isDestinationInAffectedLdnTkfLimitPeriod){
-							continue;
-						}
-					}
-				}
-				*/				
+								
 				arc = new FlightArc();
 				arc.flight = f;
 				arc.aircraft = aircraft;
@@ -226,15 +212,20 @@ public class NetworkConstructor {
 					generatedFlightArcList.add(arc);
 					
 					//加入对应的起降时间点
+					
+					
+					
 					if(isOriginInAffectedLdnTkfLimitPeriod) {
 						int tkfTime = f.initialTakeoffT + i*presetGap;
 						
 						List<FlightArc> faList = scenario.airportTimeFlightArcMap.get(f.leg.originAirport.id+"_"+tkfTime);
 						faList.add(arc);
+
 					}else if(isDestinationInAffectedLdnTkfLimitPeriod){
 						int ldnTime = f.initialLandingT + i*presetGap;
 						List<FlightArc> faList = scenario.airportTimeFlightArcMap.get(f.leg.destinationAirport.id+"_"+ldnTime);
 						faList.add(arc);
+						
 					}
 					
 					//加入停机约束
@@ -692,6 +683,7 @@ public class NetworkConstructor {
 					}
 					cf.secondFlight.flightSectionList.get(cf.secondFlight.flightSectionList.size()-1).flightArcList.add(arc.secondArc);	
 				}
+				
 			}
 			
 			/*//3. 为每一个flight生成arc，可以单独取消联程航班中的一段
