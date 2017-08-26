@@ -139,7 +139,6 @@ public class FlightArc {
 					cost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
 					delayCost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
 				}
-				
 				//考虑普通乘客的延误（因为联程乘客被cancel了，所以只有普通乘客的延误）
 				int remainingCapacity = aircraft.passengerCapacity;
 				remainingCapacity = remainingCapacity - flight.transferPassengerNumber;  //预留座位给中转乘客--假设中转一定能成功
@@ -150,7 +149,7 @@ public class FlightArc {
 		
 				if(flight.isIncludedInTimeWindow){
 					fulfilledDemand = actualNum + flight.transferPassengerNumber;					
-				}
+				}			
 			}			
 		}
 	}

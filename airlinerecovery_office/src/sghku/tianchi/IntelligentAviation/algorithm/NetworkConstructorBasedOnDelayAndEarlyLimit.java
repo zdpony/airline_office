@@ -578,13 +578,11 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 
 						// 如果该航班是联程航班，则代表联程航班已经被取消，所以不需要在考虑对应的联程乘客
 
-						if (Parameter.onlySignChangeDisruptedPassenger) {
-							// 减去普通乘客
-							arc.passengerCapacity = arc.passengerCapacity - f.normalPassengerNumber;
-						}
+						// 减去普通乘客
+						arc.fulfilledDemand = Math.min(arc.passengerCapacity, f.normalPassengerNumber);
+						arc.passengerCapacity = arc.passengerCapacity - arc.fulfilledDemand;
 
-						// 剩下的则为有效座位
-						arc.passengerCapacity = Math.max(0, arc.passengerCapacity);
+						arc.flight.itinerary.flightArcList.add(arc);
 					}
 
 					arc.calculateCost();
@@ -705,16 +703,13 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 					ca.firstArc.passengerCapacity = ca.firstArc.passengerCapacity
 							- cf.firstFlight.transferPassengerNumber;
 
-					if (Parameter.onlySignChangeDisruptedPassenger) {
-						// 减去普通乘客
-						ca.firstArc.passengerCapacity = ca.firstArc.passengerCapacity
-								- cf.firstFlight.normalPassengerNumber;
-					}
+					// 减去普通乘客
+					ca.firstArc.fulfilledDemand = Math.min(ca.firstArc.passengerCapacity, cf.firstFlight.normalPassengerNumber);
+					ca.firstArc.passengerCapacity = ca.firstArc.passengerCapacity
+							- ca.firstArc.fulfilledDemand;
 
-
-					// 剩下的则为有效座位
-					ca.firstArc.passengerCapacity = Math.max(0, ca.firstArc.passengerCapacity);
-
+					ca.firstArc.flight.itinerary.firstConnectionArcList.add(ca);
+					
 					boolean isFound = false;
 					for (FlightSection currentFlightSection : cf.firstFlight.flightSectionList) {
 						if (ca.firstArc.takeoffTime >= currentFlightSection.startTime
@@ -752,15 +747,14 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 					// 减去转乘乘客
 					ca.secondArc.passengerCapacity = ca.secondArc.passengerCapacity
 							- cf.secondFlight.transferPassengerNumber;
-					if (Parameter.onlySignChangeDisruptedPassenger) {
-						// 减去普通乘客
-						ca.secondArc.passengerCapacity = ca.secondArc.passengerCapacity
-								- cf.secondFlight.normalPassengerNumber;
-					}
+					
+					// 减去普通乘客
+					ca.secondArc.fulfilledDemand = Math.min(ca.secondArc.passengerCapacity, cf.secondFlight.normalPassengerNumber);
+					ca.secondArc.passengerCapacity = ca.secondArc.passengerCapacity
+							- ca.secondArc.fulfilledDemand;
 
-					// 剩下的则为有效座位
-					ca.secondArc.passengerCapacity = Math.max(0, ca.secondArc.passengerCapacity);
-
+					ca.secondArc.flight.itinerary.secondConnectingArcList.add(ca);
+					
 					isFound = false;
 					for (FlightSection currentFlightSection : cf.secondFlight.flightSectionList) {
 						if (ca.secondArc.takeoffTime >= currentFlightSection.startTime

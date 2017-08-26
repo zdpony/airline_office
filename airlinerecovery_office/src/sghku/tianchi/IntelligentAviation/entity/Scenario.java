@@ -644,7 +644,7 @@ public class Scenario {
 			}
 
 			// 生成每一个行程初始航班对应的flight section itinerary
-			for (FlightSection flightSection : ite.flight.flightSectionList) {
+			/*for (FlightSection flightSection : ite.flight.flightSectionList) {
 				int t1 = flightSection.startTime;
 				int t2 = flightSection.endTime;
 
@@ -655,7 +655,7 @@ public class Scenario {
 
 				ite.flightSectionItineraryList.add(fsi);
 				flightSection.flightSectionItineraryList.add(fsi);
-			}
+			}*/
 		}
 	}
 

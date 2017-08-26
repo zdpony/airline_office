@@ -112,9 +112,7 @@ public class ConnectingArc {
 
 			delayCost += Math.min(connectingFlightPair.firstFlight.normalPassengerNumber, passengerCapacity1) * ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record normal-pssgr delay cost
 			delayCost += Math.min(connectingFlightPair.secondFlight.normalPassengerNumber, passengerCapacity2) * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record normal-pssgr delay cost
-			
-			
-			
+		
 			if(firstArc.flight.isIncludedInTimeWindow){
 				fulfilledDemand += flyConnectingPassenger*2 + connectingFlightPair.firstFlight.transferPassengerNumber +
 						connectingFlightPair.secondFlight.transferPassengerNumber + Math.min(connectingFlightPair.firstFlight.normalPassengerNumber, passengerCapacity1) + Math.min(connectingFlightPair.secondFlight.normalPassengerNumber, passengerCapacity2);				
