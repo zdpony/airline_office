@@ -1,68 +1,183 @@
 package sghku.tianchi.IntelligentAviation.algorithm;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import sghku.tianchi.IntelligentAviation.common.Parameter;
 import sghku.tianchi.IntelligentAviation.entity.Airport;
+import sghku.tianchi.IntelligentAviation.entity.ClosureInfo;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
 import sghku.tianchi.IntelligentAviation.entity.FlightArc;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
 
 public class FlightDelayLimitGenerator {
+	private Set<Integer> AirportID_49_50_61 = new HashSet(Arrays.asList(49, 50, 61)); //contains id
+	private Map<Integer, Set<Integer>> formerAirportMap = new HashMap<>();
+	private List<Integer> AirportID_5_6_22_49_76 = Arrays.asList(5, 6, 22, 49, 76); //contains id
+	private Set<Integer> indirectTyphoonAffectedAirportSet = new HashSet<>();
+	private Set<Integer> AirportID_25_67 = new HashSet(Arrays.asList(25, 67)); //contains id
 	//设定flight delay限制
 	public void setFlightDelayLimit(Scenario scenario){
-Set<Airport> typhoonAffectedAirportSet = new HashSet<>();
-		
-		typhoonAffectedAirportSet.add(scenario.airportList.get(48));
-		typhoonAffectedAirportSet.add(scenario.airportList.get(49));
-		typhoonAffectedAirportSet.add(scenario.airportList.get(60));
 
+		//在7号12:00-22:00，被台风影响的机场所关联的到达机场，视为间接受影响机场
 		for(Flight f:scenario.flightList) {
-			if(f.initialTakeoffT > 1440*7 && f.initialTakeoffT <= 1440*8) {
-				if(f.leg.originAirport.id == 49 || f.leg.originAirport.id == 50 || f.leg.originAirport.id == 61) {
-					typhoonAffectedAirportSet.add(f.leg.destinationAirport);
+			if(f.initialTakeoffT > 1440*7+12*60 && f.initialTakeoffT <= 1440*7+22*60) {
+				if(AirportID_49_50_61.contains(f.leg.originAirport.id)){
+					indirectTyphoonAffectedAirportSet.add(f.leg.destinationAirport.id);
+				}
+			}
+			//把7号00:00-16:00之间起飞的航班的起飞和到达机场放入formerAirportMap,方便后面检索
+			if(f.initialTakeoffT > 1440*7 && f.initialTakeoffT <= 1440*7 + 16*60) {
+				Set formerAirportSet = formerAirportMap.get(f.leg.destinationAirport.id);
+				if(formerAirportSet==null){
+					formerAirportSet = new HashSet();
+					formerAirportSet.add(f.leg.originAirport.id);
+					formerAirportMap.put(f.leg.destinationAirport.id, formerAirportSet);
+				}else{
+					formerAirportSet.add(f.leg.originAirport.id);
 				}
 			}
 		}
-		
+
 		//System.out.println("typhoonAffectedAirportSet:"+typhoonAffectedAirportSet.size()+" "+airportList.size());
 
 		for(Flight f:scenario.flightList) {
-			if(f.isIncludedInTimeWindow) {
-				f.earlyLimit = 0;
-				f.delayLimit = 60;
-				
-				//1.首先判断delay
-				if(f.initialTakeoffT > 1440*7 && f.initialTakeoffT <= 1440*8) {
-					
-					int earliestT = f.initialTakeoffT;
-					
-					for(int t=f.initialTakeoffT;t<=f.initialTakeoffT+(f.isDomestic?Parameter.MAX_DELAY_DOMESTIC_TIME:Parameter.MAX_DELAY_INTERNATIONAL_TIME);t+=5) {
-						FlightArc fa = new FlightArc();
-						fa.flight = f;
-						fa.takeoffTime = t;
-						fa.landingTime = t + f.flyTime;
-						
-						if(!fa.checkViolation()) {
-							
-							earliestT = t;
-							break;
+			//首先处理台风场景的影响
+			if(f.initialTakeoffT > 1440*7 && f.initialTakeoffT <= 1440*8){
+				//1. 起飞机场属于49_50_61
+				if(AirportID_49_50_61.contains(f.leg.originAirport.id)){
+					//initial tkfTime 在17:00以后
+					if(f.initialTakeoffT > 1440*7+17*60){
+						int periodStart = f.initialTakeoffT;
+						int periodEnd = f.initialTakeoffT + 6*60;  //可以最多delay 6 小时
+						int landingEnd = f.initialLandingT + 6*60;  //用来检测是否进入机场关闭阶段
+						if(AirportID_5_6_22_49_76.contains(f.leg.destinationAirport.id)){
+							boolean vio = false;
+							int airportCloseTime = 0;
+							int airportOpenTime = 0;
+							for(ClosureInfo ci:f.leg.destinationAirport.closedSlots){
+								if(landingEnd>ci.startTime && landingEnd<ci.endTime){
+									vio = true;
+									airportCloseTime = ci.startTime;
+									airportOpenTime = ci.endTime;
+									break;
+								}
+							}
+							if(vio){
+								periodEnd = airportCloseTime;
+								int periodStart2 = airportOpenTime - (f.initialLandingT - f.initialTakeoffT);
+								int periodEnd2 = periodStart2;
+								f.timeLimitList.add(new int[] {periodStart2,periodEnd2});
+
+							}
+							//第一个int[]加入timeLimitList
+							f.timeLimitList.add(new int[] {periodStart,periodEnd});
+						}
+					}else{  //initial tkfTime 在17:00之前，不可能delay到机场关闭时间，所以不用考虑机场关闭
+						int periodStart = 1440*7+17*60;   //最早时间是台风结束的时间
+						int periodEnd = periodStart + 7*60;  //可以最多delay 7 小时
+						f.timeLimitList.add(new int[] {periodStart,periodEnd});
+					}
+				}
+				//2. 降落机场属于49_50_61
+				else if(AirportID_49_50_61.contains(f.leg.destinationAirport.id)){
+					// initial降落时间17:00之后
+					if(f.initialLandingT > 1440*7+17*60){
+						int periodStart = f.initialTakeoffT;
+						int periodEnd = f.initialTakeoffT + 6*60;  //可以最多是delay 6 小时
+						int landingEnd = f.initialLandingT + 6*60;  //用来检测是否进入机场关闭阶段
+						//此处要判断最晚降落时间是否进入到达机场的机场关闭阶段
+						if(AirportID_5_6_22_49_76.contains(f.leg.destinationAirport.id)){
+							boolean vio = false;
+							int airportCloseTime = 0;
+							int airportOpenTime = 0;
+							for(ClosureInfo ci:f.leg.destinationAirport.closedSlots){
+								if(landingEnd>ci.startTime && landingEnd<ci.endTime){
+									vio = true;
+									airportCloseTime = ci.startTime;
+									airportOpenTime = ci.endTime;
+									break;
+								}
+							}
+							if(vio){
+								periodEnd = airportCloseTime;
+								int periodStart2 = airportOpenTime - (f.initialLandingT - f.initialTakeoffT);
+								int periodEnd2 = periodStart2;
+								f.timeLimitList.add(new int[] {periodStart2,periodEnd2});
+
+							}
+							//第一个int[]加入timeLimitList
+							f.timeLimitList.add(new int[] {periodStart,periodEnd});
+						}
+					}else{  //initial ldnTime 在17:00之前，不可能delay到机场关闭时间，所以不用考虑机场关闭
+						int periodStart = 1440*7+17*60 - (f.initialLandingT - f.initialTakeoffT); //最早起飞时间是台风结束的时间减去飞行时间
+						int periodEnd = periodStart + 7*60;  //可以最多delay 7 小时
+						f.timeLimitList.add(new int[] {periodStart,periodEnd});
+					}
+				}
+				//3. 如果起飞机场是间接受影响机场
+				else if(indirectTyphoonAffectedAirportSet.contains(f.leg.originAirport.id)){
+					/*如果前序航班都是从49_50_61出发的，且在17:00前的，就或者马上能飞，或者等到17:00之后才能飞
+					 * 因为在17:00之前，所以不用考虑进入机场关闭阶段
+					 */
+					if(AirportID_49_50_61.containsAll(formerAirportMap.get(f.leg.originAirport.id))
+							&&f.initialTakeoffT<1440*7+17*60){
+						f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT});  //马上能飞
+						f.timeLimitList.add(new int[] {1440*7+17*60,1440*7+17*60+6*60});  //马上能飞
+
+					}else{ //如果是17:00之后的，或者如果有些不是从49_50_61出发，则initial_tkfTime Delay最多6小时
+						int periodStart = f.initialTakeoffT;
+						int periodEnd = f.initialTakeoffT + 6*60;  //可以最多是delay 6 小时
+						int landingEnd = f.initialLandingT + 6*60;  //用来检测是否进入机场关闭阶段
+						//此处要判断最晚降落时间是否进入到达机场的机场关闭阶段
+						if(AirportID_5_6_22_49_76.contains(f.leg.destinationAirport.id)){
+							boolean vio = false;
+							int airportCloseTime = 0;
+							int airportOpenTime = 0;
+							for(ClosureInfo ci:f.leg.destinationAirport.closedSlots){
+								if(landingEnd>ci.startTime && landingEnd<ci.endTime){
+									vio = true;
+									airportCloseTime = ci.startTime;
+									airportOpenTime = ci.endTime;
+									break;
+								}
+							}
+							if(vio){
+								periodEnd = airportCloseTime;
+								int periodStart2 = airportOpenTime - (f.initialLandingT - f.initialTakeoffT);
+								int periodEnd2 = periodStart2;
+								f.timeLimitList.add(new int[] {periodStart2,periodEnd2});
+
+							}
+							//第一个int[]加入timeLimitList
+							f.timeLimitList.add(new int[] {periodStart,periodEnd});
 						}
 					}
-					
-					if(typhoonAffectedAirportSet.contains(f.leg.originAirport) || f.leg.destinationAirport.id == 49 || f.leg.destinationAirport.id == 50 || f.leg.destinationAirport.id == 61) {											
-						f.delayLimit = earliestT + 480 - f.initialTakeoffT;
-					}else {
-						f.delayLimit = earliestT + 60 - f.initialTakeoffT;
-					}
-					
-				}else if(f.initialTakeoffT > 1440*6 && f.initialTakeoffT <= 1440*7){
-					
+				}else{
+					f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+60});
 				}
-				
 			}
+			
+			//然后，处理25和67的停机约束限制和 6号航班受台风影响提前的情况
+			else if(f.initialTakeoffT > 1440*6 + 16*60 && f.initialTakeoffT <= 1440*7){
+				//如果到达机场是25或者67
+				if(AirportID_25_67.contains(f.leg.destinationAirport.id)){
+					f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+60});
+					f.timeLimitList.add(new int[] {1440*7+4*60+5,1440*7+4*60+5});
+				}
+				//如果航班起飞时间处于16:00-22:00，可以提前
+				if(AirportID_49_50_61.contains(f.leg.originAirport.id) &&f.initialTakeoffT<=1440*6 + 22*60){
+					int periodStart = Math.max(f.initialTakeoffT - 6*60, 1440*6 + 14*60 +55);
+					int periodEnd = 1440*6 + 16*60;  //可以最多delay 6 小时
+					f.timeLimitList.add(new int[] {periodStart,periodEnd});
+				}
+			}
+			
+			
 		}
-		
 	}
 }
