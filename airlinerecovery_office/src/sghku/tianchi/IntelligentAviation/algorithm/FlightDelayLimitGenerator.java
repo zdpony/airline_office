@@ -72,11 +72,11 @@ public class FlightDelayLimitGenerator {
 								int periodStart2 = airportOpenTime - (f.initialLandingT - f.initialTakeoffT);
 								int periodEnd2 = periodStart2;
 								f.timeLimitList.add(new int[] {periodStart2,periodEnd2});
-
 							}
-							//第一个int[]加入timeLimitList
-							f.timeLimitList.add(new int[] {periodStart,periodEnd});
+							
 						}
+						//第一个int[]加入timeLimitList
+						f.timeLimitList.add(new int[] {periodStart,periodEnd});
 					}else{  //initial tkfTime 在17:00之前，不可能delay到机场关闭时间，所以不用考虑机场关闭
 						int periodStart = 1440*7+17*60;   //最早时间是台风结束的时间
 						int periodEnd = periodStart + 7*60;  //可以最多delay 7 小时
@@ -110,9 +110,10 @@ public class FlightDelayLimitGenerator {
 								f.timeLimitList.add(new int[] {periodStart2,periodEnd2});
 
 							}
-							//第一个int[]加入timeLimitList
-							f.timeLimitList.add(new int[] {periodStart,periodEnd});
+							
 						}
+						//第一个int[]加入timeLimitList
+						f.timeLimitList.add(new int[] {periodStart,periodEnd});
 					}else{  //initial ldnTime 在17:00之前，不可能delay到机场关闭时间，所以不用考虑机场关闭
 						int periodStart = 1440*7+17*60 - (f.initialLandingT - f.initialTakeoffT); //最早起飞时间是台风结束的时间减去飞行时间
 						int periodEnd = periodStart + 7*60;  //可以最多delay 7 小时
@@ -127,8 +128,8 @@ public class FlightDelayLimitGenerator {
 					if(AirportID_49_50_61.containsAll(formerAirportMap.get(f.leg.originAirport.id))
 							&&f.initialTakeoffT<1440*7+17*60){
 						f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT});  //马上能飞
-						f.timeLimitList.add(new int[] {1440*7+17*60,1440*7+17*60+6*60});  //马上能飞
-
+						f.timeLimitList.add(new int[] {1440*7+17*60,1440*7+17*60+6*60});  //17:00之后delay6小时
+						
 					}else{ //如果是17:00之后的，或者如果有些不是从49_50_61出发，则initial_tkfTime Delay最多6小时
 						int periodStart = f.initialTakeoffT;
 						int periodEnd = f.initialTakeoffT + 6*60;  //可以最多是delay 6 小时
@@ -153,21 +154,22 @@ public class FlightDelayLimitGenerator {
 								f.timeLimitList.add(new int[] {periodStart2,periodEnd2});
 
 							}
-							//第一个int[]加入timeLimitList
-							f.timeLimitList.add(new int[] {periodStart,periodEnd});
+							
 						}
+						//第一个int[]加入timeLimitList
+						f.timeLimitList.add(new int[] {periodStart,periodEnd});
 					}
-				}else{
+				}else{  //剩下的统一只能delay1小时
 					f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+60});
 				}
 			}
 			
 			//然后，处理25和67的停机约束限制和 6号航班受台风影响提前的情况
 			else if(f.initialTakeoffT > 1440*6 + 16*60 && f.initialTakeoffT <= 1440*7){
+				f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+60});
 				//如果到达机场是25或者67
-				if(AirportID_25_67.contains(f.leg.destinationAirport.id)){
-					f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+60});
-					f.timeLimitList.add(new int[] {1440*7+4*60+5,1440*7+4*60+5});
+				if(AirportID_25_67.contains(f.leg.destinationAirport.id)){		
+					f.timeLimitList.add(new int[] {1440*7+4*60+5,1440*7+4*60+5});			
 				}
 				//如果航班起飞时间处于16:00-22:00，可以提前
 				if(AirportID_49_50_61.contains(f.leg.originAirport.id) &&f.initialTakeoffT<=1440*6 + 22*60){
@@ -175,6 +177,11 @@ public class FlightDelayLimitGenerator {
 					int periodEnd = 1440*6 + 16*60;  //可以最多delay 6 小时
 					f.timeLimitList.add(new int[] {periodStart,periodEnd});
 				}
+				
+			}
+			
+			else{
+				f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+60});
 			}
 			
 			

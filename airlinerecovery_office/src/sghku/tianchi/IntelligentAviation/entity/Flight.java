@@ -122,9 +122,6 @@ public class Flight {
 	
 	public List<FlightSectionItinerary> signChangeItineraryList = new ArrayList<>();
 
-	public int earlyLimit = 0;
-	public int delayLimit = 0;
-	
 	//temp
 	public double totalCost = 0;
 	//飞机可以飞的时间段

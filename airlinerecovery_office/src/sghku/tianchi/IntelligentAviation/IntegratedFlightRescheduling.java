@@ -14,6 +14,7 @@ import java.util.concurrent.SynchronousQueue;
 
 import javax.swing.plaf.synth.SynthSpinnerUI;
 
+import sghku.tianchi.IntelligentAviation.algorithm.FlightDelayLimitGenerator;
 import sghku.tianchi.IntelligentAviation.algorithm.NetworkConstructor;
 import sghku.tianchi.IntelligentAviation.clique.Clique;
 import sghku.tianchi.IntelligentAviation.common.OutputResult;
@@ -50,6 +51,62 @@ public class IntegratedFlightRescheduling {
 	public static void runOneIteration(boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 			
+		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
+		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
+		
+		for(Flight f:scenario.flightList){
+			System.out.print(f.id+"  ");
+			for(int[] timeLimit:f.timeLimitList){
+				System.out.print("["+timeLimit[0]+","+timeLimit[1]+"] ");
+			}
+			System.out.println();
+		}
+		
+		try {
+			Scanner sn = new Scanner(new File("flightdelay.csv"));
+		
+			sn.nextLine();
+			while(sn.hasNextLine()){
+				String nextLine = sn.nextLine();
+				if(nextLine.trim().equals("")){
+					break;
+				}
+				
+				Scanner innerSn = new Scanner(nextLine);
+				innerSn.useDelimiter(",");
+				int fId = innerSn.nextInt();
+				
+				Flight f = scenario.flightList.get(fId-1);
+				
+				String[] delayArray = innerSn.next().split("_");
+			
+				for(String delay:delayArray){
+					int d = Integer.parseInt(delay);
+					int t = f.initialTakeoffT + d;
+					boolean isInclude = false;
+					for(int[] timeLimit:f.timeLimitList){
+						int startT = timeLimit[0];
+						int endT = timeLimit[1];
+						
+						if(t >= startT && t <= endT){
+							isInclude = true;
+							break;
+						}
+					}
+					
+					if(!isInclude){
+						System.out.println("error "+f.id);
+					}
+				}
+				
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		System.exit(1);
+		
 		int floatedPassenger = 0;
 		for(Flight f:scenario.flightList){
 			if(!f.isIncludedInTimeWindow){

@@ -278,7 +278,7 @@ public class IntegratedCplexModel {
 						fulfilldeman3 = arc.secondArc.fulfilledDemand;
 					}
 					
-					System.out.println("ite:"+ite.flight.id+" ");
+					System.out.println("ite:"+ite.flight.id+" "+fulfilldeman1+" "+fulfilldeman2+" "+fulfilldeman3+" "+ite.volume+" "+ite.flight.normalPassengerNumber);
 					cplex.addEq(iteNumConstraint, ite.volume);
 				}
 				/*
