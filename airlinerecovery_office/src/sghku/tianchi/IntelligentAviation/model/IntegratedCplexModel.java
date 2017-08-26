@@ -261,19 +261,27 @@ public class IntegratedCplexModel {
 					}
 					iteNumConstraint.addTerm(1, passCancel[ite.id]);
 
+					int fulfilldeman1 = 0;
+					int fulfilldeman2 = 0;
+					int fulfilldeman3 = 0;
+					
 					for(FlightArc arc:ite.flightArcList){
 						iteNumConstraint.addTerm(arc.fulfilledDemand, x[arc.id]); 
+						fulfilldeman1 = arc.fulfilledDemand;
 					}
 					for(ConnectingArc arc:ite.firstConnectionArcList){
 						iteNumConstraint.addTerm(arc.firstArc.fulfilledDemand, beta[arc.id]); 
+						fulfilldeman2 = arc.firstArc.fulfilledDemand;
 					}
 					for(ConnectingArc arc:ite.secondConnectingArcList){
 						iteNumConstraint.addTerm(arc.secondArc.fulfilledDemand, beta[arc.id]); 
+						fulfilldeman3 = arc.secondArc.fulfilledDemand;
 					}
 					
+					System.out.println("ite:"+ite.flight.id+" ");
 					cplex.addEq(iteNumConstraint, ite.volume);
 				}
-
+				/*
 				//7. 座位相关约束
 				for(FlightSection fs:flightSectionList) {
 					IloLinearNumExpr seatConstraint = cplex.linearNumExpr();
@@ -281,16 +289,6 @@ public class IntegratedCplexModel {
 						seatConstraint.addTerm(1, passX[fsi.id]);
 					}
 
-					/*for(FlightArc arc:fs.flightArcList) {
-						if(arc.isIncludedInConnecting) {
-							for(ConnectingArc connArc:arc.connectingArcList){
-								seatConstraint.addTerm(-arc.passengerCapacity, beta[connArc.id]);								
-							}
-						}else {
-							seatConstraint.addTerm(-arc.passengerCapacity, x[arc .id]);						
-						}
-					}*/
-					
 					for(FlightArc arc:fs.flightArcList) {
 						seatConstraint.addTerm(-arc.passengerCapacity, x[arc .id]);						
 					}
@@ -302,7 +300,7 @@ public class IntegratedCplexModel {
 					}
 
 					cplex.addLe(seatConstraint, 0);
-				}
+				}*/
 			}
 
 			//8. 机场起降约束

@@ -204,13 +204,22 @@ public class NetworkConstructor {
 						
 						//如果该航班是联程航班，则代表联程航班已经被取消，所以不需要在考虑对应的联程乘客
 						
+						//剩下的则为有效座位
+						arc.passengerCapacity = Math.max(0, arc.passengerCapacity);
+						
 						if(Parameter.onlySignChangeDisruptedPassenger){
 							//减去普通乘客
 							arc.passengerCapacity = arc.passengerCapacity - f.normalPassengerNumber;
-						}
+						}else{
+							// 减去普通乘客
+							arc.fulfilledDemand = Math.min(arc.passengerCapacity, f.normalPassengerNumber);
+							arc.passengerCapacity = arc.passengerCapacity - arc.fulfilledDemand;
+
+							arc.flight.itinerary.flightArcList.add(arc);
+						}	
 						
 						//剩下的则为有效座位
-						arc.passengerCapacity = Math.max(0, arc.passengerCapacity);
+						arc.passengerCapacity = Math.max(0, arc.passengerCapacity);				
 					}
 					
 					arc.calculateCost();
@@ -636,6 +645,13 @@ public class NetworkConstructor {
 				if(Parameter.onlySignChangeDisruptedPassenger){
 					//减去普通乘客
 					arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.normalPassengerNumber;	
+				}else{
+					// 减去普通乘客
+					arc.firstArc.fulfilledDemand = Math.min(arc.firstArc.passengerCapacity, cf.firstFlight.normalPassengerNumber);
+					arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity
+							- arc.firstArc.fulfilledDemand;
+
+					arc.firstArc.flight.itinerary.firstConnectionArcList.add(arc);
 				}
 
 				/*if(arc.firstArc.flight.id == 1333){
@@ -688,6 +704,13 @@ public class NetworkConstructor {
 				if(Parameter.onlySignChangeDisruptedPassenger){
 					//减去普通乘客
 					arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.normalPassengerNumber;
+				}else{
+					// 减去普通乘客
+					arc.secondArc.fulfilledDemand = Math.min(arc.secondArc.passengerCapacity, cf.secondFlight.normalPassengerNumber);
+					arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity
+							- arc.secondArc.fulfilledDemand;
+
+					arc.secondArc.flight.itinerary.secondConnectingArcList.add(arc);
 				}
 				
 				//剩下的则为有效座位
