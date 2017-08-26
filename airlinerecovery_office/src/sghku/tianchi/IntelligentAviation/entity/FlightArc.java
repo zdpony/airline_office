@@ -116,7 +116,10 @@ public class FlightArc {
 			
 			if(Parameter.isPassengerCostConsidered) {
 				if(flight.isIncludedInConnecting) {
-					//首先考虑联程乘客，如果其中一段属于联程航班，则代表另一截cancel了，对应的联程乘客必须取消
+					/*首先考虑联程乘客，如果属于联程航班，则代表另一截cancel了，
+					 *如果对应第一截catch，第二截cancel，则对应的联程乘客cancel cost
+					 * 
+					 */
 					if(flight.connectingFlightpair.firstFlight.id == flight.id){
 						cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
 						connPssgrCclDueToSubseqCclCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;  //record conn cancel

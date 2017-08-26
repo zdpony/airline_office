@@ -498,7 +498,7 @@ public class CplexModel {
 
 				}else{
 					//if we solve it integrally 
-					System.out.println("solve: obj = "+cplex.getObjValue());
+					System.out.println("integer solve: obj = "+cplex.getObjValue());
 
 					solution.objValue = cplex.getObjValue();
 					Parameter.objective += cplex.getObjValue();
