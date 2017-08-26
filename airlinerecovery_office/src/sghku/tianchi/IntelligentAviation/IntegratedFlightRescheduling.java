@@ -33,14 +33,15 @@ import sghku.tianchi.IntelligentAviation.entity.Scenario;
 import sghku.tianchi.IntelligentAviation.entity.Solution;
 import sghku.tianchi.IntelligentAviation.model.CplexModel;
 import sghku.tianchi.IntelligentAviation.model.CplexModelForPureAircraft;
+import sghku.tianchi.IntelligentAviation.model.IntegratedCplexModel;
 import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 
-public class FlightReschedulingConsideringPassenger {
+public class IntegratedFlightRescheduling {
 	public static void main(String[] args) {
 
 		Parameter.isPassengerCostConsidered = true;
 		Parameter.isReadFixedRoutes = true;
-		Parameter.onlySignChangeDisruptedPassenger = true;
+		Parameter.onlySignChangeDisruptedPassenger = false;
 		
 		runOneIteration(false);
 		
@@ -116,9 +117,7 @@ public class FlightReschedulingConsideringPassenger {
 		}
 		
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
-		solver(scenario, scenario.aircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);
-		
-			
+		solver(scenario, scenario.aircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);		
 	}
 	
 	//求解线性松弛模型或者整数规划模型
@@ -141,7 +140,7 @@ public class FlightReschedulingConsideringPassenger {
 		//CplexModelForPureAircraft model = new CplexModelForPureAircraft();
 		//Solution solution = model.run(candidateAircraftList, candidateFlightList, new ArrayList(), scenario.airportList,scenario, isFractional, true, false);		
 
-		CplexModel model = new CplexModel();
+		IntegratedCplexModel model = new IntegratedCplexModel();
 		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, isFractional, true, false);
 
 		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();

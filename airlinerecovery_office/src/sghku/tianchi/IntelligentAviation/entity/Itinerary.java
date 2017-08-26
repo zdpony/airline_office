@@ -12,4 +12,8 @@ public class Itinerary {
 	public List<Flight> candidateFlightList = new ArrayList<>();
 	
 	public List<FlightSectionItinerary> flightSectionItineraryList = new ArrayList<>();
+
+	public List<FlightArc> flightArcList = new ArrayList<>();
+	public List<ConnectingArc> firstConnectionArcList = new ArrayList<>();
+	public List<ConnectingArc> secondConnectingArcList = new ArrayList<>();
 }
