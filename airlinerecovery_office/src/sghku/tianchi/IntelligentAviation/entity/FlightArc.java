@@ -90,6 +90,10 @@ public class FlightArc {
 				cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
 				cost += cancelNum*Parameter.passengerCancelCost;
 				
+				//计算中转乘客
+				cost += flight.connectingFlightpair.firstFlight.transferPassengerNumber * Parameter.passengerCancelCost;
+				cost += flight.connectingFlightpair.secondFlight.transferPassengerNumber * Parameter.passengerCancelCost;
+				
 				delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);  //record delay cost of connecting pssgr on flight
 				connPssgrCclDueToStraightenCost += cancelNum*Parameter.passengerCancelCost; //record cancel cost due to straighten
 				
@@ -124,10 +128,6 @@ public class FlightArc {
 						cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
 						connPssgrCclDueToSubseqCclCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;  //record conn cancel
 					}
-					
-					/*if(flight.id == 1986){
-						System.out.println("this way : "+flight.brotherFlight.id);
-					}*/
 				}
 				
 				//考虑中转乘客的延误 -- 假设中转乘客都成功中转

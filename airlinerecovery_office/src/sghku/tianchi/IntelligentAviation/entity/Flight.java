@@ -100,8 +100,9 @@ public class Flight {
 	public int firstTransferPassengerNumber;
 	public int secondTransferPassengerNumber;
 	
-	public double totalConnectingAndTransferCancellationCost = 0;
-	
+	public double totalConnectingCancellationCost = 0;
+	public double totalTransferCancellationCost = 0;
+
 	//public boolean isSmallGapRequired = false;
 	
 	//对于联程拉直航班对应的属性
@@ -123,6 +124,9 @@ public class Flight {
 
 	public int earlyLimit = 0;
 	public int delayLimit = 0;
+	
+	//temp
+	public double totalCost = 0;
 	
 	// 初始化该航班所对应的网络模型
 	public void init() {
