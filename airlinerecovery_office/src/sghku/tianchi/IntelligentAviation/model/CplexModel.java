@@ -128,7 +128,7 @@ public class CplexModel {
 				z[i] = cplex.numVar(0, 1);
 
 				if(Parameter.isPassengerCostConsidered){
-					obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingAndTransferCancellationCost, z[i]);					
+					obj.addTerm(f.importance*Parameter.COST_CANCEL+f.totalConnectingCancellationCost+f.totalTransferCancellationCost, z[i]);					
 				}else{
 					obj.addTerm(f.importance*Parameter.COST_CANCEL, z[i]);
 				}			
@@ -347,7 +347,6 @@ public class CplexModel {
 			}
 			cplex.addLe(parkingConstraint67, sce.airport67ParkingLimit);
 
-			
 			if(cplex.solve()){
 
 				if(isFractional){
@@ -732,12 +731,22 @@ public class CplexModel {
 					}
 
 					int numOfMissedConnections = 0;
+					int numOfSecondMissedConnections = 0;
 					for(TransferPassenger pt:sce.transferPassengerList){
-						if(pt.inFlight.actualLandingT + pt.minTurnaroundTime > pt.outFlight.actualTakeoffT){
+						if(pt.inFlight.isCancelled){
+							numOfMissedConnections += pt.volume*2;
+						}else if(pt.outFlight.isCancelled){
 							numOfMissedConnections += pt.volume;
-						}
+							numOfSecondMissedConnections += pt.volume;
+						}else{
+							if(pt.inFlight.actualLandingT + pt.minTurnaroundTime > pt.outFlight.actualTakeoffT){
+								numOfMissedConnections += pt.volume;
+								numOfSecondMissedConnections += pt.volume;
+							}
+						}						
 					}
 					System.out.println("numOfMissedConnections:"+numOfMissedConnections);
+					System.out.println("numOfSecondMissedConnections:"+numOfSecondMissedConnections);
 					System.out.println("totalSignChangeDelayCost (measured by model):"+totalSignChangeDelayCost);
 					System.out.println("totalCancelCost (measured by model):"+totalPassengerCancelCost);
 					System.out.println("totalDelayCost (measured by model):"+totalOriginalPassengerDelayCost);
@@ -774,13 +783,12 @@ public class CplexModel {
 
 					for(Flight f:sce.flightList){
 						if(f.isIncludedInTimeWindow){
-							double totalCost = 0;
 							for(FlightArc arc:f.flightarcList){
 								if(cplex.getValue(x[arc.id]) > 1e-5){
 									if(f.isStraightened){
-										totalCost += arc.connPssgrCclDueToStraightenCost;
+										f.totalCost += arc.connPssgrCclDueToStraightenCost;
 									}else{
-										totalCost += arc.connPssgrCclDueToSubseqCclCost;
+										f.totalCost += arc.connPssgrCclDueToSubseqCclCost;
 									}									
 								}
 							}
@@ -788,7 +796,7 @@ public class CplexModel {
 								for(ConnectingArc arc:f.connectingarcList){
 									if(f.id == arc.firstArc.flight.id){
 										if(cplex.getValue(beta[arc.id]) > 1e-5){
-											totalCost += arc.pssgrCclCostDueToInsufficientSeat;
+											f.totalCost += arc.pssgrCclCostDueToInsufficientSeat;
 										}
 									}		
 								}
@@ -796,15 +804,24 @@ public class CplexModel {
 
 							if(f.itinerary != null){
 								double cancelVolume = cplex.getValue(passCancel[f.itinerary.id]);
-								totalCost += 4*cancelVolume;
+								f.totalCost += 4*cancelVolume;
+								
 							}
 							
-							if(f.isCancelled && !f.isStraightened){
-								totalCost += f.totalConnectingAndTransferCancellationCost;
+							if(f.isCancelled || f.isStraightened){
+								f.totalCost += f.totalTransferCancellationCost;
+								if(f.isCancelled && f.isIncludedInConnecting && f.id == f.connectingFlightpair.firstFlight.id){
+									f.totalCost += f.totalConnectingCancellationCost;									
+								}
 							}
-							System.out.println(f.id+" "+totalCost);
+							
+						}						
+					}
+					
+					for(Flight f:sce.flightList){
+						if(f.isIncludedInTimeWindow){
+							System.out.println(f.id+" "+f.totalCost);
 						}
-						
 					}
 					
 					/*//检查itinerary

@@ -70,23 +70,7 @@ public class FlightReschedulingConsideringPassenger {
 			
 			nnn += a.fixedFlightList.size();
 			
-			for(Flight f1:a.fixedFlightList){
-				
-				//单独处理联程拉直航班
-				if(!f1.actualDestination.equals(f1.leg.destinationAirport)){
-					f1.isStraightened = true;
-					f1.connectingFlightpair = f1.connectingFlightpair;
-					f1.leg = f1.connectingFlightpair.straightenLeg;
-					
-					f1.flyTime = f1.actualLandingT-f1.actualTakeoffT;
-												
-					f1.initialLandingT = f1.initialTakeoffT + f1.flyTime;
-					
-					f1.connectingFlightpair.secondFlight.isStraightened = true;
-					System.out.println("one straightened flight");
-					
-				}
-				
+			for(Flight f1:a.fixedFlightList){				
 				if (!a.checkFlyViolation(f1)) {
 					a.singleFlightList.add(f1);
 				}else{

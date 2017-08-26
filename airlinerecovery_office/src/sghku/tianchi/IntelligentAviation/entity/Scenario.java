@@ -275,15 +275,24 @@ public class Scenario {
 			for (Flight f : flightList) {
 				if (f.isIncludedInTimeWindow) {
 					int capacity = f.aircraft.passengerCapacity;
-					if(f.isCancelled){
+					if(f.isCancelled || f.isStraightened){
 						capacity = 0;
 					}
 					int totalVolume = 0;
-					if(f.isIncludedInConnecting && f.brotherFlight.isCancelled){
-						totalVolume = f.passengerNumber;
+					
+					if(f.isStraightened){
+						totalVolume = f.normalPassengerNumber;
 					}else{
-						totalVolume = f.connectedPassengerNumber + f.passengerNumber;
-					}
+						if(f.isIncludedInConnecting){
+							if(f.brotherFlight.isCancelled){
+								totalVolume = f.passengerNumber;
+							}else{
+								totalVolume = f.connectedPassengerNumber + f.passengerNumber;
+							}
+						}else{
+							totalVolume = f.passengerNumber;
+						}						
+					}	
 					
 					int cancelNum = Math.max(0, totalVolume-capacity);
 					cancelNum = Math.min(cancelNum, f.normalPassengerNumber);
@@ -311,7 +320,9 @@ public class Scenario {
 					itineraryList.add(ite);
 				}
 			}
-		}		
+		}	
+		
+		
 
 		// 为每一个行程检测可以替代的航班
 		for (Itinerary ite : itineraryList) {
@@ -333,18 +344,19 @@ public class Scenario {
 		// 生成flight section itinerary
 		readFlightSectionItinerary();
 
-		// 计算每一个航班的联程乘客成本
+		// 计算每一个航班(如果取消)的联程乘客cancel cost，记住一个联程乘客只有一次cost（第二截不加）
 		for (ConnectingFlightpair cf : connectingFlightList) {
-			cf.firstFlight.totalConnectingAndTransferCancellationCost += cf.firstFlight.connectedPassengerNumber
-					* Parameter.passengerCancelCost;
-			
+			cf.firstFlight.totalConnectingCancellationCost += cf.firstFlight.connectedPassengerNumber
+					* Parameter.passengerCancelCost;			
 		}
+		
 		// 把flight上中转首段乘客的cancel cost 也加到connecting cost里，方便加入model的z coefficient
 		// 因为中转首段cancel也影响后段，所以*2
 		for(Flight f:flightList){
-			f.totalConnectingAndTransferCancellationCost += f.firstTransferPassengerNumber * Parameter.passengerCancelCost * 2;
+			f.totalTransferCancellationCost += f.firstTransferPassengerNumber * Parameter.passengerCancelCost;
+			f.totalTransferCancellationCost += f.secondTransferPassengerNumber * Parameter.passengerCancelCost;
 		}
-
+		
 		checkTyphoonAffectedFlights();
 
 		// 计算初始存在的short connection
@@ -759,6 +771,27 @@ public class Scenario {
 				break;
 			}
 			scheduleReader.read(nextLine, this);
+		}
+		
+		//单独处理联程拉直航班
+		for(Aircraft a:aircraftList){
+			
+			for(Flight f1:a.fixedFlightList){
+				
+				if(!f1.actualDestination.equals(f1.leg.destinationAirport)){
+					f1.isStraightened = true;
+					f1.connectingFlightpair = f1.connectingFlightpair;
+					f1.leg = f1.connectingFlightpair.straightenLeg;
+					
+					f1.flyTime = f1.actualLandingT-f1.actualTakeoffT;
+												
+					f1.initialLandingT = f1.initialTakeoffT + f1.flyTime;
+					
+					f1.connectingFlightpair.secondFlight.isStraightened = true;
+					
+					System.out.println("one straightened flight");					
+				}
+			}
 		}
 	}
 }
