@@ -29,6 +29,8 @@ public class ConnectingArc {
 	public double delayCost;
 	
 	public int fulfilledDemand;
+	
+	public boolean isVisited = false;
 
 	//计算该联程arc的成本
 	public void calculateCost(){

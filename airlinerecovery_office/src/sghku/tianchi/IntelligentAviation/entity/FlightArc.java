@@ -55,6 +55,8 @@ public class FlightArc {
 	
 	public int fulfilledDemand = 0;
 	
+	public boolean isVisited = false;
+	
 	//打印信息
 	public String getTime(){
 		return "["+takeoffTime+","+landingTime+","+readyTime+"]";

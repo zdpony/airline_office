@@ -2,8 +2,10 @@ package sghku.tianchi.IntelligentAviation.entity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import sghku.tianchi.IntelligentAviation.common.Parameter;
 
@@ -23,6 +25,9 @@ public class Airport {
 	//该机场对应的所有的sink arc
 	public List<GroundArc>[] sinkArcList = new ArrayList[Parameter.TOTAL_AIRCRAFTTYPE_NUM];
 		
+	public Set<Airport> connectedAirportSet = new HashSet<>();
+	
+	
 	public Airport(){
 		for(int i=0;i<Parameter.TOTAL_AIRCRAFTTYPE_NUM;i++){
 			sinkArcList[i] = new ArrayList<>();

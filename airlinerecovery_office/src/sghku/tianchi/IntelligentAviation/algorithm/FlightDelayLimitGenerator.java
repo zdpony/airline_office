@@ -12,7 +12,7 @@ import sghku.tianchi.IntelligentAviation.entity.Scenario;
 public class FlightDelayLimitGenerator {
 	//设定flight delay限制
 	public void setFlightDelayLimit(Scenario scenario){
-Set<Airport> typhoonAffectedAirportSet = new HashSet<>();
+		Set<Airport> typhoonAffectedAirportSet = new HashSet<>();
 		
 		typhoonAffectedAirportSet.add(scenario.airportList.get(48));
 		typhoonAffectedAirportSet.add(scenario.airportList.get(49));

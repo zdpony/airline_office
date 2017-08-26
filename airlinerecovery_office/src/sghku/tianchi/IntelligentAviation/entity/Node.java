@@ -25,4 +25,6 @@ public class Node {
 	//该点是否是source或者sink
 	public boolean isSource = false;
 	public boolean isSink = false;
+	
+	public boolean isVisited = false;
 } 

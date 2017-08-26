@@ -794,4 +794,28 @@ public class Scenario {
 			}
 		}
 	}
+	
+	public void generateProceedingAndSucceedingSequence(){
+		for(Flight f1:flightList){
+			int earT = f1.initialLandingT;
+			if(f1.isAllowtoBringForward){
+				earT = earT - Parameter.MAX_LEAD_TIME;
+			}
+			
+			for(Flight f2:flightList){
+				if(f1.leg.destinationAirport.equals(f2.leg.originAirport)){
+					int latT = f2.initialTakeoffT;
+					if(f2.isDomestic){
+						latT = latT + Parameter.MAX_DELAY_DOMESTIC_TIME;
+					}else{
+						latT = latT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
+					}
+					
+					if(latT >= earT){
+						f1.succeedingFlightList.add(f2);
+					}
+				}
+			}
+		}
+	}
 }
