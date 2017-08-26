@@ -90,7 +90,7 @@ public class Parameter {
 	public static int neighEndIndex = 12*12;
 	
 	/*public static int neighGap = 15;*/
-	public static int neighGap = 5;
+	public static int gap = 15;
 	
 	public static int fileIndex = 1;
 	
