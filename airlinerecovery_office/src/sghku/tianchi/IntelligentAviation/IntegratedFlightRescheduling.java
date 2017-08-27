@@ -56,7 +56,7 @@ public class IntegratedFlightRescheduling {
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
 		
-		/*for(Flight f:scenario.flightList){
+		for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
 			for(int[] timeLimit:f.timeLimitList){
 				System.out.print("["+timeLimit[0]+","+timeLimit[1]+"] ");
@@ -65,7 +65,8 @@ public class IntegratedFlightRescheduling {
 		}
 		
 		try {
-			Scanner sn = new Scanner(new File("delayfiles/linearsolution_2.csv"));
+
+			Scanner sn = new Scanner(new File("delayfiles/linearsolution_30_421761.807_15.8.csv"));
 		
 			sn.nextLine();
 			while(sn.hasNextLine()){
@@ -113,7 +114,7 @@ public class IntegratedFlightRescheduling {
 			e.printStackTrace();
 		}
 		
-		System.exit(1);*/
+		System.exit(1);
 		
 		int floatedPassenger = 0;
 		for(Flight f:scenario.flightList){
