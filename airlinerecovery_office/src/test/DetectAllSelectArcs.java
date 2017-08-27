@@ -16,7 +16,7 @@ import sghku.tianchi.IntelligentAviation.entity.Flight;
 import sghku.tianchi.IntelligentAviation.entity.LineValue;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
 
-public class AnalyzeSchedule {
+public class DetectAllSelectArcs {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -27,17 +27,11 @@ public class AnalyzeSchedule {
 		
 		Scanner sn = null;
 		try {
-			//sn = new Scanner(new File("linearsolution_30_421761.807_15.8.csv"));
-			//sn = new Scanner(new File("linearsolution_60_423292.675_19.1.csv"));
-
 			sn = new Scanner(new File(fileName));			
-
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		List<LineValue> lvList = new ArrayList<>();
 
 		while (sn.hasNextLine()) {
 			String nextLine = sn.nextLine().trim();
@@ -55,10 +49,7 @@ public class AnalyzeSchedule {
 			lv.line = nextLine;
 			lv.value = innerSn.nextDouble();
 
-			if(lv.value > 1e-6) {
-				readLine(scenario, lv.line);
-			}
-			
+			readLine(scenario, lv.line);			
 		}
 
 		System.out.println("--------------------------------------");
@@ -69,59 +60,33 @@ public class AnalyzeSchedule {
 		int maxAdvance = 0;
 		
 		try {
-			File file = new File("delayfiles/"+fileName);
+			File file = new File("alldelayoptions");
 			if(file.exists()) {
 				file.delete();
 			}
-			MyFile.creatTxtFile("delayfiles/"+fileName);
+			MyFile.creatTxtFile("alldelayoptions");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append("f,aircraft,origin,destination,takeoff,landing,delays\n");
+		//sb.append("f,aircraft,origin,destination,takeoff,landing,delays\n");
 		
 		for(Flight f:scenario.flightList){
 			System.out.println(f.possibleDelaySet);
 			if(f.possibleDelaySet.size() > 0){
-				boolean isDisplay = false;
+				sb.append(f.id+",");
 				
 				for(int delay:f.possibleDelaySet){
-					if(delay > 60){
-						isDisplay = true;
-						break;
-					}
-
-					/*if(-delay > maxAdvance) {
-						maxAdvance = -delay;
-					}*/
-				
-					if(-delay > 60) {
-						System.out.println("early:"+(-delay)+"  "+f.id+" "+f.leg.originAirport.id+" "+f.leg.destinationAirport.id+" "+f.takeoffTime+" "+f.landingTime);						
-					}
+					//System.out.print(delay+", ");
+					sb.append(delay+"_");	
 				}
+				sb.append("\n");
+				//System.out.println("]");
 				
-				if(isDisplay){
-					//System.out.print("f:"+f.id+" aircraft:"+f.aircraft.id+"  "+f.leg.originAirport.id+"->"+f.leg.destinationAirport.id+" ("+f.takeoffTime+")->("+f.landingTime+")    [");
-					
-					sb.append(f.id+","+f.aircraft.id+","+f.leg.originAirport.id+","+f.leg.destinationAirport.id+","+f.takeoffTime+","+f.landingTime+",");
-					
-					for(int delay:f.possibleDelaySet){
-						//System.out.print(delay+", ");
-						sb.append(delay+"_");
-						
-						if(delay > maxDelay){
-							maxDelay = delay;
-						}
-						
-					}
-					sb.append("\n");
-					//System.out.println("]");
-					
-					
-					totalN++;
-				}		
+				
+				totalN++;		
 			}
 			
 		}
@@ -131,8 +96,6 @@ public class AnalyzeSchedule {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		System.out.println("totalN:"+totalN+"  maxDelay："+maxDelay+" maxAdvance:"+maxAdvance);
 		
 	}
 	
