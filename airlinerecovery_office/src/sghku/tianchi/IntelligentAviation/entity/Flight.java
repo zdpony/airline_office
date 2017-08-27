@@ -126,7 +126,8 @@ public class Flight {
 	public double totalCost = 0;
 	//飞机可以飞的时间段
 	public List<int[]> timeLimitList = new ArrayList<>();
-	public List<Flight> succeedingFlightList = new ArrayList<>();
+
+	public int occupiedSeatsByTransferPassenger = 0;
 	
 	// 初始化该航班所对应的网络模型
 	public void init() {

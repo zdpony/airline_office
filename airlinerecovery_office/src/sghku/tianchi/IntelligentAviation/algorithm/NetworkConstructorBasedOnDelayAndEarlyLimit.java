@@ -574,7 +574,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 						arc.passengerCapacity = aircraft.passengerCapacity;
 
 						// 减去转乘乘客（首先假设所有的转乘乘客都可以成功转乘）
-						arc.passengerCapacity = arc.passengerCapacity - f.transferPassengerNumber;
+						arc.passengerCapacity = arc.passengerCapacity - f.occupiedSeatsByTransferPassenger;
 
 						// 如果该航班是联程航班，则代表联程航班已经被取消，所以不需要在考虑对应的联程乘客
 
@@ -701,7 +701,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							- cf.firstFlight.connectedPassengerNumber;
 					// 减去转乘乘客
 					ca.firstArc.passengerCapacity = ca.firstArc.passengerCapacity
-							- cf.firstFlight.transferPassengerNumber;
+							- cf.firstFlight.occupiedSeatsByTransferPassenger;
 
 					// 减去普通乘客
 					ca.firstArc.fulfilledDemand = Math.min(ca.firstArc.passengerCapacity, cf.firstFlight.normalPassengerNumber);
@@ -746,7 +746,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							- cf.secondFlight.connectedPassengerNumber;
 					// 减去转乘乘客
 					ca.secondArc.passengerCapacity = ca.secondArc.passengerCapacity
-							- cf.secondFlight.transferPassengerNumber;
+							- cf.secondFlight.occupiedSeatsByTransferPassenger;
 					
 					// 减去普通乘客
 					ca.secondArc.fulfilledDemand = Math.min(ca.secondArc.passengerCapacity, cf.secondFlight.normalPassengerNumber);

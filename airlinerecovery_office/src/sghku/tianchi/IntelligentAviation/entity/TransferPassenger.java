@@ -6,4 +6,5 @@ public class TransferPassenger {
 	public Flight outFlight;
 	public int minTurnaroundTime;
 	public int volume;
+
 }

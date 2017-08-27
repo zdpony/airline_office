@@ -50,8 +50,9 @@ public class IntegratedFlightRescheduling {
 		
 	public static void runOneIteration(boolean isFractional){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
-			
-		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
+		
+		
+		/*FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
 		
 		for(Flight f:scenario.flightList){
@@ -105,7 +106,7 @@ public class IntegratedFlightRescheduling {
 			e.printStackTrace();
 		}
 		
-		System.exit(1);
+		System.exit(1);*/
 		
 		int floatedPassenger = 0;
 		for(Flight f:scenario.flightList){
@@ -180,7 +181,7 @@ public class IntegratedFlightRescheduling {
 	//求解线性松弛模型或者整数规划模型
 	public static void solver(Scenario scenario, List<Aircraft> candidateAircraftList, List<Flight> candidateFlightList, List<ConnectingFlightpair> candidateConnectingFlightList, boolean isFractional) {
 		buildNetwork(scenario, candidateAircraftList, candidateFlightList, 5);
-
+		
 		List<FlightSection> flightSectionList = new ArrayList<>();
 		List<FlightSectionItinerary> flightSectionItineraryList = new ArrayList<>();
 		
@@ -218,10 +219,11 @@ public class IntegratedFlightRescheduling {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, 5, scenario);
 			}
-
+	
 			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
 				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, 5, false, scenario);
 			}
+			
 		}
 		
 		

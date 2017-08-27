@@ -502,11 +502,6 @@ public class CplexModel {
 					solution.objValue = cplex.getObjValue();
 					Parameter.objective += cplex.getObjValue();
 	
-					int totalFulfilledDemand1 = 0;
-					int totalFulfilledDemand2 = 0;
-					int totalFulfilledDemand3 = 0;
-
-
 					double totalArcCost = 0;
 		
 					for(FlightArc fa:flightArcList){
@@ -522,8 +517,6 @@ public class CplexModel {
 
 							fa.flight.aircraft = fa.aircraft;
 
-							totalFulfilledDemand1 += fa.fulfilledDemand*cplex.getValue(x[fa.id]);
-				
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);							
 							//System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
 							totalArcCost += fa.cost;
@@ -551,8 +544,6 @@ public class CplexModel {
 							arc.connectingFlightPair.firstFlight.aircraft = arc.aircraft;
 							arc.connectingFlightPair.secondFlight.aircraft = arc.aircraft;
 							
-							totalFulfilledDemand2 += arc.fulfilledDemand*cplex.getValue(beta[arc.id]);
-					
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
 							
 							totalPassengerCancelCost += arc.pssgrCclCostDueToInsufficientSeat;
@@ -577,7 +568,6 @@ public class CplexModel {
 								totalSignChangeDelayCost += fsi.volume * (fsi.unitCost==0.01? 0:fsi.unitCost);	
 								fsi.flightSection.flight.signChangeItineraryList.add(fsi);
 								
-								totalFulfilledDemand3 += fsi.volume;
 							}
 
 						}
@@ -587,9 +577,6 @@ public class CplexModel {
 							}
 						}
 					}					
-
-					System.out.println("totalFulfilledDemand:"+totalFulfilledDemand1+" "+totalFulfilledDemand2+" "+totalFulfilledDemand3);
-					System.out.println("totalFulfilledDemand:"+(totalFulfilledDemand1+totalFulfilledDemand2+totalFulfilledDemand3));
 
 					for(int i=0;i<flightList.size();i++){
 						Flight f = flightList.get(i);
@@ -730,7 +717,7 @@ public class CplexModel {
 						e.printStackTrace();
 					}
 
-					int numOfMissedConnections = 0;
+					/*int numOfMissedConnections = 0;
 					int numOfSecondMissedConnections = 0;
 					for(TransferPassenger pt:sce.transferPassengerList){
 						if(pt.inFlight.isCancelled){
@@ -746,12 +733,12 @@ public class CplexModel {
 						}						
 					}
 					System.out.println("numOfMissedConnections:"+numOfMissedConnections);
-					System.out.println("numOfSecondMissedConnections:"+numOfSecondMissedConnections);
+					System.out.println("numOfSecondMissedConnections:"+numOfSecondMissedConnections);*/
 					System.out.println("totalSignChangeDelayCost (measured by model):"+totalSignChangeDelayCost);
 					System.out.println("totalCancelCost (measured by model):"+totalPassengerCancelCost);
 					System.out.println("totalDelayCost (measured by model):"+totalOriginalPassengerDelayCost);
 
-					double madeUpCancelCost = 0;
+					/*double madeUpCancelCost = 0;
 					double deductDelayCost = 0;
 
 					for(TransferPassenger pt: sce.transferPassengerList){
@@ -768,18 +755,18 @@ public class CplexModel {
 								deductDelayCost += pt.volume*ExcelOperator.getPassengerDelayParameter(secondDelay);
 							}
 							//capacity not enough (due to aircraft change)
-							/*	else{
+								else{
 								madeUpCancelCost += Math.min(pt.inFlight.transferPassengerNumber, pt.inFlight.connectedPassengerNumber + 
 										pt.inFlight.transferPassengerNumber - pt.inFlight.aircraft.passengerCapacity)*Parameter.passengerCancelCost ;
 								madeUpCancelCost += Math.min(pt.outFlight.transferPassengerNumber, pt.outFlight.connectedPassengerNumber + 
 										pt.outFlight.transferPassengerNumber - pt.outFlight.aircraft.passengerCapacity)*Parameter.passengerCancelCost ;
-							}*/
+							}
 						}
 
 
 					}
 					System.out.println("Cancel that was not calculated: "+madeUpCancelCost);
-					System.out.println("Delay that was incorrectly calculated: "+deductDelayCost);
+					System.out.println("Delay that was incorrectly calculated: "+deductDelayCost);*/
 
 					for(Flight f:sce.flightList){
 						if(f.isIncludedInTimeWindow){

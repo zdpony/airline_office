@@ -1,5 +1,6 @@
 package sghku.tianchi.IntelligentAviation.entity;
 
+import java.awt.FlowLayout;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -661,6 +662,17 @@ public class Scenario {
 
 	// 读取转机乘客信息
 	public void readTransferPassengerInformation() {
+		Set<Integer> fliedFlightSet = new HashSet<>();
+		if(Parameter.isReadFixedRoutes){
+			for(Aircraft a:aircraftList){
+				for(Flight f:a.fixedFlightList){
+					if(!f.isStraightened){
+						fliedFlightSet.add(f.id);
+					}
+				}
+			}
+		}
+		
 		try {
 			Scanner sn = new Scanner(new File("transferpassenger"));
 
@@ -687,12 +699,7 @@ public class Scenario {
 				transferPassenger.outFlight = outFlight;
 				transferPassenger.minTurnaroundTime = minTurnaroundTime;
 				transferPassenger.volume = volume;
-
-				/*
-				 * inFlight.passengerTransferList.add(transferPassenger);
-				 * outFlight.passengerTransferList.add(transferPassenger);
-				 */
-
+				
 				inFlight.firstPassengerTransferList.add(transferPassenger);
 				outFlight.secondPassengerTransferList.add(transferPassenger);
 				
@@ -704,6 +711,7 @@ public class Scenario {
 		}
 
 		// 计算每一个航班的转机乘客和普通乘客
+		int totalTransfer = 0;
 		for (Flight f : flightList) {
 			for (TransferPassenger tp : f.firstPassengerTransferList) {
 				f.transferPassengerNumber += tp.volume;
@@ -715,8 +723,27 @@ public class Scenario {
 			}
 
 			f.normalPassengerNumber = f.passengerNumber - f.transferPassengerNumber;
+			totalTransfer += f.transferPassengerNumber;
 		}
 
+		System.out.println("totalTransfer:"+totalTransfer);
+		
+		
+		for(TransferPassenger tp:transferPassengerList){
+			if(fliedFlightSet.contains(tp.inFlight.id)){
+				if(fliedFlightSet.contains(tp.outFlight.id)){
+					tp.inFlight.occupiedSeatsByTransferPassenger += tp.volume;
+					tp.outFlight.occupiedSeatsByTransferPassenger += tp.volume;
+				}else{
+					tp.inFlight.occupiedSeatsByTransferPassenger += tp.volume;
+				}
+			}
+		}
+/*		
+		for(TransferPassenger tp:transferPassengerList){
+			tp.inFlight.occupiedSeatsByTransferPassenger += tp.volume;
+			tp.outFlight.occupiedSeatsByTransferPassenger += tp.volume;
+		}*/
 	}
 
 	// 检测某一个航班是否处于台风影响范围从事限制起降个数
@@ -759,7 +786,7 @@ public class Scenario {
 		// 读取已经固定的飞机路径
 		Scanner sn = null;
 		try {
-			sn = new Scanner(new File("fixschedule_rachel"));
+			sn = new Scanner(new File("fixschedule_pony"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -795,27 +822,4 @@ public class Scenario {
 		}
 	}
 	
-	public void generateProceedingAndSucceedingSequence(){
-		for(Flight f1:flightList){
-			int earT = f1.initialLandingT;
-			if(f1.isAllowtoBringForward){
-				earT = earT - Parameter.MAX_LEAD_TIME;
-			}
-			
-			for(Flight f2:flightList){
-				if(f1.leg.destinationAirport.equals(f2.leg.originAirport)){
-					int latT = f2.initialTakeoffT;
-					if(f2.isDomestic){
-						latT = latT + Parameter.MAX_DELAY_DOMESTIC_TIME;
-					}else{
-						latT = latT + Parameter.MAX_DELAY_INTERNATIONAL_TIME;
-					}
-					
-					if(latT >= earT){
-						f1.succeedingFlightList.add(f2);
-					}
-				}
-			}
-		}
-	}
 }

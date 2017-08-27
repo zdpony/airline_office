@@ -200,7 +200,7 @@ public class NetworkConstructor {
 						
 						
 						//减去转乘乘客
-						arc.passengerCapacity = arc.passengerCapacity - f.transferPassengerNumber;
+						arc.passengerCapacity = arc.passengerCapacity - f.occupiedSeatsByTransferPassenger;
 						
 						//如果该航班是联程航班，则代表联程航班已经被取消，所以不需要在考虑对应的联程乘客
 						
@@ -216,6 +216,7 @@ public class NetworkConstructor {
 							arc.passengerCapacity = arc.passengerCapacity - arc.fulfilledDemand;
 
 							arc.flight.itinerary.flightArcList.add(arc);
+							
 						}	
 						
 						//剩下的则为有效座位
@@ -640,7 +641,7 @@ public class NetworkConstructor {
 				//减去联程乘客
 				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.connectedPassengerNumber;
 				//减去转乘乘客
-				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.transferPassengerNumber;
+				arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.occupiedSeatsByTransferPassenger;
 				
 				if(Parameter.onlySignChangeDisruptedPassenger){
 					//减去普通乘客
@@ -700,7 +701,7 @@ public class NetworkConstructor {
 				//减去联程乘客
 				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.connectedPassengerNumber;
 				//减去转乘乘客
-				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.transferPassengerNumber;
+				arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.occupiedSeatsByTransferPassenger;
 				if(Parameter.onlySignChangeDisruptedPassenger){
 					//减去普通乘客
 					arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.normalPassengerNumber;

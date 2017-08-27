@@ -261,27 +261,20 @@ public class IntegratedCplexModel {
 					}
 					iteNumConstraint.addTerm(1, passCancel[ite.id]);
 
-					int fulfilldeman1 = 0;
-					int fulfilldeman2 = 0;
-					int fulfilldeman3 = 0;
-					
+
 					for(FlightArc arc:ite.flightArcList){
 						iteNumConstraint.addTerm(arc.fulfilledDemand, x[arc.id]); 
-						fulfilldeman1 = arc.fulfilledDemand;
 					}
 					for(ConnectingArc arc:ite.firstConnectionArcList){
 						iteNumConstraint.addTerm(arc.firstArc.fulfilledDemand, beta[arc.id]); 
-						fulfilldeman2 = arc.firstArc.fulfilledDemand;
 					}
 					for(ConnectingArc arc:ite.secondConnectingArcList){
 						iteNumConstraint.addTerm(arc.secondArc.fulfilledDemand, beta[arc.id]); 
-						fulfilldeman3 = arc.secondArc.fulfilledDemand;
 					}
 					
-					System.out.println("ite:"+ite.flight.id+" "+fulfilldeman1+" "+fulfilldeman2+" "+fulfilldeman3+" "+ite.volume+" "+ite.flight.normalPassengerNumber);
 					cplex.addEq(iteNumConstraint, ite.volume);
 				}
-				/*
+				
 				//7. 座位相关约束
 				for(FlightSection fs:flightSectionList) {
 					IloLinearNumExpr seatConstraint = cplex.linearNumExpr();
@@ -300,7 +293,7 @@ public class IntegratedCplexModel {
 					}
 
 					cplex.addLe(seatConstraint, 0);
-				}*/
+				}
 			}
 
 			//8. 机场起降约束
@@ -510,11 +503,6 @@ public class IntegratedCplexModel {
 					solution.objValue = cplex.getObjValue();
 					Parameter.objective += cplex.getObjValue();
 	
-					int totalFulfilledDemand1 = 0;
-					int totalFulfilledDemand2 = 0;
-					int totalFulfilledDemand3 = 0;
-
-
 					double totalArcCost = 0;
 		
 					for(FlightArc fa:flightArcList){
@@ -530,8 +518,6 @@ public class IntegratedCplexModel {
 
 							fa.flight.aircraft = fa.aircraft;
 
-							totalFulfilledDemand1 += fa.fulfilledDemand*cplex.getValue(x[fa.id]);
-				
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);							
 							//System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
 							totalArcCost += fa.cost;
@@ -559,8 +545,6 @@ public class IntegratedCplexModel {
 							arc.connectingFlightPair.firstFlight.aircraft = arc.aircraft;
 							arc.connectingFlightPair.secondFlight.aircraft = arc.aircraft;
 							
-							totalFulfilledDemand2 += arc.fulfilledDemand*cplex.getValue(beta[arc.id]);
-					
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
 							
 							totalPassengerCancelCost += arc.pssgrCclCostDueToInsufficientSeat;
@@ -585,7 +569,12 @@ public class IntegratedCplexModel {
 								totalSignChangeDelayCost += fsi.volume * (fsi.unitCost==0.01? 0:fsi.unitCost);	
 								fsi.flightSection.flight.signChangeItineraryList.add(fsi);
 								
-								totalFulfilledDemand3 += fsi.volume;
+								/*if(fsi.itinerary.flight.id == 499 && fsi.flightSection.flight.id == 569){
+									System.out.println("we find this signchange:"+fsi.flightSection.startTime+" "+fsi.flightSection.endTime);
+									for(FlightArc arc:fsi.flightSection.flightArcList){
+										
+									}
+								}*/
 							}
 
 						}
@@ -595,9 +584,6 @@ public class IntegratedCplexModel {
 							}
 						}
 					}					
-
-					System.out.println("totalFulfilledDemand:"+totalFulfilledDemand1+" "+totalFulfilledDemand2+" "+totalFulfilledDemand3);
-					System.out.println("totalFulfilledDemand:"+(totalFulfilledDemand1+totalFulfilledDemand2+totalFulfilledDemand3));
 
 					for(int i=0;i<flightList.size();i++){
 						Flight f = flightList.get(i);
@@ -738,7 +724,7 @@ public class IntegratedCplexModel {
 						e.printStackTrace();
 					}
 
-					int numOfMissedConnections = 0;
+					/*int numOfMissedConnections = 0;
 					int numOfSecondMissedConnections = 0;
 					for(TransferPassenger pt:sce.transferPassengerList){
 						if(pt.inFlight.isCancelled){
@@ -754,12 +740,12 @@ public class IntegratedCplexModel {
 						}						
 					}
 					System.out.println("numOfMissedConnections:"+numOfMissedConnections);
-					System.out.println("numOfSecondMissedConnections:"+numOfSecondMissedConnections);
+					System.out.println("numOfSecondMissedConnections:"+numOfSecondMissedConnections);*/
 					System.out.println("totalSignChangeDelayCost (measured by model):"+totalSignChangeDelayCost);
 					System.out.println("totalCancelCost (measured by model):"+totalPassengerCancelCost);
 					System.out.println("totalDelayCost (measured by model):"+totalOriginalPassengerDelayCost);
 
-					double madeUpCancelCost = 0;
+					/*double madeUpCancelCost = 0;
 					double deductDelayCost = 0;
 
 					for(TransferPassenger pt: sce.transferPassengerList){
@@ -776,18 +762,18 @@ public class IntegratedCplexModel {
 								deductDelayCost += pt.volume*ExcelOperator.getPassengerDelayParameter(secondDelay);
 							}
 							//capacity not enough (due to aircraft change)
-							/*	else{
+								else{
 								madeUpCancelCost += Math.min(pt.inFlight.transferPassengerNumber, pt.inFlight.connectedPassengerNumber + 
 										pt.inFlight.transferPassengerNumber - pt.inFlight.aircraft.passengerCapacity)*Parameter.passengerCancelCost ;
 								madeUpCancelCost += Math.min(pt.outFlight.transferPassengerNumber, pt.outFlight.connectedPassengerNumber + 
 										pt.outFlight.transferPassengerNumber - pt.outFlight.aircraft.passengerCapacity)*Parameter.passengerCancelCost ;
-							}*/
+							}
 						}
 
 
-					}
-					System.out.println("Cancel that was not calculated: "+madeUpCancelCost);
-					System.out.println("Delay that was incorrectly calculated: "+deductDelayCost);
+					}*/
+					/*System.out.println("Cancel that was not calculated: "+madeUpCancelCost);
+					System.out.println("Delay that was incorrectly calculated: "+deductDelayCost);*/
 
 					for(Flight f:sce.flightList){
 						if(f.isIncludedInTimeWindow){
@@ -826,11 +812,7 @@ public class IntegratedCplexModel {
 						}						
 					}
 					
-					for(Flight f:sce.flightList){
-						if(f.isIncludedInTimeWindow){
-							System.out.println(f.id+" "+f.totalCost);
-						}
-					}
+					
 					
 					/*//检查itinerary
 					for(FlightSection fs:flightSectionList) {
