@@ -303,7 +303,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							}
 						}
 
-						if (cf.secondFlight.initialTakeoffT - presetGap * i >= firstArc.readyTime) {
+						if (cf.secondFlight.initialTakeoffT + presetGap * i >= firstArc.readyTime) {
 							FlightArc secondArc = new FlightArc();
 							secondArc.flight = cf.secondFlight;
 							secondArc.aircraft = aircraft;
