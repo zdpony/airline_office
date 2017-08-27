@@ -45,11 +45,11 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 		Parameter.isReadFixedRoutes = true;
 		Parameter.onlySignChangeDisruptedPassenger = false;
 		
-		runOneIteration(true);
+		runOneIteration(true, 70);
 		
 	}
 		
-	public static void runOneIteration(boolean isFractional){
+	public static void runOneIteration(boolean isFractional, int fixNumber){
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 				
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
@@ -278,6 +278,10 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 		
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
 		solver(scenario, candidateAircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);		
+		
+		//根据线性松弛模型来确定新的需要固定的飞机路径
+		AircraftPathReader scheduleReader = new AircraftPathReader();
+		scheduleReader.fixAircraftRoute(scenario, fixNumber);		
 	}
 	
 	//求解线性松弛模型或者整数规划模型
@@ -303,8 +307,6 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 		IntegratedCplexModel model = new IntegratedCplexModel();
 		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, isFractional, true);
 
-		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
-		outputResultWithPassenger.writeResult(scenario, "firstresult825.csv");
 	}
 
 	// 构建时空网络流模型
