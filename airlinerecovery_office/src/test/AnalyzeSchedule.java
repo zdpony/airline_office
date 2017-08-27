@@ -23,10 +23,13 @@ public class AnalyzeSchedule {
 		Parameter.isReadFixedRoutes = false;
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 		
+		String fileName = "linearsolution.csv";
+		
 		Scanner sn = null;
 		try {
-			sn = new Scanner(new File("linearsolution_30_421761.807_15.8.csv"));
+			//sn = new Scanner(new File("linearsolution_30_421761.807_15.8.csv"));
 			//sn = new Scanner(new File("linearsolution_60_423292.675_19.1.csv"));
+			sn = new Scanner(new File(fileName));			
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -51,7 +54,10 @@ public class AnalyzeSchedule {
 			lv.line = nextLine;
 			lv.value = innerSn.nextDouble();
 
-			readLine(scenario, lv.line);
+			if(lv.value > 0.5-1e-6) {
+				readLine(scenario, lv.line);
+			}
+			
 		}
 
 		System.out.println("--------------------------------------");
@@ -59,8 +65,24 @@ public class AnalyzeSchedule {
 		int totalN = 0;
 		
 		int maxDelay = 0;
+		int maxAdvance = 0;
+		
+		try {
+			File file = new File("delayfiles/"+fileName);
+			if(file.exists()) {
+				file.delete();
+			}
+			MyFile.creatTxtFile("delayfiles/"+fileName);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("f,aircraft,origin,destination,takeoff,landing,delays\n");
 		
 		for(Flight f:scenario.flightList){
+			System.out.println(f.possibleDelaySet);
 			if(f.possibleDelaySet.size() > 0){
 				boolean isDisplay = false;
 				
@@ -69,27 +91,47 @@ public class AnalyzeSchedule {
 						isDisplay = true;
 						break;
 					}
+
+					/*if(-delay > maxAdvance) {
+						maxAdvance = -delay;
+					}*/
+				
+					if(-delay > 60) {
+						System.out.println("early:"+(-delay)+"  "+f.id+" "+f.leg.originAirport.id+" "+f.leg.destinationAirport.id+" "+f.takeoffTime+" "+f.landingTime);						
+					}
 				}
 				
 				if(isDisplay){
-					System.out.print("f:"+f.id+" "+f.leg.originAirport.id+"->"+f.leg.destinationAirport.id+" ("+f.takeoffTime+")->("+f.landingTime+")    [");
+					//System.out.print("f:"+f.id+" aircraft:"+f.aircraft.id+"  "+f.leg.originAirport.id+"->"+f.leg.destinationAirport.id+" ("+f.takeoffTime+")->("+f.landingTime+")    [");
+					
+					sb.append(f.id+","+f.aircraft.id+","+f.leg.originAirport.id+","+f.leg.destinationAirport.id+","+f.takeoffTime+","+f.landingTime+",");
 					
 					for(int delay:f.possibleDelaySet){
-						System.out.print(delay+", ");
+						//System.out.print(delay+", ");
+						sb.append(delay+"_");
 						
 						if(delay > maxDelay){
 							maxDelay = delay;
 						}
+						
 					}
-					System.out.println("]");
+					sb.append("\n");
+					//System.out.println("]");
+					
 					
 					totalN++;
 				}		
 			}
 			
 		}
+		try {
+			MyFile.writeTxtFile(sb.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		System.out.println("totalN:"+totalN+"  maxDelay："+maxDelay);
+		System.out.println("totalN:"+totalN+"  maxDelay："+maxDelay+" maxAdvance:"+maxAdvance);
 		
 	}
 	
@@ -117,6 +159,8 @@ public class AnalyzeSchedule {
 				f.actualOrigin = f.leg.originAirport;
 				f.actualDestination = f.leg.destinationAirport;
 				
+				f.aircraft = a;
+				
 				f.possibleDelaySet.add(f.actualTakeoffT - f.initialTakeoffT);
 			} else if (flightArray[0].equals("s")) {
 				Flight f = scenario.flightList.get(Integer.parseInt(flightArray[1]) - 1);
@@ -132,6 +176,8 @@ public class AnalyzeSchedule {
 				f.actualDestination = f2.leg.destinationAirport;
 				f.actualTakeoffT = Integer.parseInt(flightArray[3]);
 				f.actualLandingT = Integer.parseInt(flightArray[4]);
+				
+				f.aircraft = a;
 				
 				f.possibleDelaySet.add(f.actualTakeoffT - f.initialTakeoffT);
 				
