@@ -64,7 +64,7 @@ public class IntegratedFlightRescheduling {
 		}
 		
 		try {
-			Scanner sn = new Scanner(new File("flightdelay.csv"));
+			Scanner sn = new Scanner(new File("delayfiles/linearsolution_2.csv"));
 		
 			sn.nextLine();
 			while(sn.hasNextLine()){
@@ -78,6 +78,12 @@ public class IntegratedFlightRescheduling {
 				int fId = innerSn.nextInt();
 				
 				Flight f = scenario.flightList.get(fId-1);
+				
+				innerSn.next();
+				innerSn.next();
+				innerSn.next();
+				innerSn.next();
+				innerSn.next();
 				
 				String[] delayArray = innerSn.next().split("_");
 			

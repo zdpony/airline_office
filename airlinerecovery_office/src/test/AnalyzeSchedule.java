@@ -23,14 +23,14 @@ public class AnalyzeSchedule {
 		Parameter.isReadFixedRoutes = false;
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 		
-		String fileName = "linearsolution.csv";
+		String fileName = "pony_599401.874_1440.csv";
 		
 		Scanner sn = null;
 		try {
 			//sn = new Scanner(new File("linearsolution_30_421761.807_15.8.csv"));
 			//sn = new Scanner(new File("linearsolution_60_423292.675_19.1.csv"));
 
-			sn = new Scanner(new File(fileName));			
+			sn = new Scanner(new File("delayfiles/"+fileName));			
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -39,6 +39,8 @@ public class AnalyzeSchedule {
 
 		List<LineValue> lvList = new ArrayList<>();
 
+		sn.nextLine();
+		
 		while (sn.hasNextLine()) {
 			String nextLine = sn.nextLine().trim();
 

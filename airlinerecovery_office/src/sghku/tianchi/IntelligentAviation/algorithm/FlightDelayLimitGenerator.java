@@ -45,7 +45,7 @@ public class FlightDelayLimitGenerator {
 				}*/
 			}
 		}
-		//if(indirectTyphoonAffectedAirportSet.contains(44))System.out.println("contains 44");
+		if(indirectTyphoonAffectedAirportSet.contains(77))System.out.println("contains 77");
 		//System.out.println("typhoonAffectedAirportSet:"+typhoonAffectedAirportSet.size()+" "+airportList.size());
 
 		for(Flight f:scenario.flightList) {
@@ -162,7 +162,13 @@ public class FlightDelayLimitGenerator {
 						//第一个int[]加入timeLimitList
 						f.timeLimitList.add(new int[] {periodStart,periodEnd});
 					}
-				}else{  //剩下的统一只能delay1小时
+				}
+				//剩下的如果在7好12点之后，则允许delay6小时
+				else if(f.initialTakeoffT > 1440*7 +12*60 && f.initialTakeoffT <= 1440*8) {
+					f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+360});
+				}
+				
+				else{  //剩下的统一只能delay1小时
 					f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+60});
 				}
 			}
@@ -191,8 +197,14 @@ public class FlightDelayLimitGenerator {
 				
 			}
 			
-			//剩下情况都是delay 1 小时
-			else{
+			
+			
+			//剩下情况 8 号delay2小时
+			else if(f.initialTakeoffT > 1440*8){
+				f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+120});
+			}
+			
+			else {
 				f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+60});
 			}
 			
