@@ -25,9 +25,9 @@ public class AnalyzeSchedule {
 		
 		Scanner sn = null;
 		try {
-			sn = new Scanner(new File("linearsolution_30_421761.807_15.8.csv"));
+			//sn = new Scanner(new File("linearsolution_30_421761.807_15.8.csv"));
 			//sn = new Scanner(new File("linearsolution_60_423292.675_19.1.csv"));
-
+			sn = new Scanner(new File("fixschedule_rachel.csv"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
