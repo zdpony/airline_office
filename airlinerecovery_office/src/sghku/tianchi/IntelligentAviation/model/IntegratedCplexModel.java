@@ -43,7 +43,7 @@ public class IntegratedCplexModel {
 
 	//the network flow model for initial problem solving
 
-	public Solution run(List<Aircraft> aircraftList, List<Flight> flightList, List<ConnectingFlightpair> cfList, List<Airport> airportList, Scenario sce, List<FlightSection> flightSectionList, List<Itinerary> itineraryList, List<FlightSectionItinerary> flightSectionItineraryList, boolean isFractional, boolean isAllowToCancelSingleFlightInAnConnectingFlight, boolean isCancelAllowed){
+	public Solution run(List<Aircraft> aircraftList, List<Flight> flightList, List<ConnectingFlightpair> cfList, List<Airport> airportList, Scenario sce, List<FlightSection> flightSectionList, List<Itinerary> itineraryList, List<FlightSectionItinerary> flightSectionItineraryList, boolean isFractional,  boolean isCancelAllowed){
 		Solution solution = new Solution();
 		solution.involvedAircraftList.addAll(aircraftList);
 
@@ -229,27 +229,24 @@ public class IntegratedCplexModel {
 			}
 
 			// 5. 对于每一个联程航班，两趟航班必须由同一个飞机执行
-			if(isAllowToCancelSingleFlightInAnConnectingFlight) {
-				for (ConnectingFlightpair cf : cfList) {
+			for (ConnectingFlightpair cf : cfList) {
+				IloLinearNumExpr cont = cplex.linearNumExpr();
 
-					IloLinearNumExpr cont = cplex.linearNumExpr();
-
-					for (FlightArc arc : cf.firstFlight.flightarcList) {
-						cont.addTerm(1, x[arc.id]);
-					}
-					cont.addTerm(-1, z[cf.secondFlight.idInCplexModel]);  //防止两个flight被不同飞机飞
-
-					cplex.addLe(cont, 0);
-
-					cont = cplex.linearNumExpr();
-
-					for (FlightArc arc : cf.secondFlight.flightarcList) {
-						cont.addTerm(1, x[arc.id]);		
-					}
-					cont.addTerm(-1, z[cf.firstFlight.idInCplexModel]);
-
-					cplex.addLe(cont, 0);
+				for (FlightArc arc : cf.firstFlight.flightarcList) {
+					cont.addTerm(1, x[arc.id]);
 				}
+				cont.addTerm(-1, z[cf.secondFlight.idInCplexModel]);  //防止两个flight被不同飞机飞
+
+				cplex.addLe(cont, 0);
+
+				cont = cplex.linearNumExpr();
+
+				for (FlightArc arc : cf.secondFlight.flightarcList) {
+					cont.addTerm(1, x[arc.id]);		
+				}
+				cont.addTerm(-1, z[cf.firstFlight.idInCplexModel]);
+
+				cplex.addLe(cont, 0);
 			}
 
 			if(Parameter.isPassengerCostConsidered){

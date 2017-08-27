@@ -16,6 +16,7 @@ import javax.swing.plaf.synth.SynthSpinnerUI;
 
 import sghku.tianchi.IntelligentAviation.algorithm.FlightDelayLimitGenerator;
 import sghku.tianchi.IntelligentAviation.algorithm.NetworkConstructor;
+import sghku.tianchi.IntelligentAviation.algorithm.NetworkConstructorBasedOnDelayAndEarlyLimit;
 import sghku.tianchi.IntelligentAviation.clique.Clique;
 import sghku.tianchi.IntelligentAviation.common.OutputResult;
 import sghku.tianchi.IntelligentAviation.common.OutputResultWithPassenger;
@@ -55,7 +56,7 @@ public class IntegratedFlightRescheduling {
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
 		
-		for(Flight f:scenario.flightList){
+		/*for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
 			for(int[] timeLimit:f.timeLimitList){
 				System.out.print("["+timeLimit[0]+","+timeLimit[1]+"] ");
@@ -106,7 +107,7 @@ public class IntegratedFlightRescheduling {
 			e.printStackTrace();
 		}
 		
-		System.exit(1);
+		System.exit(1);*/
 		
 		int floatedPassenger = 0;
 		for(Flight f:scenario.flightList){
@@ -199,7 +200,7 @@ public class IntegratedFlightRescheduling {
 		//Solution solution = model.run(candidateAircraftList, candidateFlightList, new ArrayList(), scenario.airportList,scenario, isFractional, true, false);		
 
 		IntegratedCplexModel model = new IntegratedCplexModel();
-		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, isFractional, true, false);
+		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, isFractional, false);
 
 		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
 		outputResultWithPassenger.writeResult(scenario, "firstresult825.csv");
@@ -211,22 +212,39 @@ public class IntegratedFlightRescheduling {
 		// 每一个航班生成arc
 
 		// 为每一个飞机的网络模型生成arc
-		NetworkConstructor networkConstructor = new NetworkConstructor();
+		NetworkConstructorBasedOnDelayAndEarlyLimit networkConstructorBasedOnDelayAndEarlyLimit = new NetworkConstructorBasedOnDelayAndEarlyLimit();
 
+		int nnn = 0;
 		for (Aircraft aircraft : candidateAircraftList) {	
+			List<FlightArc> totalFlightArcList = new ArrayList<>();
+			List<ConnectingArc> totalConnectingArcList = new ArrayList<>();
+			
+			System.out.println("aircraft:"+aircraft.id+"  "+aircraft.singleFlightList.size()+" "+aircraft.connectingFlightList.size());
 			
 			for (Flight f : aircraft.singleFlightList) {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
-				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, 5, scenario);
+				List<FlightArc> faList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForFlight(aircraft, f, scenario);
+				totalFlightArcList.addAll(faList);
+				System.out.print(faList.size()+",");
 			}
+			System.out.println();
 	
 			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
-				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, 5, false, scenario);
+				List<ConnectingArc> caList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForConnectingFlightPair(aircraft, cf, scenario);
+				totalConnectingArcList.addAll(caList);
+				System.out.print(caList.size()+":");
 			}
+			System.out.println();
 			
+			//networkConstructorBasedOnDelayAndEarlyLimit.eliminateArcs(aircraft, scenario.airportList, totalFlightArcList, totalConnectingArcList, scenario);
+		
+			System.out.println(totalFlightArcList.size()+" "+totalConnectingArcList.size()+"  "+aircraft.flightArcList.size()+"  "+aircraft.connectingArcList.size());
+			nnn += aircraft.flightArcList.size();
+			nnn += aircraft.connectingArcList.size();
 		}
-		
-		
+		System.out.println("nnn:"+nnn);
+		System.exit(1);
+		NetworkConstructor networkConstructor = new NetworkConstructor();
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
 	}
 	
