@@ -189,7 +189,7 @@ public class FlightDelayLimitGenerator {
 					f.timeLimitList.add(new int[] {periodStart,periodEnd});		
 				}
 				//如果航班起飞时间处于16:00-22:00，可以提前
-				if(AirportID_49_50_61.contains(f.leg.originAirport.id) &&f.initialTakeoffT<=1440*6 + 22*60){
+				if(f.isDomestic&&AirportID_49_50_61.contains(f.leg.originAirport.id) &&f.initialTakeoffT<=1440*6 + 22*60){
 					int periodStart = Math.max(f.initialTakeoffT - 6*60, 1440*6 + 14*60 +55);
 					int periodEnd = 1440*6 + 16*60;  //可以最多delay 6 小时
 					f.timeLimitList.add(new int[] {periodStart,periodEnd});

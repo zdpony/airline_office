@@ -35,10 +35,12 @@ import sghku.tianchi.IntelligentAviation.entity.TransferPassenger;
 public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 	public int presetGap = 5;
 
+	
 	// 第一种生成方法，根据原始schedule大范围生成arc
-	public List<FlightArc> generateArcForFlight(Aircraft aircraft, Flight f, int givenGap, Scenario scenario) {
+	public List<FlightArc> generateArcForFlight(Aircraft aircraft, Flight f, Scenario scenario) {
 		List<FlightArc> generatedFlightArcList = new ArrayList<>();
 
+		
 		FlightArc arc = null;
 
 		if (!f.isIncludedInTimeWindow) {
@@ -81,6 +83,10 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 				// 读取时间段的开始和结束时间
 				int startTime = timeLimit[0];
 				int endTime = timeLimit[1];
+				
+				if(f.id == 159 && aircraft.id == 1){
+					System.out.println("time window:"+startTime+"  "+endTime+"  "+f.isAllowtoBringForward+" "+f.initialTakeoffT);
+				}
 
 				for (int t = startTime; t <= endTime; t += presetGap) {
 					int i = (t - f.initialTakeoffT) / presetGap;
@@ -106,7 +112,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 						}
 					}
 
-					if ((i * presetGap) % givenGap != 0 && t != endTime) { // 小gap，只有当其受影响时才继续生成相应arc,
+					if ((i * presetGap) % Parameter.gap != 0 && t != endTime) { // 小gap，只有当其受影响时才继续生成相应arc,
 																			// 同时当t在最后的时候也需要选择
 						if (!isOriginInAffectedLdnTkfLimitPeriod && !isDestinationInAffectedLdnTkfLimitPeriod) {
 							continue;
@@ -125,6 +131,10 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 					arc.takeoffTime = f.initialTakeoffT + i * presetGap;
 					arc.landingTime = arc.takeoffTime + flyTime;
 
+					if(f.id == 159 && aircraft.id == 1){
+						System.out.println("take off:"+arc.takeoffTime);
+					}
+					
 					// arc.readyTime = arc.landingTime +
 					// Parameter.MIN_BUFFER_TIME;
 					arc.readyTime = arc.landingTime
@@ -147,7 +157,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 
 	// 为联程航班生成arc
 	public List<ConnectingArc> generateArcForConnectingFlightPair(Aircraft aircraft, ConnectingFlightpair cf,
-			int givenGap, Scenario scenario) {
+			 Scenario scenario) {
 
 		List<ConnectingArc> generatedConnectingArcList = new ArrayList<>();
 
@@ -183,6 +193,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 				ca.firstArc = firstArc;
 				ca.secondArc = secondArc;
 				ca.aircraft = aircraft;
+				ca.connectingFlightPair = cf;
 
 				generatedConnectingArcList.add(ca);
 				
@@ -227,7 +238,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							}
 						}
 
-						if ((i * presetGap) % givenGap != 0 && t != endTime) {
+						if ((i * presetGap) % Parameter.gap != 0 && t != endTime) {
 							if (!isOriginInAffectedLdnTkfPeriod && !isDestinationInAffectedLdnTkfPeriod) {
 								continue;
 							}
@@ -286,7 +297,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							}
 						}
 
-						if ((i * presetGap) % givenGap != 0 && t != endTime) {
+						if ((i * presetGap) % Parameter.gap != 0 && t != endTime) {
 							if (!isWithinAffectedRegionOrigin2 && !isWithinAffectedRegionDestination2) {
 								continue;
 							}
@@ -314,6 +325,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 								ConnectingArc ca = new ConnectingArc();
 								ca.firstArc = firstArc;
 								ca.secondArc = secondArc;
+								ca.connectingFlightPair = cf;
 								ca.aircraft = aircraft;
 
 								generatedConnectingArcList.add(ca);
@@ -565,6 +577,11 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 								System.out.println("no flight section found 3!"
 										+ f.flightSectionList.get(f.flightSectionList.size() - 1).endTime + " "
 										+ arc.takeoffTime);
+								System.out.println(f.initialTakeoffT+" "+f.isAllowtoBringForward+" "+f.id+"  "+arc.aircraft.id+"   "+f.isIncludedInTimeWindow);
+								for(FlightSection fs:f.flightSectionList){
+									System.out.print("["+fs.startTime+","+fs.endTime+"]  ");
+								}
+								System.out.println();
 								System.exit(1);
 							}
 							f.flightSectionList.get(f.flightSectionList.size() - 1).flightArcList.add(arc);
@@ -624,7 +641,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 				ca.toNode = null;
 				
 				ConnectingFlightpair cf = ca.connectingFlightPair;
-				
+
 				if(!cf.firstFlight.isIncludedInTimeWindow){
 					aircraft.connectingArcList.add(ca);
 
