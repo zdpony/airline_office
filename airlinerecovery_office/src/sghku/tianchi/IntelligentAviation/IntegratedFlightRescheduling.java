@@ -52,7 +52,7 @@ public class IntegratedFlightRescheduling {
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 		
 		
-		/*FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
+		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
 		
 		for(Flight f:scenario.flightList){
@@ -96,7 +96,7 @@ public class IntegratedFlightRescheduling {
 					}
 					
 					if(!isInclude){
-						System.out.println("error "+f.id);
+						System.out.println("error "+f.id+" delay:"+t);
 					}
 				}
 				
@@ -106,7 +106,7 @@ public class IntegratedFlightRescheduling {
 			e.printStackTrace();
 		}
 		
-		System.exit(1);*/
+		System.exit(1);
 		
 		int floatedPassenger = 0;
 		for(Flight f:scenario.flightList){
