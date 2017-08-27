@@ -96,7 +96,7 @@ public class IntegratedFlightRescheduling {
 					}
 					
 					if(!isInclude){
-						System.out.println("error "+f.id);
+						System.out.println("error "+f.id+" delay:"+t);
 					}
 				}
 				
