@@ -134,7 +134,7 @@ public class FlightDelayLimitGenerator {
 						f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT});  //马上能飞
 						f.timeLimitList.add(new int[] {1440*7+17*60,1440*7+17*60+6*60});  //17:00之后delay6小时
 						
-					}else{ //如果是17:00之后的，或者如果有些不是从49_50_61出发，则initial_tkfTime Delay最多6小时
+					}else{ //如果是17:00之后的，或者origin_airport 不是49_50_61，则initial_tkfTime Delay最多6小时
 						int periodStart = f.initialTakeoffT;
 						int periodEnd = f.initialTakeoffT + 6*60;  //可以最多是delay 6 小时
 						int landingEnd = f.initialLandingT + 6*60;  //用来检测是否进入机场关闭阶段
@@ -164,7 +164,7 @@ public class FlightDelayLimitGenerator {
 						f.timeLimitList.add(new int[] {periodStart,periodEnd});
 					}
 				}
-				//剩下的如果在7好12点之后，则允许delay6小时
+				//剩下的如果在7号12点之后，则允许delay6小时
 				else if(f.initialTakeoffT > 1440*7 +12*60 && f.initialTakeoffT <= 1440*8) {
 					f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+360});
 				}
@@ -214,7 +214,19 @@ public class FlightDelayLimitGenerator {
 		}
 	}
 	//设置联程拉直航班的flight delay limit
-	public void setFlightDelayLimitForStraightenedFlight(Flight f, Scenario scenario){
+	public void setFlightDelayLimitForStraightenedFlight(Flight f, Scenario scenario){	
+		//如果在7号12点以后，则允许delay6小时
+		if(f.initialTakeoffT > 1440*7 +12*60 && f.initialTakeoffT <= 1440*8){
+			f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+360});
+		}
 		
+		//否则都是delay 1小时
+		else {
+			f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+60});
+		}
 	}
+	
+	
+	
+	
 }
