@@ -64,6 +64,8 @@ public class Aircraft {
 	//最终确定的飞行路线
 	public List<Flight> fixedFlightList = new ArrayList<>();
 	
+	public double flow = 0;
+	
 	//计算两个飞机之间swap的概率
 	public int calculateSimilarity(Aircraft a2){
 		int totalRelatedValue = 0;
