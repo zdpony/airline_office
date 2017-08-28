@@ -351,12 +351,13 @@ public class ExcelOperator {
 			Flight fi = flightList.get(i);
 			for(int j=i+1;j<flightList.size();j++){
 				Flight fj = flightList.get(j);
-				int legId = (fi.leg.originAirport.id-1)*Parameter.TOTAL_AIRPORT_NUM + fj.leg.destinationAirport.id-1;
-
-				Leg leg = legList.get(legId);
+				
 				
 				if(fi.date.getDate()==fj.date.getDate()&&fi.flightNo==fj.flightNo){
 					if(fi.takeoffTime.getTime()<fj.takeoffTime.getTime()){
+						int legId = (fi.leg.originAirport.id-1)*Parameter.TOTAL_AIRPORT_NUM + fj.leg.destinationAirport.id-1;
+						Leg leg = legList.get(legId);
+						
 						ConnectingFlightpair mf = new ConnectingFlightpair();
 						mf.firstFlight = fi;
 						mf.secondFlight = fj;
@@ -365,6 +366,9 @@ public class ExcelOperator {
 						
 						connectingFlightList.add(mf);
 					}else{
+						int legId = (fi.leg.destinationAirport.id-1)*Parameter.TOTAL_AIRPORT_NUM + fj.leg.originAirport.id-1;
+						Leg leg = legList.get(legId);
+						
 						ConnectingFlightpair mf = new ConnectingFlightpair();
 						mf.firstFlight = fj;
 						mf.secondFlight = fi;
