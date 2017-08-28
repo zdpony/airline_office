@@ -263,12 +263,12 @@ public class LinearRecoveryModelWithPartialFixed {
 			for (ConnectingFlightpair cp : targetA.connectingFlightList) {
 				Flight straightenedFlight = targetA.generateStraightenedFlight(cp);
 				if (straightenedFlight != null) {
-					System.out.println(cp.firstFlight.takeoffTime+" -> "+cp.secondFlight.takeoffTime);
 					targetA.straightenedFlightList.add(straightenedFlight);
+					
 				}
 			}
 		}
-		System.exit(1);
+		
 		
 		// 每一个航班生成arc
 

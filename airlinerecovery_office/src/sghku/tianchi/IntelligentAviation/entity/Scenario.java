@@ -158,6 +158,7 @@ public class Scenario {
 
 			cf.firstFlight.brotherFlight = cf.secondFlight;
 			cf.secondFlight.brotherFlight = cf.firstFlight;
+			
 		}
 
 		// 判断某一个机场是否为国内机场

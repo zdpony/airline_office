@@ -61,11 +61,7 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 		Flight f1556 = scenario.flightList.get(1555);
 		f1556.timeLimitList.get(0)[0] = 11810; 
 		
-		Flight f1068 = scenario.flightList.get(1067);
-		for(int[] timeLimit:f1068.timeLimitList){
-			System.out.println(timeLimit[0]+"  ->  "+timeLimit[1]);
-		}
-		System.out.println("---------------------------");
+		
 		/*for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
 			for(int[] timeLimit:f.timeLimitList){
@@ -174,11 +170,12 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 			for (ConnectingFlightpair cp : targetA.connectingFlightList) {
 				Flight straightenedFlight = targetA.generateStraightenedFlight(cp);
 				if (straightenedFlight != null) {
+					//设置联程拉直
 					targetA.straightenedFlightList.add(straightenedFlight);
+					flightDelayLimitGenerator.setFlightDelayLimitForStraightenedFlight(straightenedFlight, scenario);
 				}
 			}
 		}
-		
 		
 		//更新base information
 		for(Aircraft a:scenario.aircraftList) {
@@ -339,52 +336,50 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 
 		// 为每一个飞机的网络模型生成arc
 		NetworkConstructorBasedOnDelayAndEarlyLimit networkConstructorBasedOnDelayAndEarlyLimit = new NetworkConstructorBasedOnDelayAndEarlyLimit();
-
-		int nnn1 = 0;
-		int nnn2 = 0;
-		int nnn3 = 0;
-		int nnn4 = 0;
+		ArcChecker.init();
 		for (Aircraft aircraft : candidateAircraftList) {	
-			//System.out.println("one iteration : "+aircraft.id);
 			List<FlightArc> totalFlightArcList = new ArrayList<>();
 			List<ConnectingArc> totalConnectingArcList = new ArrayList<>();
-			
-			//System.out.println("aircraft:"+aircraft.id+"  "+aircraft.singleFlightList.size()+" "+aircraft.connectingFlightList.size());
-			
+		
 			for (Flight f : aircraft.singleFlightList) {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForFlight(aircraft, f, scenario);
 				totalFlightArcList.addAll(faList);
-				//System.out.print(faList.size()+",");
-			
 			}
 			
 			for (Flight f : aircraft.straightenedFlightList) {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForFlight(aircraft, f, scenario);
 				totalFlightArcList.addAll(faList);
-				//System.out.print(faList.size()+",");
-			
 			}
-			//System.out.println();
-	
+			
 			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
 				List<ConnectingArc> caList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForConnectingFlightPair(aircraft, cf, scenario);
 				totalConnectingArcList.addAll(caList);
-				//System.out.print(caList.size()+":");
 			}
-			//System.out.println();
+			
+			Set<String> wholeFlightArcSet = ArcChecker.aircraftFlightArcMap.get(aircraft.id);
+			Set<String> wholeStraightenedArcSet = ArcChecker.aircraftStraightenedArcMap.get(aircraft.id);
+			Set<String> wholeConnectingArcSet = ArcChecker.aircraftConnectingArcMap.get(aircraft.id);
+
+			
+			for(int j=totalFlightArcList.size()-1;j>=0;j--){
+				FlightArc arc = totalFlightArcList.get(j);
+				if(arc.flight.isStraightened){
+					String label = arc.flight.connectingFlightpair.firstFlight.id+"_"+arc.flight.connectingFlightpair.secondFlight.id+"_"+arc.takeoffTime;
+					if(!wholeStraightenedArcSet.contains(label)){
+						totalFlightArcList.remove(j);
+					}
+				}else{
+					String label = arc.flight.id+"_"+arc.flight.connectingFlightpair.secondFlight.id+"_"+arc.takeoffTime;
+					if(!wholeFlightArcSet.contains(label)){
+						totalFlightArcList.remove(j);
+					}
+				}
+			}
 			
 			networkConstructorBasedOnDelayAndEarlyLimit.eliminateArcs(aircraft, scenario.airportList, totalFlightArcList, totalConnectingArcList, scenario);
-		
-			//System.out.println(totalFlightArcList.size()+" "+totalConnectingArcList.size()+"  "+aircraft.flightArcList.size()+"  "+aircraft.connectingArcList.size());
-			nnn1 += totalFlightArcList.size();
-			nnn2 += totalConnectingArcList.size();
-			
-			nnn3 += aircraft.flightArcList.size();
-			nnn4 += aircraft.connectingArcList.size();
 		}
-		System.out.println("nnn:"+nnn1 +"  "+nnn2+"  "+nnn3+"  "+nnn4);
 		
 		ArcChecker.init();
 		for(Aircraft a:candidateAircraftList) {

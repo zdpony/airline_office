@@ -366,7 +366,7 @@ public class ExcelOperator {
 						
 						connectingFlightList.add(mf);
 					}else{
-						int legId = (fi.leg.destinationAirport.id-1)*Parameter.TOTAL_AIRPORT_NUM + fj.leg.originAirport.id-1;
+						int legId = (fj.leg.originAirport.id-1)*Parameter.TOTAL_AIRPORT_NUM + fi.leg.destinationAirport.id-1;
 						Leg leg = legList.get(legId);
 						
 						ConnectingFlightpair mf = new ConnectingFlightpair();
