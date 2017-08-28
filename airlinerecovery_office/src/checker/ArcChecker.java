@@ -122,14 +122,11 @@ public class ArcChecker {
 		if(!wholeStraightenedArcSet.containsAll(currentStraightenedArcSet)) {
 			System.out.println("we find exception : "+a.id);
 		
-			/*for(String sss:currentFlightArcSet){
-				if(!wholeFlightArcSet.contains(sss)){
-					System.out.println("exception : "+sss);
-				}else{
-					System.out.println("contains");
+			for(String sss:currentStraightenedArcSet){
+				if(!wholeStraightenedArcSet.contains(sss)){
+					System.out.println("exception : "+sss+"  "+wholeStraightenedArcSet.size());
 				}
 			}
-			System.exit(1);*/
 		}
 	}
 	
