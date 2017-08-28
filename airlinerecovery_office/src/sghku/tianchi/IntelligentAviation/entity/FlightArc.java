@@ -56,6 +56,8 @@ public class FlightArc {
 	public int fulfilledDemand = 0;
 	
 	public boolean isVisited = false;
+
+	public List<FlightArcItinerary> flightArcItineraryList = new ArrayList<>();  //连接itinerary，标记转签乘客是否选择此flight arc
 	
 	//打印信息
 	public String getTime(){
