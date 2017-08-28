@@ -61,7 +61,11 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 		Flight f1556 = scenario.flightList.get(1555);
 		f1556.timeLimitList.get(0)[0] = 11810; 
 		
-		
+		Flight f1068 = scenario.flightList.get(1067);
+		for(int[] timeLimit:f1068.timeLimitList){
+			System.out.println(timeLimit[0]+"  ->  "+timeLimit[1]);
+		}
+		System.out.println("---------------------------");
 		/*for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
 			for(int[] timeLimit:f.timeLimitList){
@@ -159,6 +163,18 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 			for(ConnectingFlightpair cf:candidateConnectingFlightList){
 				if(!a.tabuLegs.contains(cf.firstFlight.leg) && !a.tabuLegs.contains(cf.secondFlight.leg)){
 					a.connectingFlightList.add(cf);
+				}
+			}
+		}
+		
+		// 生成联程拉直航班
+		for (int i = 0; i < candidateAircraftList.size(); i++) {
+			Aircraft targetA = candidateAircraftList.get(i);
+
+			for (ConnectingFlightpair cp : targetA.connectingFlightList) {
+				Flight straightenedFlight = targetA.generateStraightenedFlight(cp);
+				if (straightenedFlight != null) {
+					targetA.straightenedFlightList.add(straightenedFlight);
 				}
 			}
 		}
@@ -336,6 +352,14 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 			//System.out.println("aircraft:"+aircraft.id+"  "+aircraft.singleFlightList.size()+" "+aircraft.connectingFlightList.size());
 			
 			for (Flight f : aircraft.singleFlightList) {
+				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
+				List<FlightArc> faList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForFlight(aircraft, f, scenario);
+				totalFlightArcList.addAll(faList);
+				//System.out.print(faList.size()+",");
+			
+			}
+			
+			for (Flight f : aircraft.straightenedFlightList) {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForFlight(aircraft, f, scenario);
 				totalFlightArcList.addAll(faList);

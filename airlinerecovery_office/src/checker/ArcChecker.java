@@ -77,8 +77,6 @@ public class ArcChecker {
 			if(Math.abs(a.flow-1) > 1e-5) {
 				System.out.println("aircraft flow error");
 			}
-			System.out.println("air:"+a.id);
-			System.out.println(aircraftFlightArcMap.get(a.id).size()+"  "+aircraftConnectingArcMap.get(a.id).size()+"  "+aircraftStraightenedArcMap.get(a.id).size());
 		}
 	
 	}

@@ -213,4 +213,8 @@ public class FlightDelayLimitGenerator {
 			
 		}
 	}
+	//设置联程拉直航班的flight delay limit
+	public void setFlightDelayLimitForStraightenedFlight(Flight f, Scenario scenario){
+		
+	}
 }
