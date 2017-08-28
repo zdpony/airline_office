@@ -259,8 +259,6 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 				}
 			}
 
-			System.out.println("firstFlightArcList:"+firstFlightArcList.size());
-			
 			for (FlightArc firstArc : firstFlightArcList) {
 
 				for (int[] timeLimit : cf.secondFlight.timeLimitList) {
