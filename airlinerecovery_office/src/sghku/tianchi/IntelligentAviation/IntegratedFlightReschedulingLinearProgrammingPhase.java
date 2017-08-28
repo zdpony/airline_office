@@ -54,7 +54,7 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 				
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
-		
+			
 		/*for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
 			for(int[] timeLimit:f.timeLimitList){
@@ -154,8 +154,8 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 					a.connectingFlightList.add(cf);
 				}
 			}
+			
 		}
-		
 		
 		//更新base information
 		for(Aircraft a:scenario.aircraftList) {
@@ -337,11 +337,22 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 			}
 			//System.out.println();
 	
-			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
+			ConnectingFlightpair cf = aircraft.connectingFlightList.get(3);
+			List<ConnectingArc> caList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForConnectingFlightPair(aircraft, cf, scenario);
+			totalConnectingArcList.addAll(caList);
+			
+			
+			System.out.println(caList.size()+"  "+aircraft.tabuLegs.contains(cf.firstFlight.leg)+"  "+aircraft.tabuLegs.contains(cf.secondFlight.leg)+" "+cf.firstFlight.isIncludedInTimeWindow+" "+cf.secondFlight.isIncludedInTimeWindow);
+		
+			System.exit(1);
+			/*for(ConnectingFlightpair cf:aircraft.connectingFlightList){
 				List<ConnectingArc> caList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForConnectingFlightPair(aircraft, cf, scenario);
 				totalConnectingArcList.addAll(caList);
-				//System.out.print(caList.size()+":");
-			}
+				
+				
+				System.out.println(caList.size()+"  "+aircraft.tabuLegs.contains(cf.firstFlight.leg)+"  "+aircraft.tabuLegs.contains(cf.secondFlight.leg)+" "+cf.firstFlight.isIncludedInTimeWindow+" "+cf.secondFlight.isIncludedInTimeWindow);
+			
+			}*/
 			//System.out.println();
 			
 			networkConstructorBasedOnDelayAndEarlyLimit.eliminateArcs(aircraft, scenario.airportList, totalFlightArcList, totalConnectingArcList, scenario);

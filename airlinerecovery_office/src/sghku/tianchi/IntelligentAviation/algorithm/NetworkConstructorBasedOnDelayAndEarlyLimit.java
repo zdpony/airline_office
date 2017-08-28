@@ -267,6 +267,8 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 				}
 			}
 
+			System.out.println("firstFlightArcList:"+firstFlightArcList.size());
+			
 			for (FlightArc firstArc : firstFlightArcList) {
 
 				for (int[] timeLimit : cf.secondFlight.timeLimitList) {
@@ -303,7 +305,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							}
 						}
 
-						if (cf.secondFlight.initialTakeoffT - presetGap * i >= firstArc.readyTime) {
+						if (cf.secondFlight.initialTakeoffT + presetGap * i >= firstArc.readyTime) {
 							FlightArc secondArc = new FlightArc();
 							secondArc.flight = cf.secondFlight;
 							secondArc.aircraft = aircraft;
