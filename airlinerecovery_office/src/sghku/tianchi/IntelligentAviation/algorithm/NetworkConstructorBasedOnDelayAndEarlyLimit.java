@@ -84,10 +84,6 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 				int startTime = timeLimit[0];
 				int endTime = timeLimit[1];
 				
-				if(f.id == 159 && aircraft.id == 1){
-					System.out.println("time window:"+startTime+"  "+endTime+"  "+f.isAllowtoBringForward+" "+f.initialTakeoffT);
-				}
-
 				for (int t = startTime; t <= endTime; t += presetGap) {
 					int i = (t - f.initialTakeoffT) / presetGap;
 
@@ -112,7 +108,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 						}
 					}
 
-					if ((i * presetGap) % Parameter.gap != 0 && t != endTime) { // 小gap，只有当其受影响时才继续生成相应arc,
+					if ((i * presetGap) % Parameter.gap != 0 && t != endTime && t != startTime) { // 小gap，只有当其受影响时才继续生成相应arc,
 																			// 同时当t在最后的时候也需要选择
 						if (!isOriginInAffectedLdnTkfLimitPeriod && !isDestinationInAffectedLdnTkfLimitPeriod) {
 							continue;
@@ -131,10 +127,6 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 					arc.takeoffTime = f.initialTakeoffT + i * presetGap;
 					arc.landingTime = arc.takeoffTime + flyTime;
 
-					if(f.id == 159 && aircraft.id == 1){
-						System.out.println("take off:"+arc.takeoffTime);
-					}
-					
 					// arc.readyTime = arc.landingTime +
 					// Parameter.MIN_BUFFER_TIME;
 					arc.readyTime = arc.landingTime
@@ -238,7 +230,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							}
 						}
 
-						if ((i * presetGap) % Parameter.gap != 0 && t != endTime) {
+						if ((i * presetGap) % Parameter.gap != 0 && t != endTime && t != startTime) {
 							if (!isOriginInAffectedLdnTkfPeriod && !isDestinationInAffectedLdnTkfPeriod) {
 								continue;
 							}
@@ -297,7 +289,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							}
 						}
 
-						if ((i * presetGap) % Parameter.gap != 0 && t != endTime) {
+						if ((i * presetGap) % Parameter.gap != 0 && t != endTime && t != startTime) {
 							if (!isWithinAffectedRegionOrigin2 && !isWithinAffectedRegionDestination2) {
 								continue;
 							}
