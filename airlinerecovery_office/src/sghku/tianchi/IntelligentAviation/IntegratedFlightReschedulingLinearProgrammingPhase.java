@@ -24,6 +24,7 @@ import sghku.tianchi.IntelligentAviation.common.OutputResultWithPassenger;
 import sghku.tianchi.IntelligentAviation.common.Parameter;
 import sghku.tianchi.IntelligentAviation.entity.Aircraft;
 import sghku.tianchi.IntelligentAviation.entity.Airport;
+import sghku.tianchi.IntelligentAviation.entity.ClosureInfo;
 import sghku.tianchi.IntelligentAviation.entity.ConnectingArc;
 import sghku.tianchi.IntelligentAviation.entity.ConnectingFlightpair;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
@@ -55,6 +56,11 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 				
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
+		
+		//故意修改f1556的time window
+		Flight f1556 = scenario.flightList.get(1555);
+		f1556.timeLimitList.get(0)[0] = 11810; 
+		
 		
 		/*for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
@@ -359,7 +365,9 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 		ArcChecker.init();
 		for(Aircraft a:candidateAircraftList) {
 			System.out.println("aircraft : "+a.id);
-			ArcChecker.checkFlightArcs(a, a.flightArcList);
+			//ArcChecker.checkFlightArcs(a, a.flightArcList);
+			//ArcChecker.checkConnectingArcs(a, a.connectingArcList);
+			ArcChecker.checkStraightenedArcs(a, a.flightArcList);
 		}
 		
 		System.exit(1);

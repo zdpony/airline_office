@@ -14,6 +14,7 @@ import java.util.Set;
 import sghku.tianchi.IntelligentAviation.common.MyFile;
 import sghku.tianchi.IntelligentAviation.common.Parameter;
 import sghku.tianchi.IntelligentAviation.entity.Aircraft;
+import sghku.tianchi.IntelligentAviation.entity.ConnectingArc;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
 import sghku.tianchi.IntelligentAviation.entity.FlightArc;
 import sghku.tianchi.IntelligentAviation.entity.LineValue;
@@ -31,6 +32,17 @@ public class ArcChecker {
 		// TODO Auto-generated method stub
 		Parameter.isReadFixedRoutes = false;
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
+		
+		for(Aircraft a:scenario.aircraftList) {
+			Set<String> connectingArcSet = new HashSet<>();
+			Set<String> flightArcSet = new HashSet<>();
+			Set<String> straightenedArcSet = new HashSet<>();
+			
+			aircraftConnectingArcMap.put(a.id, connectingArcSet);
+			aircraftFlightArcMap.put(a.id, flightArcSet);
+			aircraftStraightenedArcMap.put(a.id, straightenedArcSet);
+			
+		}
 		
 		String fileName = "linearsolution_30_421761.807_15.8.csv";
 		
@@ -65,7 +77,7 @@ public class ArcChecker {
 			if(Math.abs(a.flow-1) > 1e-5) {
 				System.out.println("aircraft flow error");
 			}
-			
+			System.out.println("air:"+a.id);
 			System.out.println(aircraftFlightArcMap.get(a.id).size()+"  "+aircraftConnectingArcMap.get(a.id).size()+"  "+aircraftStraightenedArcMap.get(a.id).size());
 		}
 	
@@ -82,8 +94,61 @@ public class ArcChecker {
 		
 		Set<String> currentFlightArcSet = aircraftFlightArcMap.get(a.id);
 		
-		if(!wholeFlightArcSet.contains(currentFlightArcSet)) {
+		if(!wholeFlightArcSet.containsAll(currentFlightArcSet)) {
+			System.out.println("we find exception : "+a.id+"  currentFlightArcSet:"+currentFlightArcSet.size()+"  "+wholeFlightArcSet.size());
+		
+			for(String sss:currentFlightArcSet){
+				if(!wholeFlightArcSet.contains(sss)){
+					System.out.println("exception : "+sss);
+				}else{
+					System.out.println("contains");
+				}
+			}
+			System.exit(1);
+		}
+	}
+	
+	public static void checkStraightenedArcs(Aircraft a, List<FlightArc> flightArcList) {
+		Set<String> wholeStraightenedArcSet = new HashSet<>();
+		
+		for(FlightArc arc:flightArcList) {
+			if(arc.flight.isStraightened) {
+				wholeStraightenedArcSet.add(arc.flight.connectingFlightpair.firstFlight.id+"_"+arc.flight.connectingFlightpair.secondFlight.id+"_"+arc.takeoffTime);				
+			}
+		}
+		
+		Set<String> currentStraightenedArcSet = aircraftStraightenedArcMap.get(a.id);
+		
+		if(!wholeStraightenedArcSet.containsAll(currentStraightenedArcSet)) {
 			System.out.println("we find exception : "+a.id);
+		
+			/*for(String sss:currentFlightArcSet){
+				if(!wholeFlightArcSet.contains(sss)){
+					System.out.println("exception : "+sss);
+				}else{
+					System.out.println("contains");
+				}
+			}
+			System.exit(1);*/
+		}
+	}
+	
+	public static void checkConnectingArcs(Aircraft a, List<ConnectingArc> connectingArcList) {
+		Set<String> wholeConnectingArcSet = new HashSet<>();
+		
+		for(ConnectingArc arc:connectingArcList) {
+			wholeConnectingArcSet.add(arc.connectingFlightPair.firstFlight.id+"_"+arc.connectingFlightPair.secondFlight.id+"_"+arc.firstArc.takeoffTime+"_"+arc.secondArc.takeoffTime);
+		}
+		
+		Set<String> currentConnectingArcSet = aircraftConnectingArcMap.get(a.id);
+		if(!wholeConnectingArcSet.containsAll(currentConnectingArcSet)) {
+			System.out.println("we find exception : "+a.id);
+			
+			for(String sss:currentConnectingArcSet){
+				if(!wholeConnectingArcSet.contains(sss)){
+					System.out.println("exception:"+sss);
+				}
+			}
 		}
 	}
 	
@@ -94,14 +159,10 @@ public class ArcChecker {
 		int aircraftID = sn.nextInt();
 		Aircraft a = scenario.aircraftList.get(aircraftID - 1);
 		
-		Set<String> connectingArcSet = new HashSet<>();
-		Set<String> flightArcSet = new HashSet<>();
-		Set<String> straightenedArcSet = new HashSet<>();
+		Set<String> connectingArcSet = aircraftConnectingArcMap.get(a.id);
+		Set<String> flightArcSet = aircraftFlightArcMap.get(a.id);
+		Set<String> straightenedArcSet = aircraftStraightenedArcMap.get(a.id);
 		
-		aircraftConnectingArcMap.put(a.id, connectingArcSet);
-		aircraftConnectingArcMap.put(a.id, flightArcSet);
-		aircraftConnectingArcMap.put(a.id, straightenedArcSet);
-
 		double flow = sn.nextDouble();
 
 		a.fixedDestination = a.initialLocation;

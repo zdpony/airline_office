@@ -266,8 +266,15 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 					int endTime = timeLimit[1];
 
 					for (int t = startTime; t <= endTime; t += presetGap) {
+						
 						int i = (t - cf.secondFlight.initialTakeoffT) / presetGap;
 
+
+						if(aircraft.id == 115 && cf.firstFlight.id == 1555 && cf.secondFlight.id == 1556 && firstArc.takeoffTime == 11385){
+							System.out.println("second arc time:"+t+"   ["+startTime+","+endTime+"]"+" "+(t - cf.secondFlight.initialTakeoffT)+" "+presetGap+" "+i);						 
+						}
+						
+						
 						boolean isWithinAffectedRegionOrigin2 = false;
 						boolean isWithinAffectedRegionDestination2 = false;
 
@@ -293,6 +300,10 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							if (!isWithinAffectedRegionOrigin2 && !isWithinAffectedRegionDestination2) {
 								continue;
 							}
+						}
+						
+						if(aircraft.id == 115 && cf.firstFlight.id == 1555 && cf.secondFlight.id == 1556 && firstArc.takeoffTime == 11385){
+							System.out.println("second arc time:"+t+"   ["+startTime+","+endTime+"]"+" "+(t - cf.secondFlight.initialTakeoffT)+" "+presetGap+" "+i);						 
 						}
 
 						if (cf.secondFlight.initialTakeoffT + presetGap * i >= firstArc.readyTime) {

@@ -198,6 +198,7 @@ public class FlightArc {
 		
 		return vio;
 	}
+
 	
 	//如果该arc选择，更新对应的aircraft， flight的信息
 	public void update() {
