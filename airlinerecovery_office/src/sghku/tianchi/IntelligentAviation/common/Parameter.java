@@ -46,7 +46,7 @@ public class Parameter {
 	//public final static int SAVE_STRAIGHTEN_TIME = 60;
 	
 	public final static int COST_DEADHEAD = 5000;
-	public final static int COST_CANCEL = 1000;
+	public final static int COST_CANCEL = 1200;
 	public final static int COST_AIRCRAFTTYPE_VARIATION = 1000;
 	public final static int COST_STRAIGHTEN = 750;
 	public final static int COST_DELAY = 100;  //per hour
