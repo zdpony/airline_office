@@ -14,6 +14,7 @@ import java.util.concurrent.SynchronousQueue;
 
 import javax.swing.plaf.synth.SynthSpinnerUI;
 
+import checker.ArcChecker;
 import sghku.tianchi.IntelligentAviation.algorithm.FlightDelayLimitGenerator;
 import sghku.tianchi.IntelligentAviation.algorithm.NetworkConstructor;
 import sghku.tianchi.IntelligentAviation.algorithm.NetworkConstructorBasedOnDelayAndEarlyLimit;
@@ -354,6 +355,14 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 			nnn4 += aircraft.connectingArcList.size();
 		}
 		System.out.println("nnn:"+nnn1 +"  "+nnn2+"  "+nnn3+"  "+nnn4);
+		
+		ArcChecker.init();
+		for(Aircraft a:candidateAircraftList) {
+			System.out.println("aircraft : "+a.id);
+			ArcChecker.checkFlightArcs(a, a.flightArcList);
+		}
+		
+		System.exit(1);
 		
 		NetworkConstructor networkConstructor = new NetworkConstructor();
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
