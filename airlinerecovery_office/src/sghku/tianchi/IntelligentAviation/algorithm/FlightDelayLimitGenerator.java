@@ -20,6 +20,7 @@ public class FlightDelayLimitGenerator {
 	private List<Integer> AirportID_5_6_22_49_76 = Arrays.asList(5, 6, 22, 49, 76); //contains id
 	private Set<Integer> indirectTyphoonAffectedAirportSet = new HashSet<>();
 	private Set<Integer> AirportID_25_67 = new HashSet(Arrays.asList(25, 67)); //contains id
+		
 	//设定flight delay限制
 	public void setFlightDelayLimit(Scenario scenario){
 
@@ -204,6 +205,7 @@ public class FlightDelayLimitGenerator {
 				f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+120});
 			}
 			
+			//其余情况delay 1小时
 			else {
 				f.timeLimitList.add(new int[] {f.initialTakeoffT,f.initialTakeoffT+60});
 			}
