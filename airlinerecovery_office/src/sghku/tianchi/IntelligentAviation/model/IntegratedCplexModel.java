@@ -37,9 +37,9 @@ import sghku.tianchi.IntelligentAviation.entity.TransferPassenger;
 public class IntegratedCplexModel {
 	public IloCplex cplex;
 
-	public double totalSignChangeDelayCost = 0;
+	/*public double totalSignChangeDelayCost = 0;
 	public double totalOriginalPassengerDelayCost = 0;
-	public double totalPassengerCancelCost = 0;
+	public double totalPassengerCancelCost = 0;*/
 
 	//the network flow model for initial problem solving
 
@@ -274,13 +274,13 @@ public class IntegratedCplexModel {
 
 
 					for(FlightArc arc:ite.flightArcList){
-						iteNumConstraint.addTerm(arc.fulfilledDemand, x[arc.id]); 
+						iteNumConstraint.addTerm(arc.fulfilledNormalPassenger, x[arc.id]); 
 					}
 					for(ConnectingArc arc:ite.firstConnectionArcList){
-						iteNumConstraint.addTerm(arc.firstArc.fulfilledDemand, beta[arc.id]); 
+						iteNumConstraint.addTerm(arc.firstArc.fulfilledNormalPassenger, beta[arc.id]); 
 					}
 					for(ConnectingArc arc:ite.secondConnectingArcList){
-						iteNumConstraint.addTerm(arc.secondArc.fulfilledDemand, beta[arc.id]); 
+						iteNumConstraint.addTerm(arc.secondArc.fulfilledNormalPassenger, beta[arc.id]); 
 					}
 					
 					cplex.addEq(iteNumConstraint, ite.volume);
@@ -545,9 +545,9 @@ public class IntegratedCplexModel {
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);							
 							//System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
 							totalArcCost += fa.cost;
-							totalOriginalPassengerDelayCost += fa.delayCost;
+							/*totalOriginalPassengerDelayCost += fa.delayCost;
 							totalPassengerCancelCost += fa.connPssgrCclDueToSubseqCclCost;
-							totalPassengerCancelCost += fa.connPssgrCclDueToStraightenCost;
+							totalPassengerCancelCost += fa.connPssgrCclDueToStraightenCost;*/
 
 						}
 					}
@@ -571,8 +571,8 @@ public class IntegratedCplexModel {
 							
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
 							
-							totalPassengerCancelCost += arc.pssgrCclCostDueToInsufficientSeat;
-							totalOriginalPassengerDelayCost += arc.delayCost;
+							/*totalPassengerCancelCost += arc.pssgrCclCostDueToInsufficientSeat;
+							totalOriginalPassengerDelayCost += arc.delayCost;*/
 						}
 					}
 					
@@ -611,7 +611,7 @@ public class IntegratedCplexModel {
 								//更新具体转签行程信息
 								fsi.volume = cplex.getValue(passX[i]);
 								//add signChangeDelayCost to verify the cost setting
-								totalSignChangeDelayCost += fsi.volume * (fsi.unitCost==0.01? 0:fsi.unitCost);	
+								//totalSignChangeDelayCost += fsi.volume * (fsi.unitCost==0.01? 0:fsi.unitCost);	
 								fsi.flightSection.flight.signChangeItineraryList.add(fsi);
 								
 								/*if(fsi.itinerary.flight.id == 499 && fsi.flightSection.flight.id == 569){
@@ -625,7 +625,7 @@ public class IntegratedCplexModel {
 						}
 						for(int i=0;i<itineraryList.size();i++) {
 							if(cplex.getValue(passCancel[i])>1e-6){
-								totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
+								//totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
 							}
 						}
 					}					
@@ -637,8 +637,7 @@ public class IntegratedCplexModel {
 
 							solution.cancelledFlightList.add(f);
 
-							totalPassengerCancelCost += f.connectedPassengerNumber*Parameter.passengerCancelCost
-									+Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2;
+							//totalPassengerCancelCost += f.connectedPassengerNumber*Parameter.passengerCancelCost+Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2;
 
 							f.isCancelled = true;
 
@@ -786,9 +785,9 @@ public class IntegratedCplexModel {
 					}
 					System.out.println("numOfMissedConnections:"+numOfMissedConnections);
 					System.out.println("numOfSecondMissedConnections:"+numOfSecondMissedConnections);*/
-					System.out.println("totalSignChangeDelayCost (measured by model):"+totalSignChangeDelayCost);
+					/*System.out.println("totalSignChangeDelayCost (measured by model):"+totalSignChangeDelayCost);
 					System.out.println("totalCancelCost (measured by model):"+totalPassengerCancelCost);
-					System.out.println("totalDelayCost (measured by model):"+totalOriginalPassengerDelayCost);
+					System.out.println("totalDelayCost (measured by model):"+totalOriginalPassengerDelayCost);*/
 
 					/*double madeUpCancelCost = 0;
 					double deductDelayCost = 0;

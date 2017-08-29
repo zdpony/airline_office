@@ -42,7 +42,7 @@ public class SecondStagePassengerRecovery {
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
 
-		for(Flight f:scenario.flightList){
+		/*for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
 			for(int[] timeLimit:f.timeLimitList){
 				System.out.print("["+timeLimit[0]+","+timeLimit[1]+"] ");
@@ -52,8 +52,9 @@ public class SecondStagePassengerRecovery {
 
 		try {
 
-			Scanner sn = new Scanner(new File("delayfiles/linearsolution_30_421761.807_15.8.csv"));
-
+			//Scanner sn = new Scanner(new File("delayfiles/linearsolution_30_421761.807_15.8.csv"));
+			Scanner sn = new Scanner(new File("delayfiles/linearsolution_30_489295.42_967_largecancelcost.csv"));
+		
 			sn.nextLine();
 			while(sn.hasNextLine()){
 				String nextLine = sn.nextLine();
@@ -100,6 +101,7 @@ public class SecondStagePassengerRecovery {
 			e.printStackTrace();
 		}
 
+		System.exit(1);*/
 
 		List<Flight> candidateFlightList = new ArrayList<>();
 		List<ConnectingFlightpair> candidateConnectingFlightList = new ArrayList<>();
@@ -200,11 +202,29 @@ public class SecondStagePassengerRecovery {
 
 		NetworkConstructor networkConstructor = new NetworkConstructor();
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
+	
+	
+		/*NetworkConstructor networkConstructor = new NetworkConstructor();
+
+		for (Aircraft aircraft : candidateAircraftList) {	
+			
+			for (Flight f : aircraft.singleFlightList) {
+				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
+				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, 5, scenario);
+			}
+
+			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
+				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, 5, false, scenario);
+			}
+		}
+		
+		
+		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);*/
 	}
 
 	//计算itinerary，和FlightArcItinerary
 	public static void constructFlightArcItinerary(Scenario sce) {
-		// clear scenario 里面储存的上阶段用的itinerary
+		/*// clear scenario 里面储存的上阶段用的itinerary
 		sce.itineraryList.clear();
 
 		// 检测每一个flight的（可被签转的）disrupted passenger, itinerary只包含可被签转的disrupted passenger
@@ -252,8 +272,8 @@ public class SecondStagePassengerRecovery {
 				}
 			}		
 		}
-
-		//生成flightArcItinerary
+*/
+		//生成FlightArcItinerary
 		for (Itinerary ite : sce.itineraryList) {
 			// 生成替代航班相关的FlightArcItinerary
 			for (Flight f : ite.candidateFlightList) {
@@ -263,13 +283,11 @@ public class SecondStagePassengerRecovery {
 					FlightArcItinerary fai = new FlightArcItinerary();
 					fai.itinerary = ite;
 					fai.flightArc = fa;
-
+					fai.unitCost = -1;
 					int delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
-						if(delay ==0) {
-							fai.unitCost = 0.001; 
-						}else if (delay < 6 * 60) {
+						if (delay < 6 * 60) {
 							fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
 						} else if (delay >= 6 * 60 && delay < 24 * 60) {
 							fai.unitCost = delay/(60.0*24.0); 
@@ -281,10 +299,10 @@ public class SecondStagePassengerRecovery {
 							if(delay < 48*60){
 								System.out.println("error delay:" + delay);								
 							}
-						}
+						}	
 					}
 
-					if (fai.unitCost > 1e-6) {
+					if (fai.unitCost > 0-1e-5) {
 						ite.flightArcItineraryList.add(fai);
 						fa.flightArcItineraryList.add(fai);
 					}
@@ -299,13 +317,12 @@ public class SecondStagePassengerRecovery {
 					FlightArcItinerary fai = new FlightArcItinerary();
 					fai.itinerary = ite;
 					fai.flightArc = ca.firstArc;
-
+					fai.unitCost = -1;
+					
 					int delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
-						if(delay ==0) {
-							fai.unitCost = 0.001; 
-						}else if (delay < 6 * 60) {
+						if (delay < 6 * 60) {
 							fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
 						} else if (delay >= 6 * 60 && delay < 24 * 60) {
 							fai.unitCost = delay/(60.0*24.0); 
@@ -320,7 +337,7 @@ public class SecondStagePassengerRecovery {
 						}
 					}
 
-					if (fai.unitCost > 1e-6) {
+					if (fai.unitCost > 0-1e-5) {
 						ite.flightArcItineraryList.add(fai);
 						ca.firstArc.flightArcItineraryList.add(fai);
 					}
@@ -331,13 +348,12 @@ public class SecondStagePassengerRecovery {
 					fai = new FlightArcItinerary();
 					fai.itinerary = ite;
 					fai.flightArc = ca.secondArc;
-
+					fai.unitCost = -1;
+					
 					delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
-						if(delay ==0) {
-							fai.unitCost = 0.001; 
-						}else if (delay < 6 * 60) {
+						if (delay < 6 * 60) {
 							fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
 						} else if (delay >= 6 * 60 && delay < 24 * 60) {
 							fai.unitCost = delay/(60.0*24.0); 
@@ -352,7 +368,7 @@ public class SecondStagePassengerRecovery {
 						}
 					}
 
-					if (fai.unitCost > 1e-6) {
+					if (fai.unitCost > 0-1e-5) {
 						ite.flightArcItineraryList.add(fai);
 						ca.secondArc.flightArcItineraryList.add(fai);
 					}
