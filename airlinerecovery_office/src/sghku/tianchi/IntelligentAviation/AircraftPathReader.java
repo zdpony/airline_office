@@ -3,6 +3,7 @@ package sghku.tianchi.IntelligentAviation;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.temporal.IsoFields;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -255,7 +256,9 @@ public class AircraftPathReader {
 	public void fixAircraftRoute(Scenario scenario, int number) {
 		Scanner sn = null;
 		try {
-			sn = new Scanner(new File("linearsolution.csv"));
+			//sn = new Scanner(new File("linearsolution.csv"));
+			sn = new Scanner(new File(Parameter.linearsolutionfilename));
+			//sn = new Scanner(new File("fixschedule"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

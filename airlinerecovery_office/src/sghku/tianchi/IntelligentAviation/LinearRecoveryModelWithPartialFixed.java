@@ -39,10 +39,10 @@ public class LinearRecoveryModelWithPartialFixed {
 		Parameter.isReadFixedRoutes = true;
 		
 		//前面两个循环求解线性松弛模型
-		runOneIteration(70,true);   //(iteration结束后固定住的aircraft route，是否解LP)
+		//runOneIteration(70,true);   //(iteration结束后固定住的aircraft route，是否解LP)
 		//runOneIteration(50, true);
 		//runOneIteration(10, true);
-		//runOneIteration(12, false);
+		runOneIteration(12, false);
 		//最后一个循环直接解整数规划模型
 		//runOneIteration(32, false);
 		
@@ -264,9 +264,11 @@ public class LinearRecoveryModelWithPartialFixed {
 				Flight straightenedFlight = targetA.generateStraightenedFlight(cp);
 				if (straightenedFlight != null) {
 					targetA.straightenedFlightList.add(straightenedFlight);
+					
 				}
 			}
 		}
+		
 		
 		// 每一个航班生成arc
 

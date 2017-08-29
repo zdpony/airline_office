@@ -46,7 +46,7 @@ public class Parameter {
 	//public final static int SAVE_STRAIGHTEN_TIME = 60;
 	
 	public final static int COST_DEADHEAD = 5000;
-	public final static int COST_CANCEL = 1200;
+	public final static int COST_CANCEL = 1000;
 	public final static int COST_AIRCRAFTTYPE_VARIATION = 1000;
 	public final static int COST_STRAIGHTEN = 750;
 	public final static int COST_DELAY = 100;  //per hour
@@ -90,7 +90,7 @@ public class Parameter {
 	public static int neighEndIndex = 12*12;
 	
 	/*public static int neighGap = 15;*/
-	public static int gap = 30;
+	public static int gap = 15;
 	
 	public static int fileIndex = 1;
 	
@@ -117,4 +117,6 @@ public class Parameter {
 	public static boolean isPassengerCostConsidered = false;
 	public static boolean isReadFixedRoutes = false;
 	public static boolean onlySignChangeDisruptedPassenger = false;
+	
+	public static String linearsolutionfilename = "linearsoluion.csv";
 }

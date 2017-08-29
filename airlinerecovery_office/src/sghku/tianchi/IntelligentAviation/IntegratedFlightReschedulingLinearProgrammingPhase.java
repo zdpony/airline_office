@@ -57,15 +57,6 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
 		
-		//故意修改f1556的time window
-		Flight f1556 = scenario.flightList.get(1555);
-		f1556.timeLimitList.get(0)[0] = 11810; 
-		
-		Flight f1068 = scenario.flightList.get(1067);
-		for(int[] timeLimit:f1068.timeLimitList){
-			System.out.println(timeLimit[0]+"  ->  "+timeLimit[1]);
-		}
-		System.out.println("---------------------------");
 		/*for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
 			for(int[] timeLimit:f.timeLimitList){
@@ -174,11 +165,12 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 			for (ConnectingFlightpair cp : targetA.connectingFlightList) {
 				Flight straightenedFlight = targetA.generateStraightenedFlight(cp);
 				if (straightenedFlight != null) {
+					//设置联程拉直
 					targetA.straightenedFlightList.add(straightenedFlight);
+					flightDelayLimitGenerator.setFlightDelayLimitForStraightenedFlight(straightenedFlight, scenario);
 				}
 			}
 		}
-		
 		
 		//更新base information
 		for(Aircraft a:scenario.aircraftList) {
@@ -339,63 +331,107 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 
 		// 为每一个飞机的网络模型生成arc
 		NetworkConstructorBasedOnDelayAndEarlyLimit networkConstructorBasedOnDelayAndEarlyLimit = new NetworkConstructorBasedOnDelayAndEarlyLimit();
-
-		int nnn1 = 0;
-		int nnn2 = 0;
-		int nnn3 = 0;
-		int nnn4 = 0;
+		ArcChecker.init();
+		//System.out.println("total cost："+ArcChecker.totalCost+"  "+ArcChecker.totalCancelCost);
+	
 		for (Aircraft aircraft : candidateAircraftList) {	
-			//System.out.println("one iteration : "+aircraft.id);
 			List<FlightArc> totalFlightArcList = new ArrayList<>();
 			List<ConnectingArc> totalConnectingArcList = new ArrayList<>();
-			
-			//System.out.println("aircraft:"+aircraft.id+"  "+aircraft.singleFlightList.size()+" "+aircraft.connectingFlightList.size());
-			
+		
 			for (Flight f : aircraft.singleFlightList) {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForFlight(aircraft, f, scenario);
 				totalFlightArcList.addAll(faList);
-				//System.out.print(faList.size()+",");
-			
 			}
 			
 			for (Flight f : aircraft.straightenedFlightList) {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForFlight(aircraft, f, scenario);
 				totalFlightArcList.addAll(faList);
-				//System.out.print(faList.size()+",");
-			
 			}
-			//System.out.println();
-	
+			
 			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
+				
 				List<ConnectingArc> caList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForConnectingFlightPair(aircraft, cf, scenario);
 				totalConnectingArcList.addAll(caList);
-				//System.out.print(caList.size()+":");
 			}
-			//System.out.println();
+			/*
+			Map<String,Double> wholeFlightArcSet = ArcChecker.aircraftFlightArcMap.get(aircraft.id);
+			Map<String,Double> wholeStraightenedArcSet = ArcChecker.aircraftStraightenedArcMap.get(aircraft.id);
+			Map<String,Double> wholeConnectingArcSet = ArcChecker.aircraftConnectingArcMap.get(aircraft.id);
 			
+			Set<String> fSet = new HashSet<>();
+			Set<String> sSet = new HashSet<>();
+			Set<String> cSet = new HashSet<>();
+			
+			for(int j=totalFlightArcList.size()-1;j>=0;j--){
+				FlightArc arc = totalFlightArcList.get(j);
+				if(arc.flight.isStraightened){
+					String label = arc.flight.connectingFlightpair.firstFlight.id+"_"+arc.flight.connectingFlightpair.secondFlight.id+"_"+arc.takeoffTime;
+					if(!wholeStraightenedArcSet.keySet().contains(label)){
+						totalFlightArcList.remove(j);
+					}else{
+						sSet.add(label);
+						double flow = wholeStraightenedArcSet.get(label);
+						arc.fractionalFlow = flow;
+					}
+				}else{
+					String label = arc.flight.id+"_"+arc.takeoffTime;
+					if(!wholeFlightArcSet.keySet().contains(label)){
+						totalFlightArcList.remove(j);
+					}else{
+						fSet.add(label);
+						double flow = wholeFlightArcSet.get(label);
+						arc.fractionalFlow = flow;
+					}
+				}
+			}
+			
+			for(int j=totalConnectingArcList.size()-1;j>=0;j--){
+				ConnectingArc arc = totalConnectingArcList.get(j);
+				
+				String label = arc.firstArc.flight.id+"_"+arc.secondArc.flight.id+"_"+arc.firstArc.takeoffTime+"_"+arc.secondArc.takeoffTime;
+		
+				if(!wholeConnectingArcSet.keySet().contains(label)){
+					totalConnectingArcList.remove(j);
+				}else{
+					//System.out.println("add label:"+label);
+					cSet.add(label);
+					double flow = wholeConnectingArcSet.get(label);
+					arc.fractionalFlow = flow;
+				}
+			}
+			
+			for(String key:wholeConnectingArcSet.keySet()){
+				if(!cSet.contains(key)){
+					System.out.println("we find error "+key+"  "+aircraft.id);
+				}
+			}
+			for(String key:wholeFlightArcSet.keySet()){
+				if(!fSet.contains(key)){
+					System.out.println("we find error 2 "+key);
+				}
+			}
+			for(String key:wholeStraightenedArcSet.keySet()){
+				if(!sSet.contains(key)){
+					System.out.println("we find error 3 "+key);
+				}
+			}
+			
+			int n1 = totalFlightArcList.size();
+			int n2 = totalConnectingArcList.size();*/
 			networkConstructorBasedOnDelayAndEarlyLimit.eliminateArcs(aircraft, scenario.airportList, totalFlightArcList, totalConnectingArcList, scenario);
-		
-			//System.out.println(totalFlightArcList.size()+" "+totalConnectingArcList.size()+"  "+aircraft.flightArcList.size()+"  "+aircraft.connectingArcList.size());
-			nnn1 += totalFlightArcList.size();
-			nnn2 += totalConnectingArcList.size();
+			/*int n3 = aircraft.flightArcList.size();
+			int n4 = aircraft.connectingArcList.size();
 			
-			nnn3 += aircraft.flightArcList.size();
-			nnn4 += aircraft.connectingArcList.size();
+			if(n1 != n3){
+				System.out.println("error 1");
+			}
+			if(n2 != n4){
+				System.out.println("error 2");
+			}*/
 		}
-		System.out.println("nnn:"+nnn1 +"  "+nnn2+"  "+nnn3+"  "+nnn4);
-		
-		ArcChecker.init();
-		for(Aircraft a:candidateAircraftList) {
-			System.out.println("aircraft : "+a.id);
-			//ArcChecker.checkFlightArcs(a, a.flightArcList);
-			//ArcChecker.checkConnectingArcs(a, a.connectingArcList);
-			ArcChecker.checkStraightenedArcs(a, a.flightArcList);
-		}
-		
-		System.exit(1);
-		
+	
 		NetworkConstructor networkConstructor = new NetworkConstructor();
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
 	}
