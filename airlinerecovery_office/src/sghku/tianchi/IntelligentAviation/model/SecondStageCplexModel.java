@@ -562,6 +562,7 @@ public class SecondStageCplexModel {
 					for(int i=0;i<sce.itineraryList.size();i++) {
 						if(cplex.getValue(passCancel[i])>1e-6){
 							//totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
+							sce.itineraryList.get(i).flight.normalPassengerCancelNum = cplex.getValue(passCancel[i]);
 						}
 					}
 
