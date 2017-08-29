@@ -56,6 +56,8 @@ public class FlightArc {
 	public int fulfilledDemand = 0;
 	
 	public boolean isVisited = false;
+
+	public List<FlightArcItinerary> flightArcItineraryList = new ArrayList<>();  //连接itinerary，标记转签乘客是否选择此flight arc
 	
 	//打印信息
 	public String getTime(){
@@ -64,7 +66,7 @@ public class FlightArc {
 	
 	public String toString(){
 	
-		return id+","+takeoffTime+"->"+landingTime+"->"+readyTime+"  "+flight.leg.originAirport.id+":"+flight.leg.destinationAirport.id;
+		return flight.id+","+takeoffTime+"->"+landingTime+"->"+readyTime+"  "+flight.leg.originAirport.id+":"+flight.leg.destinationAirport.id;
 	}
 	
 	//计算该arc的成本

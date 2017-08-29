@@ -158,6 +158,7 @@ public class Scenario {
 
 			cf.firstFlight.brotherFlight = cf.secondFlight;
 			cf.secondFlight.brotherFlight = cf.firstFlight;
+			
 		}
 
 		// 判断某一个机场是否为国内机场
@@ -279,7 +280,7 @@ public class Scenario {
 					if(f.isCancelled || f.isStraightened){
 						capacity = 0;
 					}
-					int totalVolume = 0;
+					int totalVolume = 0;  //本来要乘坐的乘客
 					
 					if(f.isStraightened){
 						totalVolume = f.normalPassengerNumber;
@@ -294,6 +295,8 @@ public class Scenario {
 							totalVolume = f.passengerNumber;
 						}						
 					}	
+					
+			
 					
 					int cancelNum = Math.max(0, totalVolume-capacity);
 					cancelNum = Math.min(cancelNum, f.normalPassengerNumber);
