@@ -731,17 +731,23 @@ public class Scenario {
 
 		System.out.println("totalTransfer:"+totalTransfer);
 		
-		
-		for(TransferPassenger tp:transferPassengerList){
-			if(fliedFlightSet.contains(tp.inFlight.id)){
-				if(fliedFlightSet.contains(tp.outFlight.id)){
-					tp.inFlight.occupiedSeatsByTransferPassenger += tp.volume;
-					tp.outFlight.occupiedSeatsByTransferPassenger += tp.volume;
-				}else{
-					tp.inFlight.occupiedSeatsByTransferPassenger += tp.volume;
+		if(Parameter.stageIndex == 1){
+			for(Flight f:flightList){
+				f.occupiedSeatsByTransferPassenger = f.transferPassengerNumber;
+			}
+		}else if(Parameter.stageIndex == 2){
+			for(TransferPassenger tp:transferPassengerList){
+				if(fliedFlightSet.contains(tp.inFlight.id)){
+					if(fliedFlightSet.contains(tp.outFlight.id)){
+						tp.inFlight.occupiedSeatsByTransferPassenger += tp.volume;
+						tp.outFlight.occupiedSeatsByTransferPassenger += tp.volume;
+					}else{
+						tp.inFlight.occupiedSeatsByTransferPassenger += tp.volume;
+					}
 				}
 			}
 		}
+		
 /*		
 		for(TransferPassenger tp:transferPassengerList){
 			tp.inFlight.occupiedSeatsByTransferPassenger += tp.volume;

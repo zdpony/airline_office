@@ -38,11 +38,11 @@ public class FlightArc {
  	
  	public int passengerCapacity;
  	
- 	public double delayCostPerPssgr;
+ 	/*public double delayCostPerPssgr;
  	public double delayCost;
  	public double connPssgrCclDueToSubseqCclCost;
  	
- 	public double connPssgrCclDueToStraightenCost;
+ 	public double connPssgrCclDueToStraightenCost;*/
  	
  	
  	
@@ -53,7 +53,7 @@ public class FlightArc {
 	public boolean isWithinAffectedRegionOrigin = false;
 	public boolean isWithinAffectedRegionDestination = false;
 	
-	public int fulfilledDemand = 0;
+	public int fulfilledNormalPassenger = 0;
 	
 	public boolean isVisited = false;
 
@@ -98,8 +98,8 @@ public class FlightArc {
 				cost += flight.connectingFlightpair.firstFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
 				cost += flight.connectingFlightpair.secondFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
 				
-				delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);  //record delay cost of connecting pssgr on flight
-				connPssgrCclDueToStraightenCost += cancelNum*Parameter.passengerCancelCost; //record cancel cost due to straighten
+				//delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);  //record delay cost of connecting pssgr on flight
+				//connPssgrCclDueToStraightenCost += cancelNum*Parameter.passengerCancelCost; //record cancel cost due to straighten
 				
 			}		
 		}else if(flight.isDeadhead){
@@ -127,27 +127,31 @@ public class FlightArc {
 					 */
 					if(flight.connectingFlightpair.firstFlight.id == flight.id){
 						cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
-						connPssgrCclDueToSubseqCclCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;  //record conn cancel
+						//connPssgrCclDueToSubseqCclCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;  //record conn cancel
 					}
 				}
 				
 				//考虑中转乘客的延误 -- 假设中转乘客都成功中转
-				delayCostPerPssgr = ExcelOperator.getPassengerDelayParameter(delay);  //record delay cost per passenger, in case some transfer delays should be deducted due to cancel
-				for(TransferPassenger tp:flight.firstPassengerTransferList) {
+				//delayCostPerPssgr = ExcelOperator.getPassengerDelayParameter(delay);  //record delay cost per passenger, in case some transfer delays should be deducted due to cancel
+				/*for(TransferPassenger tp:flight.firstPassengerTransferList) {
 					cost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
-					delayCost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
+					//delayCost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
 				}
 				for(TransferPassenger tp:flight.secondPassengerTransferList){
 					cost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
-					delayCost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
-				}
+					//delayCost += tp.volume * ExcelOperator.getPassengerDelayParameter(delay);
+				}*/
+				//考虑中转乘客的延误 -- 假设中转乘客都成功中转
+				cost += flight.occupiedSeatsByTransferPassenger*ExcelOperator.getPassengerDelayParameter(delay);
+				
 				//考虑普通乘客的延误（因为联程乘客被cancel了，所以只有普通乘客的延误）
 				int remainingCapacity = aircraft.passengerCapacity;
 				remainingCapacity = remainingCapacity - flight.occupiedSeatsByTransferPassenger;  //预留座位给中转乘客--假设中转一定能成功
 				int actualNum = Math.min(remainingCapacity, flight.normalPassengerNumber);
 							
 				cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
-				delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
+				//普通旅客的取消在模型中通过计算签转得到
+				//delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
 				
 			}			
 		}

@@ -24,14 +24,14 @@ public class AnalyzeSchedule {
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 		
 
-		String fileName = "linearsolution_30_421761.807_15.8.csv";
+		String fileName = "linearsolution_30_489295.42_967_largecancelcost.csv";
 	
 		Scanner sn = null;
 		try {
 			//sn = new Scanner(new File("linearsolution_30_421761.807_15.8.csv"));
 			//sn = new Scanner(new File("linearsolution_60_423292.675_19.1.csv"));
 
-			sn = new Scanner(new File("delayfiles/"+fileName));			
+			sn = new Scanner(new File(fileName));			
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

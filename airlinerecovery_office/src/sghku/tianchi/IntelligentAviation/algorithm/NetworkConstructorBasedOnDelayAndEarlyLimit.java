@@ -632,8 +632,8 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 						// 如果该航班是联程航班，则代表联程航班已经被取消，所以不需要在考虑对应的联程乘客
 
 						// 减去普通乘客
-						arc.fulfilledDemand = Math.min(arc.passengerCapacity, f.normalPassengerNumber);
-						arc.passengerCapacity = arc.passengerCapacity - arc.fulfilledDemand;
+						arc.fulfilledNormalPassenger = Math.min(arc.passengerCapacity, f.normalPassengerNumber);
+						//arc.passengerCapacity = arc.passengerCapacity - arc.fulfilledNormalPassenger;
 
 						arc.flight.itinerary.flightArcList.add(arc);
 					}
@@ -757,10 +757,10 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							- cf.firstFlight.occupiedSeatsByTransferPassenger;
 
 					// 减去普通乘客
-					ca.firstArc.fulfilledDemand = Math.min(ca.firstArc.passengerCapacity, cf.firstFlight.normalPassengerNumber);
-					ca.firstArc.passengerCapacity = ca.firstArc.passengerCapacity
-							- ca.firstArc.fulfilledDemand;
-
+					ca.firstArc.fulfilledNormalPassenger = Math.min(ca.firstArc.passengerCapacity, cf.firstFlight.normalPassengerNumber);
+					/*ca.firstArc.passengerCapacity = ca.firstArc.passengerCapacity
+							- ca.firstArc.fulfilledNormalPassenger;*/
+					
 					ca.firstArc.flight.itinerary.firstConnectionArcList.add(ca);
 					
 					boolean isFound = false;
@@ -802,10 +802,10 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 							- cf.secondFlight.occupiedSeatsByTransferPassenger;
 					
 					// 减去普通乘客
-					ca.secondArc.fulfilledDemand = Math.min(ca.secondArc.passengerCapacity, cf.secondFlight.normalPassengerNumber);
-					ca.secondArc.passengerCapacity = ca.secondArc.passengerCapacity
-							- ca.secondArc.fulfilledDemand;
-
+					ca.secondArc.fulfilledNormalPassenger = Math.min(ca.secondArc.passengerCapacity, cf.secondFlight.normalPassengerNumber);
+					
+					//ca.secondArc.passengerCapacity = ca.secondArc.passengerCapacity- ca.secondArc.fulfilledNormalPassenger;
+					
 					ca.secondArc.flight.itinerary.secondConnectingArcList.add(ca);
 					
 					isFound = false;

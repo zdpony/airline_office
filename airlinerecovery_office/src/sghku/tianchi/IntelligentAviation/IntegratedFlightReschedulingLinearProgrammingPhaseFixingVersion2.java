@@ -43,14 +43,14 @@ import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 public class IntegratedFlightReschedulingLinearProgrammingPhaseFixingVersion2 {
 	public static void main(String[] args) {
 
-		Parameter.isPassengerCostConsidered = false;
+		Parameter.isPassengerCostConsidered = true;
 		Parameter.isReadFixedRoutes = true;
 		Parameter.onlySignChangeDisruptedPassenger = false;
 		
-		/*Parameter.linearsolutionfilename = "linearsolution_0829_stage1.csv";
-		runOneIteration(true, 70);*/
-		Parameter.linearsolutionfilename = "linearsolution_0829_stage2.csv";
-		runOneIteration(true, 40);
+		Parameter.linearsolutionfilename = "linearsolutionwithpassenger_0829_stage1.csv";
+		runOneIteration(true, 70);
+		/*Parameter.linearsolutionfilename = "linearsolution_0829_stage2.csv";
+		runOneIteration(true, 40);*/
 	}
 		
 	public static void runOneIteration(boolean isFractional, int fixNumber){
@@ -165,8 +165,7 @@ public class IntegratedFlightReschedulingLinearProgrammingPhaseFixingVersion2 {
 			flightSectionItineraryList.addAll(ite.flightSectionItineraryList);
 		}
 		
-		
-		
+
 		//求解CPLEX模型
 		//CplexModelForPureAircraft model = new CplexModelForPureAircraft();
 		//Solution solution = model.run(candidateAircraftList, candidateFlightList, new ArrayList(), scenario.airportList,scenario, isFractional, true, false);		
@@ -183,7 +182,7 @@ public class IntegratedFlightReschedulingLinearProgrammingPhaseFixingVersion2 {
 
 		// 为每一个飞机的网络模型生成arc
 		NetworkConstructorBasedOnDelayAndEarlyLimit networkConstructorBasedOnDelayAndEarlyLimit = new NetworkConstructorBasedOnDelayAndEarlyLimit();
-		ArcChecker.init();
+		//ArcChecker.init();
 		//System.out.println("total cost："+ArcChecker.totalCost+"  "+ArcChecker.totalCancelCost);
 	
 		for (Aircraft aircraft : candidateAircraftList) {	

@@ -37,9 +37,9 @@ import sghku.tianchi.IntelligentAviation.entity.TransferPassenger;
 public class CplexModel {
 	public IloCplex cplex;
 
-	public double totalSignChangeDelayCost = 0;
+	/*public double totalSignChangeDelayCost = 0;
 	public double totalOriginalPassengerDelayCost = 0;
-	public double totalPassengerCancelCost = 0;
+	public double totalPassengerCancelCost = 0;*/
 
 	//the network flow model for initial problem solving
 
@@ -520,9 +520,9 @@ public class CplexModel {
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);							
 							//System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
 							totalArcCost += fa.cost;
-							totalOriginalPassengerDelayCost += fa.delayCost;
+							/*totalOriginalPassengerDelayCost += fa.delayCost;
 							totalPassengerCancelCost += fa.connPssgrCclDueToSubseqCclCost;
-							totalPassengerCancelCost += fa.connPssgrCclDueToStraightenCost;
+							totalPassengerCancelCost += fa.connPssgrCclDueToStraightenCost;*/
 
 						}
 					}
@@ -546,8 +546,8 @@ public class CplexModel {
 							
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
 							
-							totalPassengerCancelCost += arc.pssgrCclCostDueToInsufficientSeat;
-							totalOriginalPassengerDelayCost += arc.delayCost;
+							/*totalPassengerCancelCost += arc.pssgrCclCostDueToInsufficientSeat;
+							totalOriginalPassengerDelayCost += arc.delayCost;*/
 						}
 					}
 					
@@ -565,7 +565,7 @@ public class CplexModel {
 								//更新具体转签行程信息
 								fsi.volume = cplex.getValue(passX[i]);
 								//add signChangeDelayCost to verify the cost setting
-								totalSignChangeDelayCost += fsi.volume * (fsi.unitCost==0.01? 0:fsi.unitCost);	
+								//totalSignChangeDelayCost += fsi.volume * (fsi.unitCost==0.01? 0:fsi.unitCost);	
 								fsi.flightSection.flight.signChangeItineraryList.add(fsi);
 								
 							}
@@ -573,7 +573,7 @@ public class CplexModel {
 						}
 						for(int i=0;i<itineraryList.size();i++) {
 							if(cplex.getValue(passCancel[i])>1e-6){
-								totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
+								//totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
 							}
 						}
 					}					
@@ -585,8 +585,7 @@ public class CplexModel {
 
 							solution.cancelledFlightList.add(f);
 
-							totalPassengerCancelCost += f.connectedPassengerNumber*Parameter.passengerCancelCost
-									+Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2;
+							//totalPassengerCancelCost += f.connectedPassengerNumber*Parameter.passengerCancelCost+Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2;
 
 							f.isCancelled = true;
 
@@ -734,9 +733,9 @@ public class CplexModel {
 					}
 					System.out.println("numOfMissedConnections:"+numOfMissedConnections);
 					System.out.println("numOfSecondMissedConnections:"+numOfSecondMissedConnections);*/
-					System.out.println("totalSignChangeDelayCost (measured by model):"+totalSignChangeDelayCost);
+					/*System.out.println("totalSignChangeDelayCost (measured by model):"+totalSignChangeDelayCost);
 					System.out.println("totalCancelCost (measured by model):"+totalPassengerCancelCost);
-					System.out.println("totalDelayCost (measured by model):"+totalOriginalPassengerDelayCost);
+					System.out.println("totalDelayCost (measured by model):"+totalOriginalPassengerDelayCost);*/
 
 					/*double madeUpCancelCost = 0;
 					double deductDelayCost = 0;
@@ -768,7 +767,7 @@ public class CplexModel {
 					System.out.println("Cancel that was not calculated: "+madeUpCancelCost);
 					System.out.println("Delay that was incorrectly calculated: "+deductDelayCost);*/
 
-					for(Flight f:sce.flightList){
+					/*for(Flight f:sce.flightList){
 						if(f.isIncludedInTimeWindow){
 							for(FlightArc arc:f.flightarcList){
 								if(cplex.getValue(x[arc.id]) > 1e-5){
@@ -809,7 +808,7 @@ public class CplexModel {
 						if(f.isIncludedInTimeWindow){
 							System.out.println(f.id+" "+f.totalCost);
 						}
-					}
+					}*/
 					
 					/*//检查itinerary
 					for(FlightSection fs:flightSectionList) {

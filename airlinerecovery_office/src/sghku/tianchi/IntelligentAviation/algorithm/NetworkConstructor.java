@@ -212,8 +212,8 @@ public class NetworkConstructor {
 							arc.passengerCapacity = arc.passengerCapacity - f.normalPassengerNumber;
 						}else{
 							// 减去普通乘客
-							arc.fulfilledDemand = Math.min(arc.passengerCapacity, f.normalPassengerNumber);
-							arc.passengerCapacity = arc.passengerCapacity - arc.fulfilledDemand;
+							arc.fulfilledNormalPassenger = Math.min(arc.passengerCapacity, f.normalPassengerNumber);
+							arc.passengerCapacity = arc.passengerCapacity - arc.fulfilledNormalPassenger;
 
 							arc.flight.itinerary.flightArcList.add(arc);
 							
@@ -648,9 +648,9 @@ public class NetworkConstructor {
 					arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity - cf.firstFlight.normalPassengerNumber;	
 				}else{
 					// 减去普通乘客
-					arc.firstArc.fulfilledDemand = Math.min(arc.firstArc.passengerCapacity, cf.firstFlight.normalPassengerNumber);
+					arc.firstArc.fulfilledNormalPassenger = Math.min(arc.firstArc.passengerCapacity, cf.firstFlight.normalPassengerNumber);
 					arc.firstArc.passengerCapacity = arc.firstArc.passengerCapacity
-							- arc.firstArc.fulfilledDemand;
+							- arc.firstArc.fulfilledNormalPassenger;
 
 					arc.firstArc.flight.itinerary.firstConnectionArcList.add(arc);
 				}
@@ -707,9 +707,9 @@ public class NetworkConstructor {
 					arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity - cf.secondFlight.normalPassengerNumber;
 				}else{
 					// 减去普通乘客
-					arc.secondArc.fulfilledDemand = Math.min(arc.secondArc.passengerCapacity, cf.secondFlight.normalPassengerNumber);
+					arc.secondArc.fulfilledNormalPassenger = Math.min(arc.secondArc.passengerCapacity, cf.secondFlight.normalPassengerNumber);
 					arc.secondArc.passengerCapacity = arc.secondArc.passengerCapacity
-							- arc.secondArc.fulfilledDemand;
+							- arc.secondArc.fulfilledNormalPassenger;
 
 					arc.secondArc.flight.itinerary.secondConnectingArcList.add(arc);
 				}

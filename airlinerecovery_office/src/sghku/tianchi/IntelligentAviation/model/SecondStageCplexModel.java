@@ -38,9 +38,9 @@ import sghku.tianchi.IntelligentAviation.entity.TransferPassenger;
 public class SecondStageCplexModel {
 	public IloCplex cplex;
 
-	public double totalSignChangeDelayCost = 0;
+	/*public double totalSignChangeDelayCost = 0;
 	public double totalOriginalPassengerDelayCost = 0;
-	public double totalPassengerCancelCost = 0;
+	public double totalPassengerCancelCost = 0;*/
 
 	//the network flow model for initial problem solving
 
@@ -175,7 +175,7 @@ public class SecondStageCplexModel {
 			}
 
 			//3. for each flight, at least one arc can be selected, the last flight can not be cancelled
-			for(int i=0;i<flightList.size();i++){
+			/*for(int i=0;i<flightList.size();i++){
 				Flight f = flightList.get(i);
 
 				IloLinearNumExpr flightSelectionConstraint = cplex.linearNumExpr();
@@ -195,10 +195,10 @@ public class SecondStageCplexModel {
 				}
 
 				cplex.addEq(flightSelectionConstraint, 1);
-			}
+			}*/
 
 			//4. base balance constraints
-			for(int i=0;i<sce.airportList.size();i++){
+			/*for(int i=0;i<sce.airportList.size();i++){
 				Airport airport = sce.airportList.get(i);
 
 				for(int j=0;j<Parameter.TOTAL_AIRCRAFTTYPE_NUM;j++) {
@@ -210,10 +210,10 @@ public class SecondStageCplexModel {
 
 					cplex.addEq(baseConstraint, airport.finalAircraftNumber[j]);
 				}			
-			}
+			}*/
 
 			// 5. 对于每一个联程航班，两趟航班必须由同一个飞机执行
-			for (ConnectingFlightpair cf : cfList) {
+			/*for (ConnectingFlightpair cf : cfList) {
 				IloLinearNumExpr cont = cplex.linearNumExpr();
 
 				for (FlightArc arc : cf.firstFlight.flightarcList) {
@@ -231,11 +231,11 @@ public class SecondStageCplexModel {
 				cont.addTerm(-1, z[cf.firstFlight.idInCplexModel]);
 
 				cplex.addLe(cont, 0);
-			}
+			}*/
 
 
 			//6. 乘客相关约束
-			for(Itinerary ite:sce.itineraryList) {
+			/*for(Itinerary ite:sce.itineraryList) {
 				IloLinearNumExpr iteNumConstraint = cplex.linearNumExpr();
 				//转签到其他flight的乘客数量
 				for(FlightArcItinerary fai:ite.flightArcItineraryList) {
@@ -284,10 +284,10 @@ public class SecondStageCplexModel {
 				seatConstraint2.addTerm(-ca.secondArc.passengerCapacity, beta[ca .id]);	
 
 				cplex.addLe(seatConstraint2, 0);
-			}
+			}*/
 
 			//8. 机场起降约束
-			for(String key:sce.keyList) {
+			/*for(String key:sce.keyList) {
 				IloLinearNumExpr airportConstraint = cplex.linearNumExpr();
 				List<FlightArc> faList = sce.airportTimeFlightArcMap.get(key);
 				List<ConnectingArc> caList = sce.airportTimeConnectingArcMap.get(key);
@@ -336,7 +336,7 @@ public class SecondStageCplexModel {
 			for(ConnectingArc arc:sce.airport67ClosureConnectingArcList){
 				parkingConstraint67.addTerm(1, beta[arc.id]);
 			}
-			cplex.addLe(parkingConstraint67, sce.airport67ParkingLimit);
+			cplex.addLe(parkingConstraint67, sce.airport67ParkingLimit);*/
 
 			if(cplex.solve()){
 
@@ -511,9 +511,9 @@ public class SecondStageCplexModel {
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);							
 							//System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
 							totalArcCost += fa.cost;
-							totalOriginalPassengerDelayCost += fa.delayCost;
+							/*totalOriginalPassengerDelayCost += fa.delayCost;
 							totalPassengerCancelCost += fa.connPssgrCclDueToSubseqCclCost;
-							totalPassengerCancelCost += fa.connPssgrCclDueToStraightenCost;
+							totalPassengerCancelCost += fa.connPssgrCclDueToStraightenCost;*/
 
 						}
 					}
@@ -537,8 +537,8 @@ public class SecondStageCplexModel {
 
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
 
-							totalPassengerCancelCost += arc.pssgrCclCostDueToInsufficientSeat;
-							totalOriginalPassengerDelayCost += arc.delayCost;
+							/*totalPassengerCancelCost += arc.pssgrCclCostDueToInsufficientSeat;
+							totalOriginalPassengerDelayCost += arc.delayCost;*/
 						}
 					}
 
@@ -561,7 +561,7 @@ public class SecondStageCplexModel {
 					}
 					for(int i=0;i<sce.itineraryList.size();i++) {
 						if(cplex.getValue(passCancel[i])>1e-6){
-							totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
+							//totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
 						}
 					}
 
@@ -573,8 +573,7 @@ public class SecondStageCplexModel {
 
 							solution.cancelledFlightList.add(f);
 
-							totalPassengerCancelCost += f.connectedPassengerNumber*Parameter.passengerCancelCost
-									+Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2;
+							//totalPassengerCancelCost += f.connectedPassengerNumber*Parameter.passengerCancelCost+Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2;
 
 							f.isCancelled = true;
 
@@ -722,9 +721,9 @@ public class SecondStageCplexModel {
 					}
 					System.out.println("numOfMissedConnections:"+numOfMissedConnections);
 					System.out.println("numOfSecondMissedConnections:"+numOfSecondMissedConnections);*/
-					System.out.println("totalSignChangeDelayCost (measured by model):"+totalSignChangeDelayCost);
+					/*System.out.println("totalSignChangeDelayCost (measured by model):"+totalSignChangeDelayCost);
 					System.out.println("totalCancelCost (measured by model):"+totalPassengerCancelCost);
-					System.out.println("totalDelayCost (measured by model):"+totalOriginalPassengerDelayCost);
+					System.out.println("totalDelayCost (measured by model):"+totalOriginalPassengerDelayCost);*/
 
 					/*double madeUpCancelCost = 0;
 					double deductDelayCost = 0;
@@ -756,7 +755,7 @@ public class SecondStageCplexModel {
 					/*System.out.println("Cancel that was not calculated: "+madeUpCancelCost);
 					System.out.println("Delay that was incorrectly calculated: "+deductDelayCost);*/
 
-					for(Flight f:sce.flightList){
+					/*for(Flight f:sce.flightList){
 						if(f.isIncludedInTimeWindow){
 							for(FlightArc arc:f.flightarcList){
 								if(cplex.getValue(x[arc.id]) > 1e-5){
@@ -791,7 +790,7 @@ public class SecondStageCplexModel {
 							}
 
 						}						
-					}
+					}*/
 
 
 

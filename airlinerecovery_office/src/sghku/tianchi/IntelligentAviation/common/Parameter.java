@@ -90,7 +90,7 @@ public class Parameter {
 	public static int neighEndIndex = 12*12;
 	
 	/*public static int neighGap = 15;*/
-	public static int gap = 15;
+	public static int gap = 30;
 	
 	public static int fileIndex = 1;
 	
@@ -118,5 +118,6 @@ public class Parameter {
 	public static boolean isReadFixedRoutes = false;
 	public static boolean onlySignChangeDisruptedPassenger = false;
 	
+	public static int stageIndex = 1;
 	public static String linearsolutionfilename = "linearsoluion.csv";
 }
