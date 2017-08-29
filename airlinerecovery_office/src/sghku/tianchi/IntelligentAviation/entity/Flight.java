@@ -122,7 +122,7 @@ public class Flight {
 	
 	public List<FlightSectionItinerary> signChangeItineraryList = new ArrayList<>();
 	
-	public List<FlightArcItinerary> faSignChangeItineraryList = new ArrayList<>();
+	public List<FlightArcItinerary> flightArcItineraryList = new ArrayList<>();
 
 	//temp
 	public double totalCost = 0;

@@ -555,7 +555,7 @@ public class SecondStageCplexModel {
 						if(cplex.getValue(passX[i]) > 1e-5){
 							//更新具体转签行程信息
 							fai.volume = cplex.getValue(passX[i]);
-							fai.flightArc.flight.faSignChangeItineraryList.add(fai);
+							fai.flightArc.flight.flightArcItineraryList.add(fai);
 						}
 
 					}
