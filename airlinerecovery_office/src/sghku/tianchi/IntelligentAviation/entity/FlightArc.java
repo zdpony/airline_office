@@ -38,11 +38,7 @@ public class FlightArc {
  	
  	public int passengerCapacity;
  	
- 	/*public double delayCostPerPssgr;
- 	public double delayCost;
- 	public double connPssgrCclDueToSubseqCclCost;
- 	
- 	public double connPssgrCclDueToStraightenCost;*/
+ 	public double cancelRelatedCost = 0;
  	
  	
  	
@@ -94,10 +90,15 @@ public class FlightArc {
 				cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
 				cost += cancelNum*Parameter.passengerCancelCost;
 				
+				cancelRelatedCost += cancelNum*Parameter.passengerCancelCost;
+				
 				//计算中转乘客
 				cost += flight.connectingFlightpair.firstFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
 				cost += flight.connectingFlightpair.secondFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
 				
+				cancelRelatedCost += flight.connectingFlightpair.firstFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
+				cancelRelatedCost += flight.connectingFlightpair.secondFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
+
 				//delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);  //record delay cost of connecting pssgr on flight
 				//connPssgrCclDueToStraightenCost += cancelNum*Parameter.passengerCancelCost; //record cancel cost due to straighten
 				
@@ -129,15 +130,16 @@ public class FlightArc {
 						 */
 						if(flight.connectingFlightpair.firstFlight.id == flight.id){
 							cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
-							//connPssgrCclDueToSubseqCclCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;  //record conn cancel
+							cancelRelatedCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
 						}
 					}else{
 						//该联程航班依旧有效，计算联程乘客的延误和取消成本
-						int cancelConnectingPassenger = Math.max(flight.connectedPassengerNumber - aircraft.passengerCapacity, 0);
+						int cancelConnectingPassenger = Math.max(flight.connectedPassengerNumber - remainingCapacity, 0);
 						int flyConnectingPassenger = flight.connectedPassengerNumber - cancelConnectingPassenger;
 						
 						if(flight.id == flight.connectingFlightpair.firstFlight.id){
 							cost += cancelConnectingPassenger * Parameter.passengerCancelCost; //只有第一截考虑cost
+							cancelRelatedCost += cancelConnectingPassenger * Parameter.passengerCancelCost;
 						}
 						cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(delay);
 						

@@ -509,7 +509,7 @@ public class SecondStageCplexModel {
 					solution.objValue = cplex.getObjValue();
 					Parameter.objective += cplex.getObjValue();
 
-					double totalArcCost = 0;
+					double totalCancelCost = 0;
 
 					for(FlightArc fa:flightArcList){
 
@@ -526,7 +526,8 @@ public class SecondStageCplexModel {
 
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);							
 							//System.out.println("fa:"+fa.fractionalFlow+"  "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+" "+fa.flight.initialAircraft.id+"  "+fa.aircraft.type+" "+fa.flight.initialAircraftType+" "+fa.flight.id+" "+fa.flight.isIncludedInConnecting);
-							totalArcCost += fa.cost;
+							
+							totalCancelCost += fa.cancelRelatedCost * fa.fractionalFlow;
 							/*totalOriginalPassengerDelayCost += fa.delayCost;
 							totalPassengerCancelCost += fa.connPssgrCclDueToSubseqCclCost;
 							totalPassengerCancelCost += fa.connPssgrCclDueToStraightenCost;*/
@@ -552,6 +553,8 @@ public class SecondStageCplexModel {
 							arc.connectingFlightPair.secondFlight.aircraft = arc.aircraft;
 
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
+							
+							totalCancelCost += arc.cancelRelatedCost * arc.fractionalFlow;
 
 							/*totalPassengerCancelCost += arc.pssgrCclCostDueToInsufficientSeat;
 							totalOriginalPassengerDelayCost += arc.delayCost;*/
@@ -565,22 +568,25 @@ public class SecondStageCplexModel {
 						}
 					}
 
-
+					double totalSignChangeDelayCost = 0;
 					for(int i=0;i<flightArcItineraryList.size();i++) {
 						FlightArcItinerary fai = flightArcItineraryList.get(i);
 						if(cplex.getValue(passX[i]) > 1e-5){
 							//更新具体转签行程信息
 							fai.volume = cplex.getValue(passX[i]);
 							fai.flightArc.flight.flightArcItineraryList.add(fai);
+							totalSignChangeDelayCost += fai.volume * fai.unitCost;
 						}
-
 					}
+					System.out.println("totalSignChangeDelayCost:"+totalSignChangeDelayCost);
 					for(int i=0;i<sce.itineraryList.size();i++) {
+						
 						if(cplex.getValue(passCancel[i])>1e-6){
+							totalCancelCost += cplex.getValue(passCancel[i]) * 4;
 							//totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
 						}
 					}
-
+					
 
 					for(int i=0;i<flightList.size();i++){
 						Flight f = flightList.get(i);
@@ -592,10 +598,11 @@ public class SecondStageCplexModel {
 							//totalPassengerCancelCost += f.connectedPassengerNumber*Parameter.passengerCancelCost+Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2;
 
 							f.isCancelled = true;
-
+							totalCancelCost += (f.totalConnectingCancellationCost + f.totalTransferCancellationCost)*cplex.getValue(z[i]);
 						}
 					}
 
+					System.out.println("totalCancelCost:"+totalCancelCost);
 					try {
 						File file = new File("linearsolution.csv");
 						if(file.exists()){

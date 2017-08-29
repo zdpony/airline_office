@@ -25,7 +25,7 @@ public class ConnectingArc {
 	public double fractionalFlow;
 
 	// to verify the cost setting
-	public double pssgrCclCostDueToInsufficientSeat;
+	public double cancelRelatedCost = 0;
 	public double delayCost;
 	
 	//public int fulfilledDemand;
@@ -88,7 +88,7 @@ public class ConnectingArc {
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay);
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay);
 			
-			pssgrCclCostDueToInsufficientSeat += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
+			cancelRelatedCost += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
 		
 			delayCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record conn delay cost
 			delayCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record conn delay cost
