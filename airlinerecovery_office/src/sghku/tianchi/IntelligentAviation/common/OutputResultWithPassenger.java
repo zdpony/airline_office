@@ -6,6 +6,7 @@ import java.io.IOException;
 import sghku.tianchi.IntelligentAviation.entity.ConnectingFlightpair;
 import sghku.tianchi.IntelligentAviation.entity.Flight;
 import sghku.tianchi.IntelligentAviation.entity.FlightArc;
+import sghku.tianchi.IntelligentAviation.entity.FlightArcItinerary;
 import sghku.tianchi.IntelligentAviation.entity.FlightSectionItinerary;
 import sghku.tianchi.IntelligentAviation.entity.Itinerary;
 import sghku.tianchi.IntelligentAviation.entity.Scenario;
@@ -100,6 +101,18 @@ public class OutputResultWithPassenger {
 								int num = (int)Math.round(fsi.volume);
 								if(num > 0){
 									signChangeSb.append(fsi.flightSection.flight.id +":"+(int)Math.round(fsi.volume)+"&");
+									isSignChange = true;
+								}		
+							}
+						}
+					}
+					
+					for(FlightArcItinerary fai:f.itinerary.flightArcItineraryList){
+						if(fai.volume > 1e-6){
+							if(fai.flightArc.flight.id != f.id){
+								int num = (int)Math.round(fai.volume);
+								if(num > 0){
+									signChangeSb.append(fai.flightArc.flight.id +":"+(int)Math.round(fai.volume)+"&");
 									isSignChange = true;
 								}		
 							}

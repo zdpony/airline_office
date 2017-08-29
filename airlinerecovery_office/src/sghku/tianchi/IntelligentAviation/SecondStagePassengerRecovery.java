@@ -30,8 +30,9 @@ public class SecondStagePassengerRecovery {
 
 		Parameter.isPassengerCostConsidered = true;
 		Parameter.isReadFixedRoutes = true;
-		Parameter.onlySignChangeDisruptedPassenger = true;  //只能转签受影响乘客
+		Parameter.onlySignChangeDisruptedPassenger = false;  //只能转签受影响乘客
 
+		Parameter.gap = 5;
 		runOneIteration(false);
 
 	}
@@ -42,6 +43,7 @@ public class SecondStagePassengerRecovery {
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
 
+		
 		/*for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
 			for(int[] timeLimit:f.timeLimitList){
@@ -106,12 +108,15 @@ public class SecondStagePassengerRecovery {
 		List<Flight> candidateFlightList = new ArrayList<>();
 		List<ConnectingFlightpair> candidateConnectingFlightList = new ArrayList<>();
 
-		int nnn = 0;
-		for(Aircraft a:scenario.aircraftList){
-
-			nnn += a.fixedFlightList.size();
-
-			for(Flight f1:a.fixedFlightList){				
+		List<Aircraft> candidateAircraftList = new ArrayList<>();
+		for(int j=0;j<scenario.aircraftList.size();j++){
+			Aircraft a = scenario.aircraftList.get(j);
+			candidateAircraftList.add(a);
+		}
+		
+		for(Aircraft a:candidateAircraftList){
+			for(Flight f1:a.fixedFlightList){	
+				
 				if (!a.checkFlyViolation(f1)) {
 					a.singleFlightList.add(f1);
 				}else{
@@ -124,7 +129,7 @@ public class SecondStagePassengerRecovery {
 			for(int i=0;i<a.fixedFlightList.size()-1;i++){
 				Flight f1 = a.fixedFlightList.get(i);
 				Flight f2 = a.fixedFlightList.get(i+1);
-
+				
 				f1.isShortConnection = false;
 				f2.isShortConnection = false;
 
@@ -139,8 +144,11 @@ public class SecondStagePassengerRecovery {
 				}
 
 				if(f1.isIncludedInConnecting && f2.isIncludedInConnecting && f1.brotherFlight.id == f2.id){
-					ConnectingFlightpair cf = scenario.connectingFlightMap.get(f1.id+"_"+f2.id);
 
+					ConnectingFlightpair cf = scenario.connectingFlightMap.get(f1.id+"_"+f2.id);
+					f1.isConnectionFeasible = true;
+					f2.isConnectionFeasible = true;
+					
 					if(cf != null){
 						a.connectingFlightList.add(cf);
 						candidateConnectingFlightList.add(cf);
@@ -157,7 +165,9 @@ public class SecondStagePassengerRecovery {
 		}
 
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
-		solver(scenario, scenario.aircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);		
+		//solver(scenario, scenario.aircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);		
+		solver(scenario, candidateAircraftList, candidateFlightList, new ArrayList(), isFractional);		
+
 	}
 
 	//求解线性松弛模型或者整数规划模型
@@ -173,7 +183,7 @@ public class SecondStagePassengerRecovery {
 			flightArcItineraryList.addAll(ite.flightArcItineraryList);
 		}
 		
-		
+		System.out.println("candidate:"+candidateFlightList.size()+" "+candidateConnectingFlightList.size());
 		SecondStageCplexModel model = new SecondStageCplexModel();
 		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario,flightArcItineraryList,
 				isFractional, false);
@@ -187,17 +197,17 @@ public class SecondStagePassengerRecovery {
 		// 为每一个飞机的网络模型生成arc
 		NetworkConstructorBasedOnDelayAndEarlyLimit networkConstructorBasedOnDelayAndEarlyLimit = new NetworkConstructorBasedOnDelayAndEarlyLimit();
 
-		for (Aircraft aircraft : candidateAircraftList) {			
+		for (Aircraft aircraft : candidateAircraftList) {	
+			List<FlightArc> totalFlightArcList = new ArrayList<>();
+			
 			for (Flight f : aircraft.singleFlightList) {
+				f.isFixed = false;
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForFlight(aircraft, f, scenario);
+				totalFlightArcList.addAll(faList);
 			}
-
-
-			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
-				List<ConnectingArc> caList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForConnectingFlightPair(aircraft, cf, scenario);
-			}
-
+			
+			networkConstructorBasedOnDelayAndEarlyLimit.eliminateArcs(aircraft, scenario.airportList, totalFlightArcList, new ArrayList<>(), scenario);
 		}
 
 		NetworkConstructor networkConstructor = new NetworkConstructor();

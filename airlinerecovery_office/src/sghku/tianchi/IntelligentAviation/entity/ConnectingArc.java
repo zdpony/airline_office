@@ -82,7 +82,9 @@ public class ConnectingArc {
 			int cancelConnectingPassenger = Math.max(connectingFlightPair.firstFlight.connectedPassengerNumber - aircraft.passengerCapacity, 0);
 			int flyConnectingPassenger = connectingFlightPair.firstFlight.connectedPassengerNumber - cancelConnectingPassenger;
 			
-			cost += cancelConnectingPassenger * Parameter.passengerCancelCost * 2; //两截都要考虑cancel cost
+			//cost += cancelConnectingPassenger * Parameter.passengerCancelCost * 2; //两截都要考虑cancel cost
+			cost += cancelConnectingPassenger * Parameter.passengerCancelCost; //只有第一截考虑cost
+
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay);
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay);
 			

@@ -136,7 +136,6 @@ public class FlightReschedulingConsideringPassenger {
 		}
 		
 		
-		
 		//求解CPLEX模型
 		//CplexModelForPureAircraft model = new CplexModelForPureAircraft();
 		//Solution solution = model.run(candidateAircraftList, candidateFlightList, new ArrayList(), scenario.airportList,scenario, isFractional, true, false);		
