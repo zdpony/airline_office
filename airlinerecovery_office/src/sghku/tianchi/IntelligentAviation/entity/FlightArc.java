@@ -38,11 +38,7 @@ public class FlightArc {
  	
  	public int passengerCapacity;
  	
- 	/*public double delayCostPerPssgr;
- 	public double delayCost;
- 	public double connPssgrCclDueToSubseqCclCost;
- 	
- 	public double connPssgrCclDueToStraightenCost;*/
+ 	public double cancelRelatedCost = 0;
  	
  	
  	
@@ -94,10 +90,15 @@ public class FlightArc {
 				cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
 				cost += cancelNum*Parameter.passengerCancelCost;
 				
+				cancelRelatedCost += cancelNum*Parameter.passengerCancelCost;
+				
 				//计算中转乘客
 				cost += flight.connectingFlightpair.firstFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
 				cost += flight.connectingFlightpair.secondFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
 				
+				cancelRelatedCost += flight.connectingFlightpair.firstFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
+				cancelRelatedCost += flight.connectingFlightpair.secondFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
+
 				//delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);  //record delay cost of connecting pssgr on flight
 				//connPssgrCclDueToStraightenCost += cancelNum*Parameter.passengerCancelCost; //record cancel cost due to straighten
 				
@@ -120,15 +121,30 @@ public class FlightArc {
 			
 			
 			if(Parameter.isPassengerCostConsidered) {
+				int remainingCapacity = aircraft.passengerCapacity;
 				if(flight.isIncludedInConnecting) {
-					/*首先考虑联程乘客，如果属于联程航班，则代表另一截cancel了，
-					 *如果对应第一截catch，第二截cancel，则对应的联程乘客cancel cost
-					 * 
-					 */
-					if(flight.connectingFlightpair.firstFlight.id == flight.id){
-						cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
-						//connPssgrCclDueToSubseqCclCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;  //record conn cancel
-					}
+					if(!flight.isConnectionFeasible){
+						/*首先考虑联程乘客，如果属于联程航班，则代表另一截cancel了，
+						 *如果对应第一截catch，第二截cancel，则对应的联程乘客cancel cost
+						 * 
+						 */
+						if(flight.connectingFlightpair.firstFlight.id == flight.id){
+							cost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
+							cancelRelatedCost += flight.connectedPassengerNumber*Parameter.passengerCancelCost;
+						}
+					}else{
+						//该联程航班依旧有效，计算联程乘客的延误和取消成本
+						int cancelConnectingPassenger = Math.max(flight.connectedPassengerNumber - remainingCapacity, 0);
+						int flyConnectingPassenger = flight.connectedPassengerNumber - cancelConnectingPassenger;
+						
+						if(flight.id == flight.connectingFlightpair.firstFlight.id){
+							cost += cancelConnectingPassenger * Parameter.passengerCancelCost; //只有第一截考虑cost
+							cancelRelatedCost += cancelConnectingPassenger * Parameter.passengerCancelCost;
+						}
+						cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(delay);
+						
+						remainingCapacity = remainingCapacity - flyConnectingPassenger;
+					}					
 				}
 				
 				//考虑中转乘客的延误 -- 假设中转乘客都成功中转
@@ -145,7 +161,7 @@ public class FlightArc {
 				cost += flight.occupiedSeatsByTransferPassenger*ExcelOperator.getPassengerDelayParameter(delay);
 				
 				//考虑普通乘客的延误（因为联程乘客被cancel了，所以只有普通乘客的延误）
-				int remainingCapacity = aircraft.passengerCapacity;
+				
 				remainingCapacity = remainingCapacity - flight.occupiedSeatsByTransferPassenger;  //预留座位给中转乘客--假设中转一定能成功
 				int actualNum = Math.min(remainingCapacity, flight.normalPassengerNumber);
 							

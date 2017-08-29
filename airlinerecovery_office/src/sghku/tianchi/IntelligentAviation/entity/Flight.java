@@ -141,9 +141,13 @@ public class Flight {
 	
 	public double flow = 0;
 	
+
 	//进行完first&second stage的求解后，flight上剩余的座位数（能用来承载transfer passenger）的座位数
 	public int remainingSeatNum = 0;
 	
+
+	public boolean isConnectionFeasible = false; //标记该航班对应的联程连接是否可行
+
 	
 	// 初始化该航班所对应的网络模型
 	public void init() {

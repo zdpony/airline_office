@@ -25,7 +25,7 @@ public class ConnectingArc {
 	public double fractionalFlow;
 
 	// to verify the cost setting
-	public double pssgrCclCostDueToInsufficientSeat;
+	public double cancelRelatedCost = 0;
 	public double delayCost;
 	
 	//public int fulfilledDemand;
@@ -82,11 +82,13 @@ public class ConnectingArc {
 			int cancelConnectingPassenger = Math.max(connectingFlightPair.firstFlight.connectedPassengerNumber - aircraft.passengerCapacity, 0);
 			int flyConnectingPassenger = connectingFlightPair.firstFlight.connectedPassengerNumber - cancelConnectingPassenger;
 			
-			cost += cancelConnectingPassenger * Parameter.passengerCancelCost * 2; //两截都要考虑cancel cost
+			//cost += cancelConnectingPassenger * Parameter.passengerCancelCost * 2; //两截都要考虑cancel cost
+			cost += cancelConnectingPassenger * Parameter.passengerCancelCost; //只有第一截考虑cost
+
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay);
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay);
 			
-			pssgrCclCostDueToInsufficientSeat += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
+			cancelRelatedCost += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
 		
 			delayCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record conn delay cost
 			delayCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record conn delay cost
