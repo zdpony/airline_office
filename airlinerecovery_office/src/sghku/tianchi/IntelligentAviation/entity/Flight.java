@@ -122,7 +122,7 @@ public class Flight {
 	
 	public List<FlightSectionItinerary> signChangeItineraryList = new ArrayList<>();
 	
-	public List<FlightArcItinerary> faSignChangeItineraryList = new ArrayList<>();
+	public List<FlightArcItinerary> flightArcItineraryList = new ArrayList<>();
 
 	//temp
 	public double totalCost = 0;
@@ -132,6 +132,9 @@ public class Flight {
 	public int occupiedSeatsByTransferPassenger = 0;
 	
 	public double flow = 0;
+	
+	public boolean isConnectionFeasible = false; //标记该航班对应的联程连接是否可行
+	
 	// 初始化该航班所对应的网络模型
 	public void init() {
 		flightarcList.clear();
