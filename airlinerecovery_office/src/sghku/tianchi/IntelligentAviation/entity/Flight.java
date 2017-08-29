@@ -3,8 +3,10 @@ package sghku.tianchi.IntelligentAviation.entity;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import sghku.tianchi.IntelligentAviation.common.Parameter;
@@ -128,9 +130,17 @@ public class Flight {
 	//第三阶段用的信息
 	public double normalPassengerCancelNum = 0; //在第二阶段model中得到，用于第三阶段
 	
-	public boolean cannotAcceptSignChangePssgr = false; //标记是否可以接受其他航班乘客签转过来
+	public boolean canAcceptSignChangePssgr = true; //标记是否可以接受其他航班乘客签转过来
 	
 	public int disruptedSecondTransferPssgrNum = 0; //计算可以disrupted的第二截转乘乘客（等待被签转）
+	
+	public TransferItinerary transferItinerary = null;
+	
+	public Map<Integer, Integer> transferSignChangeMap = new HashMap<>();  //key: signToFlightID, value: number of signTo transfer Passenger
+	
+	public int formerFlightLandingTime;
+	
+	public boolean canSignOutTransfer = true;
 
 	//temp
 	public double totalCost = 0;

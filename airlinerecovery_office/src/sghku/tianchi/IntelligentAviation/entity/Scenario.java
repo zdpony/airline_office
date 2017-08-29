@@ -273,7 +273,7 @@ public class Scenario {
 
 		// 生成单程乘客行程
 		if(Parameter.onlySignChangeDisruptedPassenger){
-			//只生产disrupted itinerary
+			//只生成disrupted itinerary
 			for (Flight f : flightList) {
 				if (f.isIncludedInTimeWindow) {
 					int capacity = f.aircraft.passengerCapacity;

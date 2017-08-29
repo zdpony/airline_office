@@ -585,6 +585,7 @@ public class SecondStageCplexModel {
 							totalCancelCost += cplex.getValue(passCancel[i]) * 4;
 							//totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
 							sce.itineraryList.get(i).flight.normalPassengerCancelNum = cplex.getValue(passCancel[i]);
+							
 						}
 					}
 					
