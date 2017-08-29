@@ -129,6 +129,7 @@ public class Flight {
 
 	public int occupiedSeatsByTransferPassenger = 0;
 	
+	public double flow = 0;
 	// 初始化该航班所对应的网络模型
 	public void init() {
 		flightarcList.clear();

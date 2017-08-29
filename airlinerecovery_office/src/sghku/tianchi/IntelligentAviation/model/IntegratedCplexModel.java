@@ -92,7 +92,8 @@ public class IntegratedCplexModel {
 				passX = new IloNumVar[flightSectionItineraryList.size()];
 				passCancel = new IloNumVar[itineraryList.size()];
 			}
-
+			
+			
 			//IloNumVar[] gamma = new IloNumVar[airportList.size()];
 
 			IloLinearNumExpr obj = cplex.linearNumExpr();
@@ -152,7 +153,18 @@ public class IntegratedCplexModel {
 			}		
 
 			cplex.addMinimize(obj);
-
+			
+			/*System.out.println("------------------------------------");
+			for(FlightArc arc:flightArcList){
+				System.out.println(arc.id+"  fa:"+arc+"  "+arc.fractionalFlow);
+			}
+			for(ConnectingArc arc:connectingArcList){
+				System.out.println(arc.id+"  ca:"+arc.firstArc+" -> "+arc.secondArc+"  "+arc.fractionalFlow);
+			}
+			for(GroundArc arc:groundArcList){
+				System.out.println(arc.id+"  ga:"+arc.fromNode.airport+" -> "+arc.toNode.airport+" "+arc.fromNode.time+":"+arc.toNode.time);
+			}*/
+			
 			//1. flow balance constraints
 			for(Node n:nodeList){
 				IloLinearNumExpr flowBalanceConstraint = cplex.linearNumExpr();
@@ -204,11 +216,13 @@ public class IntegratedCplexModel {
 					flightSelectionConstraint.addTerm(1, beta[arc.id]);
 				}
 
-				if(isCancelAllowed){  //因为已经fix route，算schedule
-					if(f.isIncludedInTimeWindow){
-						flightSelectionConstraint.addTerm(1, z[i]);	
+				if(!f.isFixed){
+					if(isCancelAllowed){  //因为已经fix route，算schedule
+						if(f.isIncludedInTimeWindow){
+							flightSelectionConstraint.addTerm(1, z[i]);	
+						}
 					}
-				}
+				}			
 
 				cplex.addEq(flightSelectionConstraint, 1);
 			}
@@ -345,6 +359,19 @@ public class IntegratedCplexModel {
 			}
 			cplex.addLe(parkingConstraint67, sce.airport67ParkingLimit);
 
+			//fix values for each flight arc and connecting arc
+			/*for(FlightArc arc:flightArcList){
+				IloLinearNumExpr cont = cplex.linearNumExpr();
+				cont.addTerm(1, x[arc.id]);
+				cplex.addEq(cont, arc.fractionalFlow);
+			}
+			
+			for(ConnectingArc arc:connectingArcList){
+				IloLinearNumExpr cont = cplex.linearNumExpr();
+				cont.addTerm(1, beta[arc.id]);
+				cplex.addEq(cont, arc.fractionalFlow);
+			}*/
+			
 			if(cplex.solve()){
 
 				if(isFractional){
@@ -353,12 +380,12 @@ public class IntegratedCplexModel {
 					Parameter.fractionalObjective = cplex.getObjValue();
 
 					try {
-						File file = new File("linearsolution.csv");
+						File file = new File(Parameter.linearsolutionfilename);
 						if(file.exists()){
 							file.delete();
 						}
 
-						MyFile.creatTxtFile("linearsolution.csv");
+						MyFile.creatTxtFile(Parameter.linearsolutionfilename);
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -555,6 +582,27 @@ public class IntegratedCplexModel {
 							ga.fractionalFlow = cplex.getValue(y[ga.id]);
 						}
 					}
+					
+					for(String key:sce.keyList) {
+						if(key.equals("49_11105")){
+							List<FlightArc> faList = sce.airportTimeFlightArcMap.get(key);
+							List<ConnectingArc> caList = sce.airportTimeConnectingArcMap.get(key);
+
+							for(FlightArc arc:faList) {
+								if(arc.fractionalFlow > 1e-5){
+									System.out.println("flight:"+arc.flight.id);
+								}
+							}
+							for(ConnectingArc arc:caList) {
+								if(arc.fractionalFlow > 1e-5){
+									System.out.println("ca:"+arc.firstArc.flight.id+" "+arc.secondArc.flight.id);
+								}
+							}
+						}
+					}
+					
+					Flight f591 = sce.flightList.get(590);
+					System.out.println("f591:"+f591.actualLandingT);
 
 					if(Parameter.isPassengerCostConsidered){
 						for(int i=0;i<flightSectionItineraryList.size();i++) {
@@ -598,12 +646,12 @@ public class IntegratedCplexModel {
 					}
 
 					try {
-						File file = new File("linearsolution.csv");
+						File file = new File(Parameter.linearsolutionfilename);
 						if(file.exists()){
 							file.delete();
 						}
 
-						MyFile.creatTxtFile("linearsolution.csv");
+						MyFile.creatTxtFile(Parameter.linearsolutionfilename);
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -772,7 +820,7 @@ public class IntegratedCplexModel {
 					/*System.out.println("Cancel that was not calculated: "+madeUpCancelCost);
 					System.out.println("Delay that was incorrectly calculated: "+deductDelayCost);*/
 
-					for(Flight f:sce.flightList){
+					/*for(Flight f:sce.flightList){
 						if(f.isIncludedInTimeWindow){
 							for(FlightArc arc:f.flightarcList){
 								if(cplex.getValue(x[arc.id]) > 1e-5){
@@ -807,7 +855,7 @@ public class IntegratedCplexModel {
 							}
 							
 						}						
-					}
+					}*/
 					
 					
 					

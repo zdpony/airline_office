@@ -145,7 +145,7 @@ public class FlightReschedulingConsideringPassenger {
 		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario.airportList, scenario, flightSectionList, scenario.itineraryList, flightSectionItineraryList, isFractional, true, false);
 
 		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
-		outputResultWithPassenger.writeResult(scenario, "firstresult825.csv");
+		outputResultWithPassenger.writeResult(scenario, "firstresult828.csv");
 	}
 
 	// 构建时空网络流模型

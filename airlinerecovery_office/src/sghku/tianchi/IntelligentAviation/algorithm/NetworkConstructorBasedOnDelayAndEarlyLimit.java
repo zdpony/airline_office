@@ -62,86 +62,124 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 				generatedFlightArcList.add(arc);								
 			}
 		} else {
-			// 2.1 check whether f can be brought forward and generate earliness
-			// arcs
-			// 读取该航班的飞行时间
-			int flyTime = f.flyTime;
-
-			if (f.isDeadhead) {
-				flyTime = f.leg.flytimeArray[aircraft.type - 1];
-			} else if (f.isStraightened) {
-				flyTime = f.leg.flytimeArray[aircraft.type - 1];
-				if (flyTime <= 0) {
-					flyTime = f.connectingFlightpair.firstFlight.initialLandingT
-							- f.connectingFlightpair.firstFlight.initialTakeoffT
-							+ f.connectingFlightpair.secondFlight.initialLandingT
-							- f.connectingFlightpair.secondFlight.initialTakeoffT;
+			if(f.isFixed){
+				arc = new FlightArc();
+				arc.flight = f;
+				arc.aircraft = aircraft;
+				if(f.actualTakeoffT >= f.initialTakeoffT){
+					arc.delay = f.actualTakeoffT - f.initialTakeoffT;
+				}else{
+					arc.delay = f.initialTakeoffT - f.actualTakeoffT;
 				}
-			}
-
-			for (int[] timeLimit : f.timeLimitList) {
-				// 读取时间段的开始和结束时间
-				int startTime = timeLimit[0];
-				int endTime = timeLimit[1];
 				
-				for (int t = startTime; t <= endTime; t += presetGap) {
-					int i = (t - f.initialTakeoffT) / presetGap;
+				arc.takeoffTime = f.actualTakeoffT;
+				arc.landingTime = f.actualLandingT;
 
-					boolean isOriginInAffectedLdnTkfLimitPeriod = false;
-					boolean isDestinationInAffectedLdnTkfLimitPeriod = false;
+				arc.readyTime = arc.landingTime
+						+ (f.isShortConnection ? f.shortConnectionTime : Parameter.MIN_BUFFER_TIME);
 
-					if (scenario.affectedAirportSet.contains(f.leg.originAirport.id)) {
-						int tkfTime = f.initialTakeoffT + i * presetGap;
-						if ((tkfTime >= Parameter.airportBeforeTyphoonTimeWindowStart
-								&& tkfTime <= Parameter.airportBeforeTyphoonTimeWindowEnd)
-								|| (tkfTime >= Parameter.airportAfterTyphoonTimeWindowStart
-										&& tkfTime <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
-							isOriginInAffectedLdnTkfLimitPeriod = true;
-						}
-					} else if (scenario.affectedAirportSet.contains(f.leg.destinationAirport.id)) {
-						int ldnTime = f.initialLandingT + i * presetGap;
-						if ((ldnTime >= Parameter.airportBeforeTyphoonTimeWindowStart
-								&& ldnTime <= Parameter.airportBeforeTyphoonTimeWindowEnd)
-								|| (ldnTime >= Parameter.airportAfterTyphoonTimeWindowStart
-										&& ldnTime <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
-							isDestinationInAffectedLdnTkfLimitPeriod = true;
-						}
+				if (scenario.affectedAirportSet.contains(f.leg.originAirport.id)) {
+					int tkfTime = arc.takeoffTime;
+					if ((tkfTime >= Parameter.airportBeforeTyphoonTimeWindowStart
+							&& tkfTime <= Parameter.airportBeforeTyphoonTimeWindowEnd)
+							|| (tkfTime >= Parameter.airportAfterTyphoonTimeWindowStart
+									&& tkfTime <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
+						arc.isWithinAffectedRegionOrigin = true;
 					}
-
-					if ((i * presetGap) % Parameter.gap != 0 && t != endTime && t != startTime) { // 小gap，只有当其受影响时才继续生成相应arc,
-																			// 同时当t在最后的时候也需要选择
-						if (!isOriginInAffectedLdnTkfLimitPeriod && !isDestinationInAffectedLdnTkfLimitPeriod) {
-							continue;
-						}
+				} else if (scenario.affectedAirportSet.contains(f.leg.destinationAirport.id)) {
+					int ldnTime = arc.landingTime;
+					if ((ldnTime >= Parameter.airportBeforeTyphoonTimeWindowStart
+							&& ldnTime <= Parameter.airportBeforeTyphoonTimeWindowEnd)
+							|| (ldnTime >= Parameter.airportAfterTyphoonTimeWindowStart
+									&& ldnTime <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
+						arc.isWithinAffectedRegionDestination = true;
 					}
+				}
+				
+				generatedFlightArcList.add(arc);
+			}else{
+				// 2.1 check whether f can be brought forward and generate earliness
+				// arcs
+				// 读取该航班的飞行时间
+				int flyTime = f.flyTime;
 
-					arc = new FlightArc();
-					arc.flight = f;
-					arc.aircraft = aircraft;
-					if (i < 0) {
-						arc.earliness = -i * presetGap;
-					} else {
-						arc.delay = i * presetGap;
+				if (f.isDeadhead) {
+					flyTime = f.leg.flytimeArray[aircraft.type - 1];
+				} else if (f.isStraightened) {
+					flyTime = f.leg.flytimeArray[aircraft.type - 1];
+					if (flyTime <= 0) {
+						flyTime = f.connectingFlightpair.firstFlight.initialLandingT
+								- f.connectingFlightpair.firstFlight.initialTakeoffT
+								+ f.connectingFlightpair.secondFlight.initialLandingT
+								- f.connectingFlightpair.secondFlight.initialTakeoffT;
 					}
+				}
 
-					arc.takeoffTime = f.initialTakeoffT + i * presetGap;
-					arc.landingTime = arc.takeoffTime + flyTime;
-
-					// arc.readyTime = arc.landingTime +
-					// Parameter.MIN_BUFFER_TIME;
-					arc.readyTime = arc.landingTime
-							+ (f.isShortConnection ? f.shortConnectionTime : Parameter.MIN_BUFFER_TIME);
-
-					arc.isWithinAffectedRegionOrigin = isOriginInAffectedLdnTkfLimitPeriod;
-					arc.isWithinAffectedRegionDestination = isDestinationInAffectedLdnTkfLimitPeriod;
+				for (int[] timeLimit : f.timeLimitList) {
+					// 读取时间段的开始和结束时间
+					int startTime = timeLimit[0];
+					int endTime = timeLimit[1];
 					
-					if (!arc.checkViolation()) {
+					for (int t = startTime; t <= endTime; t += presetGap) {
+						int i = (t - f.initialTakeoffT) / presetGap;
 
-						generatedFlightArcList.add(arc);
+						boolean isOriginInAffectedLdnTkfLimitPeriod = false;
+						boolean isDestinationInAffectedLdnTkfLimitPeriod = false;
+
+						if (scenario.affectedAirportSet.contains(f.leg.originAirport.id)) {
+							int tkfTime = f.initialTakeoffT + i * presetGap;
+							if ((tkfTime >= Parameter.airportBeforeTyphoonTimeWindowStart
+									&& tkfTime <= Parameter.airportBeforeTyphoonTimeWindowEnd)
+									|| (tkfTime >= Parameter.airportAfterTyphoonTimeWindowStart
+											&& tkfTime <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
+								isOriginInAffectedLdnTkfLimitPeriod = true;
+							}
+						} else if (scenario.affectedAirportSet.contains(f.leg.destinationAirport.id)) {
+							int ldnTime = f.initialLandingT + i * presetGap;
+							if ((ldnTime >= Parameter.airportBeforeTyphoonTimeWindowStart
+									&& ldnTime <= Parameter.airportBeforeTyphoonTimeWindowEnd)
+									|| (ldnTime >= Parameter.airportAfterTyphoonTimeWindowStart
+											&& ldnTime <= Parameter.airportAfterTyphoonTimeWindowEnd)) {
+								isDestinationInAffectedLdnTkfLimitPeriod = true;
+							}
+						}
+
+						if ((i * presetGap) % Parameter.gap != 0 && t != endTime && t != startTime) { // 小gap，只有当其受影响时才继续生成相应arc,
+																				// 同时当t在最后的时候也需要选择
+							if (!isOriginInAffectedLdnTkfLimitPeriod && !isDestinationInAffectedLdnTkfLimitPeriod) {
+								continue;
+							}
+						}
+
+						arc = new FlightArc();
+						arc.flight = f;
+						arc.aircraft = aircraft;
+						if (i < 0) {
+							arc.earliness = -i * presetGap;
+						} else {
+							arc.delay = i * presetGap;
+						}
+
+						arc.takeoffTime = f.initialTakeoffT + i * presetGap;
+						arc.landingTime = arc.takeoffTime + flyTime;
+
+						// arc.readyTime = arc.landingTime +
+						// Parameter.MIN_BUFFER_TIME;
+						arc.readyTime = arc.landingTime
+								+ (f.isShortConnection ? f.shortConnectionTime : Parameter.MIN_BUFFER_TIME);
+
+						arc.isWithinAffectedRegionOrigin = isOriginInAffectedLdnTkfLimitPeriod;
+						arc.isWithinAffectedRegionDestination = isDestinationInAffectedLdnTkfLimitPeriod;
 						
+						if (!arc.checkViolation()) {
+
+							generatedFlightArcList.add(arc);
+							
+						}
 					}
 				}
 			}
+			
 		}
 
 		return generatedFlightArcList;
@@ -258,17 +296,18 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 					}
 				}
 			}
-
+			
 			for (FlightArc firstArc : firstFlightArcList) {
 
 				for (int[] timeLimit : cf.secondFlight.timeLimitList) {
 					int startTime = timeLimit[0];
 					int endTime = timeLimit[1];
 
+					
+					
 					for (int t = startTime; t <= endTime; t += presetGap) {
 						
 						int i = (t - cf.secondFlight.initialTakeoffT) / presetGap;
-
 
 						boolean isWithinAffectedRegionOrigin2 = false;
 						boolean isWithinAffectedRegionDestination2 = false;
@@ -323,12 +362,13 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 								ca.aircraft = aircraft;
 
 								generatedConnectingArcList.add(ca);
-								
+					
 								if (i >= 0) {
 									if (!isWithinAffectedRegionOrigin2 && !isWithinAffectedRegionDestination2) {
 										break;
 									}
 								}
+								
 							}
 						}
 					}
@@ -534,6 +574,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 					}
 					
 				}else{
+					
 					// 如果是调剂航班，不需要做任何处理
 					if (f.isDeadhead) {
 
@@ -550,6 +591,7 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 
 						// 其他乘客全部被取消，所以不需要考虑
 						arc.passengerCapacity = Math.max(0, arc.passengerCapacity);
+						
 					} else {
 						f.flightarcList.add(arc);
 

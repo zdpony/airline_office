@@ -64,7 +64,7 @@ public class FlightArc {
 	
 	public String toString(){
 	
-		return id+","+takeoffTime+"->"+landingTime+"->"+readyTime+"  "+flight.leg.originAirport.id+":"+flight.leg.destinationAirport.id;
+		return flight.id+","+takeoffTime+"->"+landingTime+"->"+readyTime+"  "+flight.leg.originAirport.id+":"+flight.leg.destinationAirport.id;
 	}
 	
 	//计算该arc的成本
