@@ -36,10 +36,13 @@ public class SecondStagePassengerRecovery {
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 		
 		runSecondStage(false,scenario);
-		runThirdStage(false,scenario);
-
+		
 		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
 		outputResultWithPassenger.writeResult(scenario, "integerSolution_830.csv");
+		
+		runThirdStage(false,scenario);
+
+		
 	}
 
 	public static void runSecondStage(boolean isFractional, Scenario scenario){
@@ -434,6 +437,7 @@ public class SecondStagePassengerRecovery {
 			if(f.isIncludedInTimeWindow) {
 				if(f.isCancelled) {
 					f.remainingSeatNum = 0;
+					if(f.id==108)System.out.println("cancelled 108, remaining seat:"+f.remainingSeatNum);
 				}else {
 					int totalPassenger = 0;
 					if(f.isIncludedInConnecting && f.brotherFlight.isCancelled) {
@@ -441,8 +445,9 @@ public class SecondStagePassengerRecovery {
 					}else {
 						totalPassenger += f.connectedPassengerNumber;  //优先承载联程旅客（不能签转出去）
 					}
-					System.out.println("f_id；"+f.id+"first transfer num "+f.firstTransferPassengerNumber);
+					if(f.id==108)System.out.println("f_"+f.id+"first transfer num "+f.firstTransferPassengerNumber);
 					totalPassenger += f.firstTransferPassengerNumber; //优先承载第一截转乘旅客（不能签转出去）
+					totalPassenger += f.secondTransferPassengerNumber; //优先承载第一截转乘旅客（能签转出去）
 					//如果飞机容量容不下以上两类“重要”乘客，则得出剩余座位数为0
 					if(f.aircraft.passengerCapacity<=totalPassenger) {
 						System.out.println("error! connecting and firstTransfer passengers on the flight already exceeds its capacity: flight id "+f.id);
@@ -457,14 +462,14 @@ public class SecondStagePassengerRecovery {
 					//减去签转出去的普通旅客
 					if(f.itinerary!=null) {  //如果在上阶段有itinerary赋给f
 						double totalPss = f.itinerary.volume;
-						System.out.println("itinerary exists! passenger in itinerary"+totalPss+" cancel "+f.normalPassengerCancelNum);
+						//System.out.println("itinerary exists! passenger in itinerary"+totalPss+" cancel "+f.normalPassengerCancelNum);
 						
 						for(FlightArcItinerary fai:f.itinerary.flightArcItineraryList) {
 							totalPassenger -= fai.volume;
 							
 							if(fai.volume>0) {//有普通乘客签转出去，于是标记不能再接受其他航班签转乘客进来(注意！自己航班上的第二截转乘乘客是可以的，所以remainingSeatNum不能设为0)
 								f.canAcceptSignChangePssgr = false;  
-								System.out.println(" some sign out normal passengers ");
+								//System.out.println(" some sign out normal passengers ");
 							}
 						}
 						
@@ -476,7 +481,7 @@ public class SecondStagePassengerRecovery {
 						totalPassenger += fai.volume;
 						if(fai.volume>0) {
 							f.canSignOutTransfer = false;
-							System.out.println(" some sign in normal passengers ");
+							//System.out.println(" some sign in normal passengers ");
 						}
 					}
 					if(f.aircraft.passengerCapacity - totalPassenger<0) {
@@ -486,11 +491,34 @@ public class SecondStagePassengerRecovery {
 					}else {
 						f.remainingSeatNum = f.aircraft.passengerCapacity - totalPassenger;
 					}
+					if(f.id==108)System.out.println("f_108-> remaining seat:"+f.remainingSeatNum);
+					
 				}
 			}
 		
 		}
-
+		
+		//根据second transfer passenger是否被disrupted来进一步确定每个flight remaining seatNum 
+		for(TransferPassenger tp:sce.transferPassengerList) {
+			if(tp.inFlight.isCancelled) {
+				if(!tp.outFlight.isCancelled) {  //如果第一截cancel，第二截flight没被cancel，第二截的remainingSeatNum会增加
+					tp.outFlight.remainingSeatNum += tp.volume;
+				}		
+			}
+			else if(tp.outFlight.isCancelled) {   //如果第二截flight cancel了，对remaining seat没影响
+				
+			}
+			
+			else if(tp.outFlight.actualTakeoffT-tp.inFlight.actualLandingT<tp.minTurnaroundTime){  //如果miss-connection
+				tp.outFlight.remainingSeatNum += tp.volume;  //第二截的remainingSeatNum会增加
+			}
+			
+			else {
+				
+			}
+		}
+		
+		
 		//flight按actual takeoff time 从小往大排序
 		List<Flight> sortedFlightList = new ArrayList<>();
 		sortedFlightList.addAll(sce.flightList);
@@ -503,8 +531,8 @@ public class SecondStagePassengerRecovery {
 				continue;
 			}
 			if(tp.inFlight.isCancelled) {
-				if(!tp.outFlight.isCancelled) {  //如果第一截cancel，第二截flight没被cancel，第二截的remainingSeatNum会增加,且这些乘客不能recover
-					tp.outFlight.remainingSeatNum += tp.volume;
+				if(!tp.outFlight.isCancelled) {  //如果第一截cancel，第二截flight没被cancel，这些乘客不能recover
+					
 				}		
 			}
 			//如果第一截flight没被cancel，则所有第一截转乘乘客都已经坐上飞机了(因为他们有优先上飞机权！)，判断第二截flight
