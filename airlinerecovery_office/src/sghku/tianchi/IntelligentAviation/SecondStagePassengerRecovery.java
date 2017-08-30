@@ -28,6 +28,8 @@ import sghku.tianchi.IntelligentAviation.entity.*;
 import sghku.tianchi.IntelligentAviation.model.*;
 
 public class SecondStagePassengerRecovery {
+	public static int passengerCostWay = 1;
+	
 	public static void main(String[] args) {
 
 		Parameter.isPassengerCostConsidered = true;
@@ -315,32 +317,34 @@ public class SecondStagePassengerRecovery {
 					int delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
-						/*if (delay < 6 * 60) {
-							fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
-						} else if (delay >= 6 * 60 && delay < 24 * 60) {
-							fai.unitCost = delay/(60.0*24.0); 
-						} else if (delay >= 24 * 60 && delay < 36 * 60) {
-							fai.unitCost = delay/(60.0*18.0); 
-						} else if (delay >= 36 * 60 && delay <= 48 * 60) {
-							fai.unitCost = delay/(60.0*16.0);
-						} else {
-							if(delay < 48*60){
-								System.out.println("error delay:" + delay);								
+						if(passengerCostWay == 1){
+							if (delay < 6 * 60) {
+								fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
+							} else if (delay >= 6 * 60 && delay < 24 * 60) {
+								fai.unitCost = delay/(60.0*24.0); 
+							} else if (delay >= 24 * 60 && delay < 36 * 60) {
+								fai.unitCost = delay/(60.0*18.0); 
+							} else if (delay >= 36 * 60 && delay <= 48 * 60) {
+								fai.unitCost = delay/(60.0*16.0);
+							} else {
+								if(delay < 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
-						}*/
-
-						if (delay < 6 * 60) {
-							fai.unitCost = 0;
-						} else if (delay < 24 * 60 && delay >= 6 * 60) {
-							fai.unitCost = 0.5;
-						} else if (delay <= 48 * 60 && delay >= 24 * 60) {
-							fai.unitCost = 1;
-						} else {
-							if(delay <= 48*60){
-								System.out.println("error delay:" + delay);								
+						}else{
+							if (delay < 6 * 60) {
+								fai.unitCost = 0;
+							} else if (delay < 24 * 60 && delay >= 6 * 60) {
+								fai.unitCost = 0.5;
+							} else if (delay <= 48 * 60 && delay >= 24 * 60) {
+								fai.unitCost = 1;
+							} else {
+								if(delay <= 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
 						}
-
+						
 					}
 
 					if (fai.unitCost > 0-1e-5) {
@@ -363,29 +367,31 @@ public class SecondStagePassengerRecovery {
 					int delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
-						/*if (delay < 6 * 60) {
-							fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
-						} else if (delay >= 6 * 60 && delay < 24 * 60) {
-							fai.unitCost = delay/(60.0*24.0); 
-						} else if (delay >= 24 * 60 && delay < 36 * 60) {
-							fai.unitCost = delay/(60.0*18.0); 
-						} else if (delay >= 36 * 60 && delay <= 48 * 60) {
-							fai.unitCost = delay/(60.0*16.0);
-						} else {
-							if(delay < 48*60){
-								System.out.println("error delay:" + delay);								
+						if(passengerCostWay == 1){
+							if (delay < 6 * 60) {
+								fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
+							} else if (delay >= 6 * 60 && delay < 24 * 60) {
+								fai.unitCost = delay/(60.0*24.0); 
+							} else if (delay >= 24 * 60 && delay < 36 * 60) {
+								fai.unitCost = delay/(60.0*18.0); 
+							} else if (delay >= 36 * 60 && delay <= 48 * 60) {
+								fai.unitCost = delay/(60.0*16.0);
+							} else {
+								if(delay < 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
-						}*/
-
-						if (delay < 6 * 60) {
-							fai.unitCost = 0;
-						} else if (delay < 24 * 60 && delay >= 6 * 60) {
-							fai.unitCost = 0.5;
-						} else if (delay <= 48 * 60 && delay >= 24 * 60) {
-							fai.unitCost = 1;
-						} else {
-							if(delay <= 48*60){
-								System.out.println("error delay:" + delay);								
+						}else{
+							if (delay < 6 * 60) {
+								fai.unitCost = 0;
+							} else if (delay < 24 * 60 && delay >= 6 * 60) {
+								fai.unitCost = 0.5;
+							} else if (delay <= 48 * 60 && delay >= 24 * 60) {
+								fai.unitCost = 1;
+							} else {
+								if(delay <= 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
 						}
 					}
@@ -406,31 +412,33 @@ public class SecondStagePassengerRecovery {
 					delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
-						/*if (delay < 6 * 60) {
-							fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
-						} else if (delay >= 6 * 60 && delay < 24 * 60) {
-							fai.unitCost = delay/(60.0*24.0); 
-						} else if (delay >= 24 * 60 && delay < 36 * 60) {
-							fai.unitCost = delay/(60.0*18.0); 
-						} else if (delay >= 36 * 60 && delay <= 48 * 60) {
-							fai.unitCost = delay/(60.0*16.0);
-						} else {
-							if(delay < 48*60){
-								System.out.println("error delay:" + delay);								
+						if(passengerCostWay == 1){
+							if (delay < 6 * 60) {
+								fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
+							} else if (delay >= 6 * 60 && delay < 24 * 60) {
+								fai.unitCost = delay/(60.0*24.0); 
+							} else if (delay >= 24 * 60 && delay < 36 * 60) {
+								fai.unitCost = delay/(60.0*18.0); 
+							} else if (delay >= 36 * 60 && delay <= 48 * 60) {
+								fai.unitCost = delay/(60.0*16.0);
+							} else {
+								if(delay < 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
-						}*/
-
-						if (delay < 6 * 60) {
-							fai.unitCost = 0;
-						} else if (delay < 24 * 60 && delay >= 6 * 60) {
-							fai.unitCost = 0.5;
-						} else if (delay <= 48 * 60 && delay >= 24 * 60) {
-							fai.unitCost = 1;
-						} else {
-							if(delay <= 48*60){
-								System.out.println("error delay:" + delay);								
+						}else{
+							if (delay < 6 * 60) {
+								fai.unitCost = 0;
+							} else if (delay < 24 * 60 && delay >= 6 * 60) {
+								fai.unitCost = 0.5;
+							} else if (delay <= 48 * 60 && delay >= 24 * 60) {
+								fai.unitCost = 1;
+							} else {
+								if(delay <= 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
-						}
+						}	
 					}
 
 					if (fai.unitCost > 0-1e-5) {
