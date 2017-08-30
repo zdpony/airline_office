@@ -3,8 +3,10 @@ package sghku.tianchi.IntelligentAviation.entity;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import sghku.tianchi.IntelligentAviation.common.Parameter;
@@ -122,7 +124,23 @@ public class Flight {
 	
 	public List<FlightSectionItinerary> signChangeItineraryList = new ArrayList<>();
 	
-	public List<FlightArcItinerary> flightArcItineraryList = new ArrayList<>();
+	public List<FlightArcItinerary> flightArcItineraryList = new ArrayList<>();  //第二阶段计算得出的，签转到此flight的转签乘客信息
+	
+	
+	//第三阶段用的信息
+	public double normalPassengerCancelNum = 0; //在第二阶段model中得到，用于第三阶段
+	
+	public boolean canAcceptSignChangePssgr = true; //标记是否可以接受其他航班乘客签转过来
+	
+	public int disruptedSecondTransferPssgrNum = 0; //计算可以disrupted的第二截转乘乘客（等待被签转）
+	
+	public TransferItinerary transferItinerary = null;
+	
+	public Map<Integer, Integer> transferSignChangeMap = new HashMap<>();  //key: signToFlightID, value: number of signTo transfer Passenger
+	
+	public int formerFlightLandingTime;
+	
+	public boolean canSignOutTransfer = true;
 
 	//temp
 	public double totalCost = 0;
@@ -133,8 +151,14 @@ public class Flight {
 	
 	public double flow = 0;
 	
+
+	//进行完first&second stage的求解后，flight上剩余的座位数（能用来承载transfer passenger）的座位数
+	public int remainingSeatNum = 0;
+	
+
 	public boolean isConnectionFeasible = false; //标记该航班对应的联程连接是否可行
 	public boolean isSelectedInSecondPhase = false;
+
 	
 	// 初始化该航班所对应的网络模型
 	public void init() {

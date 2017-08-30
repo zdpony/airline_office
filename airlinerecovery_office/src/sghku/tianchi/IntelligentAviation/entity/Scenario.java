@@ -273,7 +273,7 @@ public class Scenario {
 
 		// 生成单程乘客行程
 		if(Parameter.onlySignChangeDisruptedPassenger){
-			//只生产disrupted itinerary
+			//只生成disrupted itinerary
 			for (Flight f : flightList) {
 				if (f.isIncludedInTimeWindow) {
 					int capacity = f.aircraft.passengerCapacity;
@@ -357,7 +357,7 @@ public class Scenario {
 		// 把flight上中转首段乘客的cancel cost 也加到connecting cost里，方便加入model的z coefficient
 		// 因为中转首段cancel也影响后段，所以*2
 		for(Flight f:flightList){
-			f.totalTransferCancellationCost += f.firstTransferPassengerNumber * Parameter.passengerCancelCost;
+			f.totalTransferCancellationCost += f.firstTransferPassengerNumber * Parameter.passengerCancelCost * 2;
 			f.totalTransferCancellationCost += f.secondTransferPassengerNumber * Parameter.passengerCancelCost;
 		}
 		

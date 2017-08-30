@@ -629,9 +629,6 @@ public class NetworkConstructorBasedOnDelayAndEarlyLimit {
 						// 减去转乘乘客（首先假设所有的转乘乘客都可以成功转乘）
 						arc.passengerCapacity = arc.passengerCapacity - f.occupiedSeatsByTransferPassenger;
 			
-						if(arc.flight.id == 940){
-							System.out.println("we find f940:"+f.isConnectionFeasible);
-						}
 						if(f.isConnectionFeasible){
 							// 如果该航班是联程航班，则代表联程航班已经被取消，所以不需要在考虑对应的联程乘客
 							arc.passengerCapacity = arc.passengerCapacity - f.connectedPassengerNumber;
