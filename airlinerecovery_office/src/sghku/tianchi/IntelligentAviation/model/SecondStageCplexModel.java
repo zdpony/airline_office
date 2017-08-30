@@ -582,12 +582,9 @@ public class SecondStageCplexModel {
 					
 					double delayCost = 0;
 					
-					StringBuilder testSb = new StringBuilder();
-					
 					for (FlightArc fa : flightArcList) {
 
 						if (cplex.getValue(x[fa.id]) > 1e-5) {
-							testSb.append(fa.id+"\n");
 							
 							solution.selectedFlightArcList.add(fa);
 
@@ -640,13 +637,10 @@ public class SecondStageCplexModel {
 						e3.printStackTrace();
 					}*/
 					
-					testSb = new StringBuilder();
-
 					for (ConnectingArc arc : connectingArcList) {
 
 						if (cplex.getValue(beta[arc.id]) > 1e-5) {
-							testSb.append(arc.id+"\n");
-
+						
 							solution.selectedConnectingArcList.add(arc);
 							// 更新flight arc的时间
 
@@ -679,8 +673,7 @@ public class SecondStageCplexModel {
 						// TODO Auto-generated catch block
 						e3.printStackTrace();
 					}*/
-					testSb = new StringBuilder();
-
+					
 					for (GroundArc ga : groundArcList) {
 						if (cplex.getValue(y[ga.id]) > 1e-5) {
 							ga.fractionalFlow = cplex.getValue(y[ga.id]);
@@ -695,8 +688,11 @@ public class SecondStageCplexModel {
 							fai.volume = cplex.getValue(passX[i]);
 							fai.flightArc.flight.flightArcItineraryList.add(fai);
 							totalSignChangeDelayCost += fai.volume * fai.unitCost;
-						
-							testSb.append(i+" "+fai.volume+"\n");
+						}
+						if(cplex.getValue(passCancel[i])>1e-6){
+							//totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
+							sce.itineraryList.get(i).flight.normalPassengerCancelNum = cplex.getValue(passCancel[i]);
+					
 						}
 					}
 					/*try {
@@ -889,122 +885,6 @@ public class SecondStageCplexModel {
 						e.printStackTrace();
 					}
 
-					/*
-					 * int numOfMissedConnections = 0; int
-					 * numOfSecondMissedConnections = 0; for(TransferPassenger
-					 * pt:sce.transferPassengerList){
-					 * if(pt.inFlight.isCancelled){ numOfMissedConnections +=
-					 * pt.volume*2; }else if(pt.outFlight.isCancelled){
-					 * numOfMissedConnections += pt.volume;
-					 * numOfSecondMissedConnections += pt.volume; }else{
-					 * if(pt.inFlight.actualLandingT + pt.minTurnaroundTime >
-					 * pt.outFlight.actualTakeoffT){ numOfMissedConnections +=
-					 * pt.volume; numOfSecondMissedConnections += pt.volume; } }
-					 * } System.out.println("numOfMissedConnections:"+
-					 * numOfMissedConnections);
-					 * System.out.println("numOfSecondMissedConnections:"+
-					 * numOfSecondMissedConnections);
-					 */
-					/*
-					 * System.out.
-					 * println("totalSignChangeDelayCost (measured by model):"
-					 * +totalSignChangeDelayCost);
-					 * System.out.println("totalCancelCost (measured by model):"
-					 * +totalPassengerCancelCost);
-					 * System.out.println("totalDelayCost (measured by model):"
-					 * +totalOriginalPassengerDelayCost);
-					 */
-
-					/*
-					 * double madeUpCancelCost = 0; double deductDelayCost = 0;
-					 * 
-					 * for(TransferPassenger pt: sce.transferPassengerList){
-					 * //count the cancel of second transfer which are not
-					 * counted if(!pt.inFlight.isCancelled &&
-					 * pt.outFlight.isCancelled){ madeUpCancelCost += pt.volume*
-					 * Parameter.passengerCancelCost; }
-					 * 
-					 * //count miss-connection else if(!pt.inFlight.isCancelled
-					 * && !pt.outFlight.isCancelled){
-					 * if(pt.inFlight.actualLandingT + pt.minTurnaroundTime >
-					 * pt.outFlight.actualTakeoffT){ int secondDelay =
-					 * Math.max(0, pt.outFlight.actualTakeoffT -
-					 * pt.outFlight.initialTakeoffT); madeUpCancelCost +=
-					 * pt.volume* Parameter.passengerCancelCost; deductDelayCost
-					 * += pt.volume*ExcelOperator.getPassengerDelayParameter(
-					 * secondDelay); } //capacity not enough (due to aircraft
-					 * change) else{ madeUpCancelCost +=
-					 * Math.min(pt.inFlight.transferPassengerNumber,
-					 * pt.inFlight.connectedPassengerNumber +
-					 * pt.inFlight.transferPassengerNumber -
-					 * pt.inFlight.aircraft.passengerCapacity)*Parameter.
-					 * passengerCancelCost ; madeUpCancelCost +=
-					 * Math.min(pt.outFlight.transferPassengerNumber,
-					 * pt.outFlight.connectedPassengerNumber +
-					 * pt.outFlight.transferPassengerNumber -
-					 * pt.outFlight.aircraft.passengerCapacity)*Parameter.
-					 * passengerCancelCost ; } }
-					 * 
-					 * 
-					 * }
-					 */
-					/*
-					 * System.out.println("Cancel that was not calculated: "
-					 * +madeUpCancelCost); System.out.
-					 * println("Delay that was incorrectly calculated: "
-					 * +deductDelayCost);
-					 */
-
-					/*
-					 * for(Flight f:sce.flightList){
-					 * if(f.isIncludedInTimeWindow){ for(FlightArc
-					 * arc:f.flightarcList){ if(cplex.getValue(x[arc.id]) >
-					 * 1e-5){ if(f.isStraightened){ f.totalCost +=
-					 * arc.connPssgrCclDueToStraightenCost; }else{ f.totalCost
-					 * += arc.connPssgrCclDueToSubseqCclCost; } } }
-					 * if(!f.isStraightened){ for(ConnectingArc
-					 * arc:f.connectingarcList){ if(f.id ==
-					 * arc.firstArc.flight.id){ if(cplex.getValue(beta[arc.id])
-					 * > 1e-5){ f.totalCost +=
-					 * arc.pssgrCclCostDueToInsufficientSeat; } } } }
-					 * 
-					 * if(f.itinerary != null){ double cancelVolume =
-					 * cplex.getValue(passCancel[f.itinerary.id]); f.totalCost
-					 * += 4*cancelVolume;
-					 * 
-					 * }
-					 * 
-					 * if(f.isCancelled || f.isStraightened){ f.totalCost +=
-					 * f.totalTransferCancellationCost; if(f.isCancelled &&
-					 * f.isIncludedInConnecting && f.id ==
-					 * f.connectingFlightpair.firstFlight.id){ f.totalCost +=
-					 * f.totalConnectingCancellationCost; } }
-					 * 
-					 * } }
-					 */
-
-					/*
-					 * //检查itinerary for(FlightSection fs:flightSectionList) {
-					 * if(fs.flight.id == 1333){
-					 * System.out.println("--------"+fs.startTime+"->"+fs.
-					 * endTime+"---------"); for(FlightSectionItinerary
-					 * fsi:fs.flightSectionItineraryList) {
-					 * System.out.println("转签:"+fsi.itinerary.flight.id+" "+fsi.
-					 * volume); }
-					 * 
-					 * for(FlightArc arc:fs.flightArcList) {
-					 * if(arc.isIncludedInConnecting) {
-					 * if(cplex.getValue(beta[arc.connectingArc.id]) > 1e-5){
-					 * System.out.println("座位 联程:"+(arc.passengerCapacity*cplex.
-					 * getValue(beta[arc.connectingArc.id]))+"  "+cplex.getValue
-					 * (beta[arc.connectingArc.id])+" "+arc.connectingArc.id+" "
-					 * +arc.connectingArc.firstArc.takeoffTime+" "+arc.
-					 * connectingArc.secondArc.takeoffTime); } }else {
-					 * if(cplex.getValue(x[arc .id]) > 1e-5){
-					 * System.out.println("座位 单程:"+(arc.passengerCapacity*cplex.
-					 * getValue(x[arc .id]))+"  "+cplex.getValue(x[arc
-					 * .id])+" "+arc.id); } } } } }
-					 */
 				}
 
 			} else {
@@ -1019,5 +899,5 @@ public class SecondStageCplexModel {
 
 		return solution;
 	}
-
+	
 }

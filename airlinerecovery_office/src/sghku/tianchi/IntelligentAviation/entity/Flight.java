@@ -157,6 +157,7 @@ public class Flight {
 	
 
 	public boolean isConnectionFeasible = false; //标记该航班对应的联程连接是否可行
+
 	public boolean isSelectedInSecondPhase = false;
 
 	
