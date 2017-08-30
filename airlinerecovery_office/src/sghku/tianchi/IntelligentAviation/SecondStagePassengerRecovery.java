@@ -33,6 +33,8 @@ public class SecondStagePassengerRecovery {
 		Parameter.onlySignChangeDisruptedPassenger = false;  //只能转签受影响乘客
 
 		Parameter.gap = 5;
+		Parameter.stageIndex = 2;
+		
 		runOneIteration(false);
 
 	}
@@ -119,6 +121,12 @@ public class SecondStagePassengerRecovery {
 				
 				if (!a.checkFlyViolation(f1)) {
 					a.singleFlightList.add(f1);
+					if(f1.isStraightened){
+						f1.connectingFlightpair.firstFlight.isSelectedInSecondPhase = true;
+						f1.connectingFlightpair.secondFlight.isSelectedInSecondPhase = true;
+					}else{
+						f1.isSelectedInSecondPhase = true;
+					}
 				}else{
 					System.out.println("航班飞机匹配错误");
 				}
@@ -166,12 +174,13 @@ public class SecondStagePassengerRecovery {
 
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
 		//solver(scenario, scenario.aircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);		
-		solver(scenario, candidateAircraftList, candidateFlightList, new ArrayList(), isFractional);		
+		solver(scenario, candidateAircraftList, scenario.flightList, new ArrayList(), isFractional);		
 
 	}
 
 	//求解线性松弛模型或者整数规划模型
 	public static void solver(Scenario scenario, List<Aircraft> candidateAircraftList, List<Flight> candidateFlightList, List<ConnectingFlightpair> candidateConnectingFlightList, boolean isFractional) {
+		
 		//生成flight arc 和  node
 		buildNetwork(scenario, candidateAircraftList, 5); 
 		//生成FlightArcItinerary用来转签disrupted passengers
@@ -284,6 +293,7 @@ public class SecondStagePassengerRecovery {
 		}
 */
 		//生成FlightArcItinerary
+		int way = 1;
 		for (Itinerary ite : sce.itineraryList) {
 			// 生成替代航班相关的FlightArcItinerary
 			for (Flight f : ite.candidateFlightList) {
@@ -297,35 +307,37 @@ public class SecondStagePassengerRecovery {
 					int delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
-						/*if (delay < 6 * 60) {
-							fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
-						} else if (delay >= 6 * 60 && delay < 24 * 60) {
-							fai.unitCost = delay/(60.0*24.0); 
-						} else if (delay >= 24 * 60 && delay < 36 * 60) {
-							fai.unitCost = delay/(60.0*18.0); 
-						} else if (delay >= 36 * 60 && delay <= 48 * 60) {
-							fai.unitCost = delay/(60.0*16.0);
-						} else {
-							if(delay < 48*60){
-								System.out.println("error delay:" + delay);								
+						if(way == 1){
+							if (delay < 6 * 60) {
+								fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
+							} else if (delay >= 6 * 60 && delay < 24 * 60) {
+								fai.unitCost = delay/(60.0*24.0); 
+							} else if (delay >= 24 * 60 && delay < 36 * 60) {
+								fai.unitCost = delay/(60.0*18.0); 
+							} else if (delay >= 36 * 60 && delay <= 48 * 60) {
+								fai.unitCost = delay/(60.0*16.0);
+							} else {
+								if(delay < 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
-						}*/
-						
-						if (delay < 6 * 60) {
-							fai.unitCost = 0;
-						} else if (delay < 24 * 60 && delay >= 6 * 60) {
-							fai.unitCost = 0.5;
-						} else if (delay < 48 * 60 && delay >= 24 * 60) {
-							fai.unitCost = 1;
-						} else {
-							if(delay < 48*60){
-								System.out.println("error delay:" + delay);								
+						}else{
+							if (delay < 6 * 60) {
+								fai.unitCost = 0;
+							} else if (delay < 24 * 60 && delay >= 6 * 60) {
+								fai.unitCost = 0.5;
+							} else if (delay < 48 * 60 && delay >= 24 * 60) {
+								fai.unitCost = 1;
+							} else {
+								if(delay < 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
-						}
-					
+						}		
 					}
 
 					if (fai.unitCost > 0-1e-5) {
+						fai.unitCost = fai.unitCost;
 						ite.flightArcItineraryList.add(fai);
 						fa.flightArcItineraryList.add(fai);
 					}
@@ -345,34 +357,37 @@ public class SecondStagePassengerRecovery {
 					int delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
-						/*if (delay < 6 * 60) {
-							fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
-						} else if (delay >= 6 * 60 && delay < 24 * 60) {
-							fai.unitCost = delay/(60.0*24.0); 
-						} else if (delay >= 24 * 60 && delay < 36 * 60) {
-							fai.unitCost = delay/(60.0*18.0); 
-						} else if (delay >= 36 * 60 && delay <= 48 * 60) {
-							fai.unitCost = delay/(60.0*16.0);
-						} else {
-							if(delay < 48*60){
-								System.out.println("error delay:" + delay);								
+						if(way == 1){
+							if (delay < 6 * 60) {
+								fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
+							} else if (delay >= 6 * 60 && delay < 24 * 60) {
+								fai.unitCost = delay/(60.0*24.0); 
+							} else if (delay >= 24 * 60 && delay < 36 * 60) {
+								fai.unitCost = delay/(60.0*18.0); 
+							} else if (delay >= 36 * 60 && delay <= 48 * 60) {
+								fai.unitCost = delay/(60.0*16.0);
+							} else {
+								if(delay < 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
-						}*/
-						
-						if (delay < 6 * 60) {
-							fai.unitCost = 0;
-						} else if (delay < 24 * 60 && delay >= 6 * 60) {
-							fai.unitCost = 0.5;
-						} else if (delay < 48 * 60 && delay >= 24 * 60) {
-							fai.unitCost = 1;
-						} else {
-							if(delay < 48*60){
-								System.out.println("error delay:" + delay);								
+						}else{
+							if (delay < 6 * 60) {
+								fai.unitCost = 0;
+							} else if (delay < 24 * 60 && delay >= 6 * 60) {
+								fai.unitCost = 0.5;
+							} else if (delay < 48 * 60 && delay >= 24 * 60) {
+								fai.unitCost = 1;
+							} else {
+								if(delay < 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
-						}
+						}						
 					}
 
 					if (fai.unitCost > 0-1e-5) {
+						fai.unitCost = fai.unitCost;
 						ite.flightArcItineraryList.add(fai);
 						ca.firstArc.flightArcItineraryList.add(fai);
 					}
@@ -388,34 +403,37 @@ public class SecondStagePassengerRecovery {
 					delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
-						/*if (delay < 6 * 60) {
-							fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
-						} else if (delay >= 6 * 60 && delay < 24 * 60) {
-							fai.unitCost = delay/(60.0*24.0); 
-						} else if (delay >= 24 * 60 && delay < 36 * 60) {
-							fai.unitCost = delay/(60.0*18.0); 
-						} else if (delay >= 36 * 60 && delay <= 48 * 60) {
-							fai.unitCost = delay/(60.0*16.0);
-						} else {
-							if(delay < 48*60){
-								System.out.println("error delay:" + delay);								
+						if(way == 1){
+							if (delay < 6 * 60) {
+								fai.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
+							} else if (delay >= 6 * 60 && delay < 24 * 60) {
+								fai.unitCost = delay/(60.0*24.0); 
+							} else if (delay >= 24 * 60 && delay < 36 * 60) {
+								fai.unitCost = delay/(60.0*18.0); 
+							} else if (delay >= 36 * 60 && delay <= 48 * 60) {
+								fai.unitCost = delay/(60.0*16.0);
+							} else {
+								if(delay < 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
-						}*/
-						
-						if (delay < 6 * 60) {
-							fai.unitCost = 0;
-						} else if (delay < 24 * 60 && delay >= 6 * 60) {
-							fai.unitCost = 0.5;
-						} else if (delay < 48 * 60 && delay >= 24 * 60) {
-							fai.unitCost = 1;
-						} else {
-							if(delay < 48*60){
-								System.out.println("error delay:" + delay);								
+						}else{
+							if (delay < 6 * 60) {
+								fai.unitCost = 0;
+							} else if (delay < 24 * 60 && delay >= 6 * 60) {
+								fai.unitCost = 0.5;
+							} else if (delay < 48 * 60 && delay >= 24 * 60) {
+								fai.unitCost = 1;
+							} else {
+								if(delay < 48*60){
+									System.out.println("error delay:" + delay);								
+								}
 							}
-						}
+						}						
 					}
 
 					if (fai.unitCost > 0-1e-5) {
+						fai.unitCost = fai.unitCost;
 						ite.flightArcItineraryList.add(fai);
 						ca.secondArc.flightArcItineraryList.add(fai);
 					}

@@ -56,7 +56,7 @@ public class IntegratedFlightRescheduling {
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
 		
-		for(Flight f:scenario.flightList){
+		/*for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
 			for(int[] timeLimit:f.timeLimitList){
 				System.out.print("["+timeLimit[0]+","+timeLimit[1]+"] ");
@@ -114,18 +114,7 @@ public class IntegratedFlightRescheduling {
 			e.printStackTrace();
 		}
 		
-		System.exit(1);
-		
-		int floatedPassenger = 0;
-		for(Flight f:scenario.flightList){
-			if(!f.isIncludedInTimeWindow){
-				if(f.passengerNumber+f.connectedPassengerNumber > f.passengerCapacity){
-					floatedPassenger += f.passengerNumber+f.connectedPassengerNumber - f.passengerCapacity;
-				}
-			}
-		}
-		System.out.println("floatedPassenger:"+floatedPassenger);
-
+		System.exit(1);*/
 		
 		System.out.println("---------------this way ---------");
 		
@@ -199,9 +188,7 @@ public class IntegratedFlightRescheduling {
 		for(Itinerary ite:scenario.itineraryList) {
 			flightSectionItineraryList.addAll(ite.flightSectionItineraryList);
 		}
-		
-		
-		
+
 		//求解CPLEX模型
 		//CplexModelForPureAircraft model = new CplexModelForPureAircraft();
 		//Solution solution = model.run(candidateAircraftList, candidateFlightList, new ArrayList(), scenario.airportList,scenario, isFractional, true, false);		

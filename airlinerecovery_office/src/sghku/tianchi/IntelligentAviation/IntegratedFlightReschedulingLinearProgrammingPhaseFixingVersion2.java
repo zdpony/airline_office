@@ -47,8 +47,8 @@ public class IntegratedFlightReschedulingLinearProgrammingPhaseFixingVersion2 {
 		Parameter.isReadFixedRoutes = true;
 		Parameter.onlySignChangeDisruptedPassenger = false;
 		
-		Parameter.linearsolutionfilename = "linearsolutionwithpassenger_0829_stage1.csv";
-		runOneIteration(true, 70);
+		Parameter.linearsolutionfilename = "linearsolutionwithpassenger_0829_stage5.csv";
+		runOneIteration(false, 16);
 		/*Parameter.linearsolutionfilename = "linearsolution_0829_stage2.csv";
 		runOneIteration(true, 40);*/
 	}
@@ -130,6 +130,21 @@ public class IntegratedFlightReschedulingLinearProgrammingPhaseFixingVersion2 {
 			
 			for(Flight f:a.fixedFlightList){
 				a.singleFlightList.add(f);
+			}
+		}
+		
+		for(Aircraft a:fixedAircraftList){
+			for(int i=0;i<a.fixedFlightList.size()-1;i++){
+				Flight f1 = a.fixedFlightList.get(i);
+				Flight f2 = a.fixedFlightList.get(i+1);
+
+				if(f1.isIncludedInConnecting && f2.isIncludedInConnecting && f1.brotherFlight.id == f2.id){
+
+					ConnectingFlightpair cf = scenario.connectingFlightMap.get(f1.id+"_"+f2.id);
+					f1.isConnectionFeasible = true;
+					f2.isConnectionFeasible = true;
+					
+				}
 			}
 		}
 		

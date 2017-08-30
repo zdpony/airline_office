@@ -38,10 +38,10 @@ public class FlightArc {
  	
  	public int passengerCapacity;
  	
+ 	public double delayRelatedCost = 0;
  	public double cancelRelatedCost = 0;
  	
- 	
- 	
+ 		
  	//标记一个arc是否属于一个connecting arc
 	//public boolean isIncludedInConnecting = false;
 	//public List<ConnectingArc> connectingArcList = new ArrayList<>();
@@ -88,8 +88,9 @@ public class FlightArc {
 				int cancelNum = flight.connectingFlightpair.firstFlight.connectedPassengerNumber - actualNum;
 				
 				cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
-				cost += cancelNum*Parameter.passengerCancelCost;
+				delayRelatedCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
 				
+				cost += cancelNum*Parameter.passengerCancelCost;			
 				cancelRelatedCost += cancelNum*Parameter.passengerCancelCost;
 				
 				//计算中转乘客
@@ -99,6 +100,7 @@ public class FlightArc {
 				cancelRelatedCost += flight.connectingFlightpair.firstFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
 				cancelRelatedCost += flight.connectingFlightpair.secondFlight.occupiedSeatsByTransferPassenger * Parameter.passengerCancelCost;
 
+				//普通旅客的取消成本不在此考虑，而在模型中考虑
 				//delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);  //record delay cost of connecting pssgr on flight
 				//connPssgrCclDueToStraightenCost += cancelNum*Parameter.passengerCancelCost; //record cancel cost due to straighten
 				
@@ -142,6 +144,7 @@ public class FlightArc {
 							cancelRelatedCost += cancelConnectingPassenger * Parameter.passengerCancelCost;
 						}
 						cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(delay);
+						delayRelatedCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(delay);
 						
 						remainingCapacity = remainingCapacity - flyConnectingPassenger;
 					}					
@@ -159,6 +162,7 @@ public class FlightArc {
 				}*/
 				//考虑中转乘客的延误 -- 假设中转乘客都成功中转
 				cost += flight.occupiedSeatsByTransferPassenger*ExcelOperator.getPassengerDelayParameter(delay);
+				delayRelatedCost += flight.occupiedSeatsByTransferPassenger*ExcelOperator.getPassengerDelayParameter(delay);
 				
 				//考虑普通乘客的延误（因为联程乘客被cancel了，所以只有普通乘客的延误）
 				
@@ -166,6 +170,7 @@ public class FlightArc {
 				int actualNum = Math.min(remainingCapacity, flight.normalPassengerNumber);
 							
 				cost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
+				delayRelatedCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
 				//普通旅客的取消在模型中通过计算签转得到
 				//delayCost += actualNum*ExcelOperator.getPassengerDelayParameter(delay);
 				

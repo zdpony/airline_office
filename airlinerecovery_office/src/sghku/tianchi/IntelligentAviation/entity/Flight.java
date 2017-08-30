@@ -134,6 +134,7 @@ public class Flight {
 	public double flow = 0;
 	
 	public boolean isConnectionFeasible = false; //标记该航班对应的联程连接是否可行
+	public boolean isSelectedInSecondPhase = false;
 	
 	// 初始化该航班所对应的网络模型
 	public void init() {

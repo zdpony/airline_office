@@ -26,7 +26,7 @@ public class ConnectingArc {
 
 	// to verify the cost setting
 	public double cancelRelatedCost = 0;
-	public double delayCost;
+	public double delayRelatedCost;
 	
 	//public int fulfilledDemand;
 	
@@ -84,14 +84,13 @@ public class ConnectingArc {
 			
 			//cost += cancelConnectingPassenger * Parameter.passengerCancelCost * 2; //两截都要考虑cancel cost
 			cost += cancelConnectingPassenger * Parameter.passengerCancelCost; //只有第一截考虑cost
-
+			cancelRelatedCost += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
+		
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay);
 			cost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay);
 			
-			cancelRelatedCost += cancelConnectingPassenger * Parameter.passengerCancelCost; //record conn cancel cost
-		
-			delayCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record conn delay cost
-			delayCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record conn delay cost
+			delayRelatedCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record conn delay cost
+			delayRelatedCost += flyConnectingPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record conn delay cost
 			
 			int passengerCapacity1 = aircraft.passengerCapacity - flyConnectingPassenger;
 			int passengerCapacity2 = aircraft.passengerCapacity - flyConnectingPassenger;
@@ -100,8 +99,8 @@ public class ConnectingArc {
 			cost += connectingFlightPair.firstFlight.occupiedSeatsByTransferPassenger* ExcelOperator.getPassengerDelayParameter(firstArc.delay);
 			cost += connectingFlightPair.secondFlight.occupiedSeatsByTransferPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay);
 			
-			delayCost += connectingFlightPair.firstFlight.occupiedSeatsByTransferPassenger* ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record transfer delay cost
-			delayCost += connectingFlightPair.secondFlight.occupiedSeatsByTransferPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record transfer delay cost
+			delayRelatedCost += connectingFlightPair.firstFlight.occupiedSeatsByTransferPassenger* ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record transfer delay cost
+			delayRelatedCost += connectingFlightPair.secondFlight.occupiedSeatsByTransferPassenger * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record transfer delay cost
 			
 			
 			//计算每一个航段剩余座位
@@ -112,8 +111,8 @@ public class ConnectingArc {
 			cost += Math.min(connectingFlightPair.firstFlight.normalPassengerNumber, passengerCapacity1) * ExcelOperator.getPassengerDelayParameter(firstArc.delay);
 			cost += Math.min(connectingFlightPair.secondFlight.normalPassengerNumber, passengerCapacity2) * ExcelOperator.getPassengerDelayParameter(secondArc.delay);		
 
-			delayCost += Math.min(connectingFlightPair.firstFlight.normalPassengerNumber, passengerCapacity1) * ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record normal-pssgr delay cost
-			delayCost += Math.min(connectingFlightPair.secondFlight.normalPassengerNumber, passengerCapacity2) * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record normal-pssgr delay cost
+			delayRelatedCost += Math.min(connectingFlightPair.firstFlight.normalPassengerNumber, passengerCapacity1) * ExcelOperator.getPassengerDelayParameter(firstArc.delay); //record normal-pssgr delay cost
+			delayRelatedCost += Math.min(connectingFlightPair.secondFlight.normalPassengerNumber, passengerCapacity2) * ExcelOperator.getPassengerDelayParameter(secondArc.delay); //record normal-pssgr delay cost
 		
 		}		
 	}
