@@ -57,7 +57,7 @@ public class SecondStageCplexModel {
 			boolean isCancelAllowed) {
 		Solution solution = new Solution();
 		solution.involvedAircraftList.addAll(aircraftList);
-	
+
 		try {
 
 			cplex = new IloCplex();
@@ -88,12 +88,12 @@ public class SecondStageCplexModel {
 			IloNumVar[] z = new IloNumVar[flightList.size()];
 
 			IloNumVar[] passX = new IloNumVar[flightArcItineraryList.size()]; // number
-																				// of
-																				// passenger
-																				// in
-																				// itinerary
-																				// choosing
-																				// flightArc
+			// of
+			// passenger
+			// in
+			// itinerary
+			// choosing
+			// flightArc
 			IloNumVar[] passCancel = new IloNumVar[sce.itineraryList.size()];
 
 			IloLinearNumExpr obj = cplex.linearNumExpr();
@@ -285,7 +285,7 @@ public class SecondStageCplexModel {
 				for (FlightArcItinerary fai : fa.flightArcItineraryList) {
 					seatConstraint.addTerm(1, passX[fai.id]);
 				}
-				
+
 				seatConstraint.addTerm(-fa.passengerCapacity, x[fa.id]);
 
 				cplex.addLe(seatConstraint, 0);
@@ -374,10 +374,10 @@ public class SecondStageCplexModel {
 				}
 			}
 			System.out.println("totalCancelledNum:"+totalCancelledNum);
-			
+
 			/*try {
 				Scanner sn = null;
-			
+
 				sn = new Scanner(new File("testflight"));
 				while(sn.hasNextInt()){
 					int id = sn.nextInt();
@@ -385,7 +385,7 @@ public class SecondStageCplexModel {
 					cont.addTerm(1, x[id]);
 					cplex.addEq(cont, 1);
 				}
-								
+
 				sn = new Scanner(new File("testpassenger"));
 
 				while(sn.hasNextLine()){
@@ -397,17 +397,17 @@ public class SecondStageCplexModel {
 					String[] arr = nextLine.split("");
 					int id = Integer.parseInt(arr[0]);
 					double num = Double.parseDouble(arr[1]);
-					
+
 					IloLinearNumExpr cont = cplex.linearNumExpr();
 					cont.addTerm(1, passX[id]);
 					cplex.addEq(cont, num);
 				}
-				
+
 			} catch (FileNotFoundException e2) {
 				// TODO Auto-generated catch block
 				e2.printStackTrace();
 			}*/
-			
+
 			if (cplex.solve()) {
 
 				if (isFractional) {
@@ -566,16 +566,16 @@ public class SecondStageCplexModel {
 					double totalCancelCost2 = 0;
 					double totalCancelCost3 = 0;
 					double totalCancelCost4 = 0;
-					
+
 					double cancelCost3 = 0;
 					double cancelCost4 = 0;
-					
+
 					double delayCost = 0;
-					
+
 					for (FlightArc fa : flightArcList) {
 
 						if (cplex.getValue(x[fa.id]) > 1e-5) {
-							
+
 							solution.selectedFlightArcList.add(fa);
 
 							// 更新flight arc的时间
@@ -585,7 +585,7 @@ public class SecondStageCplexModel {
 							fa.flight.aircraft = fa.aircraft;
 
 							fa.fractionalFlow = cplex.getValue(x[fa.id]);
-							
+
 							if(fa.flight.isStraightened){
 								double totalSignChange = 0;
 								if (fa.flight.itinerary != null) {
@@ -597,10 +597,10 @@ public class SecondStageCplexModel {
 							}else{
 								cancelCost4 += fa.cancelRelatedCost;
 							}
-							
+
 							totalCancelCost1 += fa.cancelRelatedCost;
 							delayCost += fa.delayRelatedCost;
-													
+
 							// System.out.println("fa:"+fa.fractionalFlow+"
 							// "+fa.cost+" "+fa.delay+" "+fa.aircraft.id+"
 							// "+fa.flight.initialAircraft.id+"
@@ -626,11 +626,11 @@ public class SecondStageCplexModel {
 						// TODO Auto-generated catch block
 						e3.printStackTrace();
 					}*/
-					
+
 					for (ConnectingArc arc : connectingArcList) {
 
 						if (cplex.getValue(beta[arc.id]) > 1e-5) {
-						
+
 							solution.selectedConnectingArcList.add(arc);
 							// 更新flight arc的时间
 
@@ -646,7 +646,7 @@ public class SecondStageCplexModel {
 							arc.fractionalFlow = cplex.getValue(beta[arc.id]);
 
 							cancelCost4 += arc.cancelRelatedCost;
-							
+
 							delayCost += arc.delayRelatedCost;
 							totalCancelCost1 += arc.cancelRelatedCost;
 							/*
@@ -663,7 +663,7 @@ public class SecondStageCplexModel {
 						// TODO Auto-generated catch block
 						e3.printStackTrace();
 					}*/
-					
+
 					for (GroundArc ga : groundArcList) {
 						if (cplex.getValue(y[ga.id]) > 1e-5) {
 							ga.fractionalFlow = cplex.getValue(y[ga.id]);
@@ -678,14 +678,12 @@ public class SecondStageCplexModel {
 							fai.volume = cplex.getValue(passX[i]);
 							fai.flightArc.flight.flightArcItineraryList.add(fai);
 							totalSignChangeDelayCost += fai.volume * fai.unitCost;
-							
+
 						}
-						/*if(cplex.getValue(passCancel[i])>1e-6){
-							//totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
-							sce.itineraryList.get(i).flight.normalPassengerCancelNum = cplex.getValue(passCancel[i]);
-					
-						}*/
+
 					}
+
+
 					/*try {
 						MyFile.creatTxtFile("testpassenger");
 						MyFile.writeTxtFile(testSb.toString());
@@ -693,7 +691,7 @@ public class SecondStageCplexModel {
 						// TODO Auto-generated catch block
 						e3.printStackTrace();
 					}*/
-					
+
 					System.out.println("totalSignChangeDelayCost:" + totalSignChangeDelayCost);
 					double cancelCost5 = 0;
 					for (int i = 0; i < sce.itineraryList.size(); i++) {
@@ -701,12 +699,13 @@ public class SecondStageCplexModel {
 						if (cplex.getValue(passCancel[i]) > 1e-6) {
 							cancelCost5 += cplex.getValue(passCancel[i])*4.0;
 							totalCancelCost2 += cplex.getValue(passCancel[i])*4.0;
-							// totalPassengerCancelCost +=
-							// cplex.getValue(passCancel[i]) *
-							// Parameter.passengerCancelCost;
+							
+							//把每个itinerary被cancel掉的存进它对应的flight的normalPassengerCancelNum 属性
+							sce.itineraryList.get(i).flight.normalPassengerCancelNum = cplex.getValue(passCancel[i]); 
+						 
 						}
 					}
-					
+
 					for (FlightArc fa : flightArcList) {
 						if(fa.flight.id == 108){
 							double totalSignChange = 0;
@@ -722,7 +721,7 @@ public class SecondStageCplexModel {
 					double transferCancelCost = 0;
 					double cancelCost6 = 0;
 					double cancelCost7 = 0;
-					
+
 					for (int i = 0; i < flightList.size(); i++) {
 						Flight f = flightList.get(i);
 
@@ -734,7 +733,7 @@ public class SecondStageCplexModel {
 							// f.connectedPassengerNumber*Parameter.passengerCancelCost+Parameter.passengerCancelCost*f.firstTransferPassengerNumber*2;
 
 							f.isCancelled = true;
-							
+
 							double totalSignChange = 0;
 							if (f.itinerary != null) {
 								for (FlightArcItinerary fai : f.itinerary.flightArcItineraryList) {
@@ -752,7 +751,7 @@ public class SecondStageCplexModel {
 									transferCancelCost += tp.volume;
 								}
 							}
-							
+
 							cancelCost7 += f.totalTransferCancellationCost;
 							totalCancelCost3 += f.totalConnectingCancellationCost;
 							totalCancelCost4 += f.totalTransferCancellationCost;
@@ -899,5 +898,5 @@ public class SecondStageCplexModel {
 
 		return solution;
 	}
-	
+
 }

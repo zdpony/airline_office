@@ -34,28 +34,28 @@ public class SecondStagePassengerRecovery {
 		Parameter.isReadFixedRoutes = true;
 		Parameter.gap = 5;
 		Parameter.stageIndex = 2;
-		
+
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
-		
+
 		runSecondStage(false,scenario);
-		
 		
 		runThirdStage(false,scenario);
 
-
 		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
-		outputResultWithPassenger.writeResult(scenario, "integerSolution_830.csv");
+		outputResultWithPassenger.writeResult(scenario, "rachel_includeThirdStage_0830.csv");	
+
+
 
 		System.exit(1);
 	}
 
 	public static void runSecondStage(boolean isFractional, Scenario scenario){
-		
+
 
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
 
-		
+
 		/*for(Flight f:scenario.flightList){
 			System.out.print(f.id+"  ");
 			for(int[] timeLimit:f.timeLimitList){
@@ -68,7 +68,7 @@ public class SecondStagePassengerRecovery {
 
 			//Scanner sn = new Scanner(new File("delayfiles/linearsolution_30_421761.807_15.8.csv"));
 			Scanner sn = new Scanner(new File("delayfiles/linearsolution_30_489295.42_967_largecancelcost.csv"));
-		
+
 			sn.nextLine();
 			while(sn.hasNextLine()){
 				String nextLine = sn.nextLine();
@@ -125,10 +125,10 @@ public class SecondStagePassengerRecovery {
 			Aircraft a = scenario.aircraftList.get(j);
 			candidateAircraftList.add(a);
 		}
-		
+
 		for(Aircraft a:candidateAircraftList){
 			for(Flight f1:a.fixedFlightList){	
-				
+
 				if (!a.checkFlyViolation(f1)) {
 					a.singleFlightList.add(f1);
 					if(f1.isStraightened){
@@ -147,7 +147,7 @@ public class SecondStagePassengerRecovery {
 			for(int i=0;i<a.fixedFlightList.size()-1;i++){
 				Flight f1 = a.fixedFlightList.get(i);
 				Flight f2 = a.fixedFlightList.get(i+1);
-				
+
 				f1.isShortConnection = false;
 				f2.isShortConnection = false;
 
@@ -166,7 +166,7 @@ public class SecondStagePassengerRecovery {
 					ConnectingFlightpair cf = scenario.connectingFlightMap.get(f1.id+"_"+f2.id);
 					f1.isConnectionFeasible = true;
 					f2.isConnectionFeasible = true;
-					
+
 					if(cf != null){
 						a.connectingFlightList.add(cf);
 						candidateConnectingFlightList.add(cf);
@@ -196,18 +196,18 @@ public class SecondStagePassengerRecovery {
 		constructFlightArcItinerary(scenario);
 		//
 		List<FlightArcItinerary> flightArcItineraryList = new ArrayList<>();
-		
+
 		for(Itinerary ite:scenario.itineraryList) {
 			flightArcItineraryList.addAll(ite.flightArcItineraryList);
 		}
-		
+
 		System.out.println("candidate:"+candidateFlightList.size()+" "+candidateConnectingFlightList.size());
-		
+
 		SecondStageCplexModel model = new SecondStageCplexModel();
 		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario,flightArcItineraryList,
 				isFractional, false);
 
-		
+
 	}
 
 	// 构建时空网络流模型
@@ -217,25 +217,25 @@ public class SecondStagePassengerRecovery {
 
 		for (Aircraft aircraft : candidateAircraftList) {	
 			List<FlightArc> totalFlightArcList = new ArrayList<>();
-			
+
 			for (Flight f : aircraft.singleFlightList) {
 				f.isFixed = false;
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForFlight(aircraft, f, scenario);
 				totalFlightArcList.addAll(faList);
 			}
-			
+
 			networkConstructorBasedOnDelayAndEarlyLimit.eliminateArcs(aircraft, scenario.airportList, totalFlightArcList, new ArrayList<>(), scenario);
 		}
 
 		NetworkConstructor networkConstructor = new NetworkConstructor();
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
-	
-	
+
+
 		/*NetworkConstructor networkConstructor = new NetworkConstructor();
 
 		for (Aircraft aircraft : candidateAircraftList) {	
-			
+
 			for (Flight f : aircraft.singleFlightList) {
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, 5, scenario);
@@ -245,8 +245,8 @@ public class SecondStagePassengerRecovery {
 				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, 5, false, scenario);
 			}
 		}
-		
-		
+
+
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);*/
 	}
 
@@ -300,7 +300,7 @@ public class SecondStagePassengerRecovery {
 				}
 			}		
 		}
-*/
+		 */
 		//生成FlightArcItinerary
 		for (Itinerary ite : sce.itineraryList) {
 			// 生成替代航班相关的FlightArcItinerary
@@ -328,7 +328,7 @@ public class SecondStagePassengerRecovery {
 								System.out.println("error delay:" + delay);								
 							}
 						}*/
-						
+
 						if (delay < 6 * 60) {
 							fai.unitCost = 0;
 						} else if (delay < 24 * 60 && delay >= 6 * 60) {
@@ -340,7 +340,7 @@ public class SecondStagePassengerRecovery {
 								System.out.println("error delay:" + delay);								
 							}
 						}
-					
+
 					}
 
 					if (fai.unitCost > 0-1e-5) {
@@ -348,18 +348,18 @@ public class SecondStagePassengerRecovery {
 						fa.flightArcItineraryList.add(fai);
 					}
 				}
-				
-				
+
+
 				for (ConnectingArc ca : f.connectingarcList) {
-					
+
 					//connecting arc's first arc
 					int tkfTime = ca.firstArc.takeoffTime;
-					
+
 					FlightArcItinerary fai = new FlightArcItinerary();
 					fai.itinerary = ite;
 					fai.flightArc = ca.firstArc;
 					fai.unitCost = -1;
-					
+
 					int delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
@@ -376,7 +376,7 @@ public class SecondStagePassengerRecovery {
 								System.out.println("error delay:" + delay);								
 							}
 						}*/
-						
+
 						if (delay < 6 * 60) {
 							fai.unitCost = 0;
 						} else if (delay < 24 * 60 && delay >= 6 * 60) {
@@ -394,15 +394,15 @@ public class SecondStagePassengerRecovery {
 						ite.flightArcItineraryList.add(fai);
 						ca.firstArc.flightArcItineraryList.add(fai);
 					}
-					
+
 					//connecting arc's second arc
 					tkfTime = ca.secondArc.takeoffTime;
-					
+
 					fai = new FlightArcItinerary();
 					fai.itinerary = ite;
 					fai.flightArc = ca.secondArc;
 					fai.unitCost = -1;
-					
+
 					delay = tkfTime - ite.flight.initialTakeoffT;  //in minute
 
 					if (delay >= 0) {
@@ -419,7 +419,7 @@ public class SecondStagePassengerRecovery {
 								System.out.println("error delay:" + delay);								
 							}
 						}*/
-						
+
 						if (delay < 6 * 60) {
 							fai.unitCost = 0;
 						} else if (delay < 24 * 60 && delay >= 6 * 60) {
@@ -441,14 +441,16 @@ public class SecondStagePassengerRecovery {
 			}
 		}
 	}
-	
+
 	public static void runThirdStage(boolean isFractional,Scenario sce){
 		//计算每个flight剩余的座位数
 		for(Flight f:sce.flightList) {
 			if(f.isIncludedInTimeWindow) {
 				if(f.isCancelled) {
 					f.remainingSeatNum = 0;
-					if(f.id==108)System.out.println("cancelled 108, remaining seat:"+f.remainingSeatNum);
+					if(f.id==246 || f.id==246) {
+						System.out.println("f_"+f.id+" cancell!");
+					}
 				}else {
 					int totalPassenger = 0;
 					if(f.isIncludedInConnecting && f.brotherFlight.isCancelled) {
@@ -456,36 +458,37 @@ public class SecondStagePassengerRecovery {
 					}else {
 						totalPassenger += f.connectedPassengerNumber;  //优先承载联程旅客（不能签转出去）
 					}
-					if(f.id==108)System.out.println("f_"+f.id+"first transfer num "+f.firstTransferPassengerNumber);
+					if(f.id==246 || f.id==246)System.out.println("f_"+f.id+" firstTransferNum "+f.firstTransferPassengerNumber+" secondTransferNum "+f.secondTransferPassengerNumber);
+
 					totalPassenger += f.firstTransferPassengerNumber; //优先承载第一截转乘旅客（不能签转出去）
-					totalPassenger += f.secondTransferPassengerNumber; //优先承载第一截转乘旅客（能签转出去）
+					//totalPassenger += f.secondTransferPassengerNumber; //优先承载第一截转乘旅客（能签转出去）
 					//如果飞机容量容不下以上两类“重要”乘客，则得出剩余座位数为0
 					if(f.aircraft.passengerCapacity<=totalPassenger) {
 						System.out.println("error! connecting and firstTransfer passengers on the flight already exceeds its capacity: flight id "+f.id);
 						System.exit(1);
 					}
-					
+
 					totalPassenger += f.normalPassengerNumber; //普通乘客总数
 
 					//减去cancel的普通乘客数
 					totalPassenger -= f.normalPassengerCancelNum;
-								
+
 					//减去签转出去的普通旅客
 					if(f.itinerary!=null) {  //如果在上阶段有itinerary赋给f
 						double totalPss = f.itinerary.volume;
 						//System.out.println("itinerary exists! passenger in itinerary"+totalPss+" cancel "+f.normalPassengerCancelNum);
-						
+
 						for(FlightArcItinerary fai:f.itinerary.flightArcItineraryList) {
 							totalPassenger -= fai.volume;
-							
+
 							if(fai.volume>0) {//有普通乘客签转出去，于是标记不能再接受其他航班签转乘客进来(注意！自己航班上的第二截转乘乘客是可以的，所以remainingSeatNum不能设为0)
 								f.canAcceptSignChangePssgr = false;  
 								//System.out.println(" some sign out normal passengers ");
 							}
 						}
-						
+
 					}
-				
+
 
 					//加上签转进来的普通旅客，有签转进来的乘客，则不能考虑上面的第二截transfer乘客
 					for(FlightArcItinerary fai:f.flightArcItineraryList) {
@@ -502,137 +505,147 @@ public class SecondStagePassengerRecovery {
 					}else {
 						f.remainingSeatNum = f.aircraft.passengerCapacity - totalPassenger;
 					}
-					if(f.id==108)System.out.println("f_108-> remaining seat:"+f.remainingSeatNum);
-					
+					//if(f.id==246)System.out.println("f_id:"+f.id+"-> remaining seat:"+f.remainingSeatNum);
+
 				}
 			}
-		
+
 		}
-		
+
 		//根据second transfer passenger是否被disrupted来进一步确定每个flight remaining seatNum 
 		for(TransferPassenger tp:sce.transferPassengerList) {
-			if(tp.inFlight.isCancelled) {
-				if(!tp.outFlight.isCancelled) {  //如果第一截cancel，第二截flight没被cancel，第二截的remainingSeatNum会增加
-					tp.outFlight.remainingSeatNum += tp.volume;
-				}		
+			if(tp.outFlight.isIncludedInTimeWindow) {
+				if(tp.inFlight.isCancelled) {
+					if(!tp.outFlight.isCancelled) {  //如果第一截cancel，第二截flight没被cancel，
+
+					}		
+				}
+				else if(tp.outFlight.isCancelled) {   //如果第二截flight cancel了，对remaining seat没影响
+
+				}
+
+				else if(tp.outFlight.actualTakeoffT-tp.inFlight.actualLandingT<tp.minTurnaroundTime){  //如果miss-connection
+
+				}
+
+				else {   //如果第二截没受影响，则仍要把位子占住，remainingSeatNum 减少
+					if(tp.outFlight.remainingSeatNum>=tp.volume) {
+						tp.outFlight.remainingSeatNum -= tp.volume;  
+					}else {
+						System.out.println("error! insufficient seat to serve these second transfers! f_id:"+
+								tp.outFlight.id+" seatNum:"+tp.outFlight.remainingSeatNum+" secondTransferNum:"+tp.volume);
+					}
+
+				}
 			}
-			else if(tp.outFlight.isCancelled) {   //如果第二截flight cancel了，对remaining seat没影响
-				
-			}
-			
-			else if(tp.outFlight.actualTakeoffT-tp.inFlight.actualLandingT<tp.minTurnaroundTime){  //如果miss-connection
-				tp.outFlight.remainingSeatNum += tp.volume;  //第二截的remainingSeatNum会增加
-			}
-			
-			else {
-				
-			}
+
 		}
-		
-		
+
+
 		//flight按actual takeoff time 从小往大排序
 		List<Flight> sortedFlightList = new ArrayList<>();
 		sortedFlightList.addAll(sce.flightList);
 		Collections.sort(sortedFlightList, new FlightComparator2());  
-		
-		
+
+
 		//计算每个flight上等待签转的转乘乘客（第二截），因为如果第一截flight cancel，则不能转签，只能cancel
 		for(TransferPassenger tp:sce.transferPassengerList) {
-			if(!tp.outFlight.canSignOutTransfer) {  //如果已经接受过普通乘客签转，则不能签转第二截转乘乘客出去了
-				continue;
-			}
-			if(tp.inFlight.isCancelled) {
-				if(!tp.outFlight.isCancelled) {  //如果第一截cancel，第二截flight没被cancel，这些乘客不能recover
-					
-				}		
-			}
-			//如果第一截flight没被cancel，则所有第一截转乘乘客都已经坐上飞机了(因为他们有优先上飞机权！)，判断第二截flight
-			else if(tp.outFlight.isCancelled) {   //如果第二截flight cancel了
-				//tp.outFlight.disruptedSecondTransferPssgrNum += tp.volume;		//如果cancel，把对应的volume加到flight信息里	
-				for(Flight signToFlight:sortedFlightList) {
-					//如果可以承接签转旅客，没被cancel，leg一致
-					if(signToFlight.isIncludedInTimeWindow && signToFlight.canAcceptSignChangePssgr && tp.outFlight.leg.equals(signToFlight.leg) 
-							&& tp.outFlight.id != signToFlight.id && !signToFlight.isCancelled) {
-						//签转航班要留足turnaround_time
-						if(signToFlight.actualTakeoffT >= tp.inFlight.actualLandingT + tp.minTurnaroundTime 
-								&& signToFlight.actualTakeoffT  <= tp.outFlight.initialTakeoffT + 48*60
-								&& signToFlight.actualTakeoffT >= tp.outFlight.initialTakeoffT
-								&& signToFlight.remainingSeatNum >0) {
-							//有空位接受转乘乘客，则outFLight被标记成不能接受其他签转
-							tp.outFlight.canAcceptSignChangePssgr = false;
-							int vol = tp.volume - signToFlight.remainingSeatNum;
-							
-							if(vol>0) {
-								if(!tp.outFlight.transferSignChangeMap.keySet().contains(signToFlight.id)) {
-									tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToFlight.remainingSeatNum);
+			if(tp.outFlight.isIncludedInTimeWindow) {
+				if(!tp.outFlight.canSignOutTransfer) {  //如果已经接受过普通乘客签转，则不能签转第二截转乘乘客出去了
+					continue;
+				}
+				if(tp.inFlight.isCancelled) {
+					if(!tp.outFlight.isCancelled) {  //如果第一截cancel，第二截flight没被cancel，这些乘客不能recover
+
+					}		
+				}
+				//如果第一截flight没被cancel，则所有第一截转乘乘客都已经坐上飞机了(因为他们有优先上飞机权！)，判断第二截flight
+				else if(tp.outFlight.isCancelled) {   //如果第二截flight cancel了
+					//tp.outFlight.disruptedSecondTransferPssgrNum += tp.volume;		//如果cancel，把对应的volume加到flight信息里	
+					for(Flight signToFlight:sortedFlightList) {
+						//如果可以承接签转旅客，没被cancel，leg一致
+						if(signToFlight.isIncludedInTimeWindow && signToFlight.canAcceptSignChangePssgr && tp.outFlight.leg.equals(signToFlight.leg) 
+								&& tp.outFlight.id != signToFlight.id && !signToFlight.isCancelled) {
+							//签转航班要留足turnaround_time
+							if(signToFlight.actualTakeoffT >= tp.inFlight.actualLandingT + tp.minTurnaroundTime 
+									&& signToFlight.actualTakeoffT  <= tp.outFlight.initialTakeoffT + 48*60
+									&& signToFlight.actualTakeoffT >= tp.outFlight.initialTakeoffT
+									&& signToFlight.remainingSeatNum >0) {
+								//有空位接受转乘乘客，则outFLight被标记成不能接受其他签转
+								tp.outFlight.canAcceptSignChangePssgr = false;
+								int vol = tp.volume - signToFlight.remainingSeatNum;
+
+								if(vol>0) {
+									if(!tp.outFlight.transferSignChangeMap.keySet().contains(signToFlight.id)) {
+										tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToFlight.remainingSeatNum);
+									}else {
+										int signToNum = tp.outFlight.transferSignChangeMap.get(signToFlight.id) + signToFlight.remainingSeatNum;
+										tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToNum);
+									}
+
+									signToFlight.remainingSeatNum = 0;
+									tp.volume = vol;
 								}else {
-									int signToNum = tp.outFlight.transferSignChangeMap.get(signToFlight.id) + signToFlight.remainingSeatNum;
-									tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToNum);
+									if(!tp.outFlight.transferSignChangeMap.keySet().contains(signToFlight.id)) {
+										tp.outFlight.transferSignChangeMap.put(signToFlight.id,tp.volume);
+									}else {
+										int signToNum = tp.outFlight.transferSignChangeMap.get(signToFlight.id) + tp.volume;
+										tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToNum);
+									}
+									tp.volume = 0;  //完全被recover
+									signToFlight.remainingSeatNum = -vol;
+									break;
 								}
-								
-								signToFlight.remainingSeatNum = 0;
-								tp.volume = vol;
-							}else {
-								if(!tp.outFlight.transferSignChangeMap.keySet().contains(signToFlight.id)) {
-									tp.outFlight.transferSignChangeMap.put(signToFlight.id,tp.volume);
-								}else {
-									int signToNum = tp.outFlight.transferSignChangeMap.get(signToFlight.id) + tp.volume;
-									tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToNum);
-								}
-								tp.volume = 0;  //完全被recover
-								signToFlight.remainingSeatNum = -vol;
-								break;
 							}
 						}
 					}
 				}
-			}
-			//如果两截都没cancel，判断是否miss-connection
-			else if(tp.outFlight.actualTakeoffT-tp.inFlight.actualLandingT<tp.minTurnaroundTime){  //如果miss-connection
-				//tp.outFlight.disruptedSecondTransferPssgrNum += tp.volume;  //把对应的volume加到flight信息里
-				tp.outFlight.remainingSeatNum += tp.volume;  //第二截的remainingSeatNum会增加
-				for(Flight signToFlight:sortedFlightList) {
-					//如果可以承接签转旅客，没被cancel，leg一致
-					if(signToFlight.isIncludedInTimeWindow && signToFlight.canAcceptSignChangePssgr && tp.outFlight.leg.equals(signToFlight.leg) 
-							&& tp.outFlight.id != signToFlight.id && !signToFlight.isCancelled) {
-						//签转航班要留足turnaround_time
-						if(signToFlight.actualTakeoffT >= tp.inFlight.actualLandingT + tp.minTurnaroundTime 
-								&& signToFlight.actualTakeoffT  <= tp.outFlight.initialTakeoffT + 48*60
-								&& signToFlight.actualTakeoffT >= tp.outFlight.initialTakeoffT
-								&& signToFlight.remainingSeatNum >0) {
-							//有空位接受转乘乘客，则outFLight被标记成不能接受其他签转
-							tp.outFlight.canAcceptSignChangePssgr = false;
-							int vol = tp.volume - signToFlight.remainingSeatNum;
-							
-							if(vol>0) {
-								if(!tp.outFlight.transferSignChangeMap.keySet().contains(signToFlight.id)) {
-									tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToFlight.remainingSeatNum);
+				//如果两截都没cancel，判断是否miss-connection
+				else if(tp.outFlight.actualTakeoffT-tp.inFlight.actualLandingT<tp.minTurnaroundTime){  //如果miss-connection
+					//tp.outFlight.disruptedSecondTransferPssgrNum += tp.volume;  //把对应的volume加到flight信息里
+					tp.outFlight.remainingSeatNum += tp.volume;  //第二截的remainingSeatNum会增加
+					for(Flight signToFlight:sortedFlightList) {
+						//如果可以承接签转旅客，没被cancel，leg一致
+						if(signToFlight.isIncludedInTimeWindow && signToFlight.canAcceptSignChangePssgr && tp.outFlight.leg.equals(signToFlight.leg) 
+								&& tp.outFlight.id != signToFlight.id && !signToFlight.isCancelled) {
+							//签转航班要留足turnaround_time
+							if(signToFlight.actualTakeoffT >= tp.inFlight.actualLandingT + tp.minTurnaroundTime 
+									&& signToFlight.actualTakeoffT  <= tp.outFlight.initialTakeoffT + 48*60
+									&& signToFlight.actualTakeoffT >= tp.outFlight.initialTakeoffT
+									&& signToFlight.remainingSeatNum >0) {
+								//有空位接受转乘乘客，则outFLight被标记成不能接受其他签转
+								tp.outFlight.canAcceptSignChangePssgr = false;
+								int vol = tp.volume - signToFlight.remainingSeatNum;
+
+								if(vol>0) {
+									if(!tp.outFlight.transferSignChangeMap.keySet().contains(signToFlight.id)) {
+										tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToFlight.remainingSeatNum);
+									}else {
+										int signToNum = tp.outFlight.transferSignChangeMap.get(signToFlight.id) + signToFlight.remainingSeatNum;
+										tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToNum);
+									}
+
+									signToFlight.remainingSeatNum = 0;
+									tp.volume = vol;
 								}else {
-									int signToNum = tp.outFlight.transferSignChangeMap.get(signToFlight.id) + signToFlight.remainingSeatNum;
-									tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToNum);
+									if(!tp.outFlight.transferSignChangeMap.keySet().contains(signToFlight.id)) {
+										tp.outFlight.transferSignChangeMap.put(signToFlight.id,tp.volume);
+									}else {
+										int signToNum = tp.outFlight.transferSignChangeMap.get(signToFlight.id) + tp.volume;
+										tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToNum);
+									}
+									tp.volume = 0;  //完全被recover
+									signToFlight.remainingSeatNum = -vol;
+									break;
 								}
-								
-								signToFlight.remainingSeatNum = 0;
-								tp.volume = vol;
-							}else {
-								if(!tp.outFlight.transferSignChangeMap.keySet().contains(signToFlight.id)) {
-									tp.outFlight.transferSignChangeMap.put(signToFlight.id,tp.volume);
-								}else {
-									int signToNum = tp.outFlight.transferSignChangeMap.get(signToFlight.id) + tp.volume;
-									tp.outFlight.transferSignChangeMap.put(signToFlight.id,signToNum);
-								}
-								tp.volume = 0;  //完全被recover
-								signToFlight.remainingSeatNum = -vol;
-								break;
 							}
 						}
 					}
+
 				}
-						
-			}
-		}	
-		
-		
+			}	
+		}
+
 		/*for(Flight f:sortedFlightList) {
 			if(!f.transferSignChangeMap.isEmpty()) {
 				System.out.print(f.id+":");
@@ -642,37 +655,37 @@ public class SecondStagePassengerRecovery {
 				System.out.println();
 			}
 		}*/
-		
-		
+
+
 		for(Flight f:sortedFlightList) {
-		if(!f.transferSignChangeMap.isEmpty()) {
-			for(Integer signToFlightID:f.transferSignChangeMap.keySet()) {
-				Flight signToFlight = sce.flightList.get(signToFlightID-1);
-				boolean findExistingFai = false;
-				for(FlightArcItinerary fai:signToFlight.flightArcItineraryList) {
-					if(fai.itinerary.flight.id==f.id) {  //已经有从f到signToFlight的转签记录
-						fai.volume += f.transferSignChangeMap.get(signToFlightID);
-						findExistingFai = true;
-						break;
+			if(!f.transferSignChangeMap.isEmpty()) {
+				for(Integer signToFlightID:f.transferSignChangeMap.keySet()) {
+					Flight signToFlight = sce.flightList.get(signToFlightID-1);
+					boolean findExistingFai = false;
+					for(FlightArcItinerary fai:signToFlight.flightArcItineraryList) {
+						if(fai.itinerary.flight.id==f.id) {  //已经有从f到signToFlight的转签记录
+							fai.volume += f.transferSignChangeMap.get(signToFlightID);
+							findExistingFai = true;
+							break;
+						}
 					}
-				}
-				if(!findExistingFai) {
-					Itinerary ite = new Itinerary();
-					ite.flight = f;
-					FlightArc fa = new FlightArc();
-					fa.flight = signToFlight;
-					
-					FlightArcItinerary fai = new FlightArcItinerary();			
-					fai.itinerary = ite;
-					fai.flightArc = fa;
-					fai.volume = f.transferSignChangeMap.get(signToFlightID);
-					signToFlight.flightArcItineraryList.add(fai);
-					f.itinerary.flightArcItineraryList.add(fai);  
+					if(!findExistingFai) {
+						Itinerary ite = new Itinerary();
+						ite.flight = f;
+						FlightArc fa = new FlightArc();
+						fa.flight = signToFlight;
+
+						FlightArcItinerary fai = new FlightArcItinerary();			
+						fai.itinerary = ite;
+						fai.flightArc = fa;
+						fai.volume = f.transferSignChangeMap.get(signToFlightID);
+						signToFlight.flightArcItineraryList.add(fai);
+						f.itinerary.flightArcItineraryList.add(fai);  
+					}
 				}
 			}
 		}
-	}
-		
+
 	}
 
 }
