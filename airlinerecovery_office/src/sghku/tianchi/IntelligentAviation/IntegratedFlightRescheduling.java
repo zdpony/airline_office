@@ -43,7 +43,6 @@ public class IntegratedFlightRescheduling {
 
 		Parameter.isPassengerCostConsidered = true;
 		Parameter.isReadFixedRoutes = true;
-		Parameter.onlySignChangeDisruptedPassenger = false;
 		
 		runOneIteration(false);
 		

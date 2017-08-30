@@ -45,7 +45,6 @@ public class IntegratedFlightReschedulingLinearProgrammingPhase {
 
 		Parameter.isPassengerCostConsidered = false;
 		Parameter.isReadFixedRoutes = true;
-		Parameter.onlySignChangeDisruptedPassenger = false;
 		
 		runOneIteration(true, 70);
 		

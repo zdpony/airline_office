@@ -39,14 +39,14 @@ public class SecondStagePassengerRecovery {
 
 		runSecondStage(false,scenario);
 		
+
 		runThirdStage(false,scenario);
 
 		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
 		outputResultWithPassenger.writeResult(scenario, "rachel_includeThirdStage_0830.csv");	
 
-
-
 		System.exit(1);
+			
 	}
 
 	public static void runSecondStage(boolean isFractional, Scenario scenario){
@@ -219,7 +219,7 @@ public class SecondStagePassengerRecovery {
 			List<FlightArc> totalFlightArcList = new ArrayList<>();
 
 			for (Flight f : aircraft.singleFlightList) {
-				f.isFixed = false;
+				f.isFixed = false;  //设置flight为非固定属性，否则只会给该flight生产一个arc
 				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
 				List<FlightArc> faList = networkConstructorBasedOnDelayAndEarlyLimit.generateArcForFlight(aircraft, f, scenario);
 				totalFlightArcList.addAll(faList);
