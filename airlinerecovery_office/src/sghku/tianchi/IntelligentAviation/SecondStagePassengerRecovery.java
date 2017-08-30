@@ -175,7 +175,7 @@ public class SecondStagePassengerRecovery {
 
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
 		//solver(scenario, scenario.aircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);		
-		solver(scenario, candidateAircraftList, candidateFlightList, new ArrayList(), isFractional);		
+		solver(scenario, candidateAircraftList, scenario.flightList, new ArrayList(), isFractional);		
 
 	}
 
@@ -323,10 +323,10 @@ public class SecondStagePassengerRecovery {
 							fai.unitCost = 0;
 						} else if (delay < 24 * 60 && delay >= 6 * 60) {
 							fai.unitCost = 0.5;
-						} else if (delay < 48 * 60 && delay >= 24 * 60) {
+						} else if (delay <= 48 * 60 && delay >= 24 * 60) {
 							fai.unitCost = 1;
 						} else {
-							if(delay < 48*60){
+							if(delay <= 48*60){
 								System.out.println("error delay:" + delay);								
 							}
 						}
@@ -371,10 +371,10 @@ public class SecondStagePassengerRecovery {
 							fai.unitCost = 0;
 						} else if (delay < 24 * 60 && delay >= 6 * 60) {
 							fai.unitCost = 0.5;
-						} else if (delay < 48 * 60 && delay >= 24 * 60) {
+						} else if (delay <= 48 * 60 && delay >= 24 * 60) {
 							fai.unitCost = 1;
 						} else {
-							if(delay < 48*60){
+							if(delay <= 48*60){
 								System.out.println("error delay:" + delay);								
 							}
 						}
@@ -414,10 +414,10 @@ public class SecondStagePassengerRecovery {
 							fai.unitCost = 0;
 						} else if (delay < 24 * 60 && delay >= 6 * 60) {
 							fai.unitCost = 0.5;
-						} else if (delay < 48 * 60 && delay >= 24 * 60) {
+						} else if (delay <= 48 * 60 && delay >= 24 * 60) {
 							fai.unitCost = 1;
 						} else {
-							if(delay < 48*60){
+							if(delay <= 48*60){
 								System.out.println("error delay:" + delay);								
 							}
 						}

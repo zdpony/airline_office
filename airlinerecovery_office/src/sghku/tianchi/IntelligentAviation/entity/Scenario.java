@@ -357,7 +357,7 @@ public class Scenario {
 		// 把flight上中转首段乘客的cancel cost 也加到connecting cost里，方便加入model的z coefficient
 		// 因为中转首段cancel也影响后段，所以*2
 		for(Flight f:flightList){
-			f.totalTransferCancellationCost += f.firstTransferPassengerNumber * Parameter.passengerCancelCost * 2;
+			f.totalTransferCancellationCost += f.firstTransferPassengerNumber * Parameter.passengerCancelCost;
 			f.totalTransferCancellationCost += f.secondTransferPassengerNumber * Parameter.passengerCancelCost;
 		}
 		
