@@ -457,7 +457,7 @@ public class SecondStagePassengerRecovery {
 					}else {
 						totalPassenger += f.connectedPassengerNumber;  //优先承载联程旅客（不能签转出去）
 					}
-					//if(f.id==246 || f.id==246)System.out.println("f_"+f.id+" firstTransferNum "+f.firstTransferPassengerNumber+" secondTransferNum "+f.secondTransferPassengerNumber);
+					if(f.id==1749 || f.id==1749)System.out.println("f_"+f.id+" firstTransferNum "+f.firstTransferPassengerNumber+" secondTransferNum "+f.secondTransferPassengerNumber);
 
 					totalPassenger += f.firstTransferPassengerNumber; //优先承载第一截转乘旅客（不能签转出去）
 					//totalPassenger += f.secondTransferPassengerNumber; //优先承载第一截转乘旅客（能签转出去）
@@ -478,10 +478,9 @@ public class SecondStagePassengerRecovery {
 						//System.out.println("itinerary exists! passenger in itinerary"+totalPss+" cancel "+f.normalPassengerCancelNum);
 
 						for(FlightArcItinerary fai:f.itinerary.flightArcItineraryList) {
-							totalPassenger -= fai.volume;
-
 							if(fai.volume>0) {//有普通乘客签转出去，于是标记不能再接受其他航班签转乘客进来(注意！自己航班上的第二截转乘乘客是可以的，所以remainingSeatNum不能设为0)
 								f.canAcceptSignChangePssgr = false;  
+								totalPassenger -= (int)Math.round(fai.volume);
 								//System.out.println(" some sign out normal passengers ");
 							}
 						}
@@ -491,10 +490,11 @@ public class SecondStagePassengerRecovery {
 
 					//加上签转进来的普通旅客，有签转进来的乘客，则不能考虑上面的第二截transfer乘客
 					for(FlightArcItinerary fai:f.flightArcItineraryList) {
-						totalPassenger += fai.volume;
+						
 						if(fai.volume>0) {
 							f.canSignOutTransfer = false;
-							//System.out.println(" some sign in normal passengers ");
+							totalPassenger += (int)Math.round(fai.volume);
+							if(f.id==1749)System.out.println(" sign in normal passengers :"+fai.volume+ "total passenger after add "+totalPassenger);
 						}
 					}
 					if(f.aircraft.passengerCapacity - totalPassenger<0) {
@@ -504,7 +504,7 @@ public class SecondStagePassengerRecovery {
 					}else {
 						f.remainingSeatNum = f.aircraft.passengerCapacity - totalPassenger;
 					}
-					//if(f.id==246)System.out.println("f_id:"+f.id+"-> remaining seat:"+f.remainingSeatNum);
+					if(f.id==1749)System.out.println("f_id:"+f.id+"-> remaining seat:"+f.remainingSeatNum);
 
 				}
 			}
