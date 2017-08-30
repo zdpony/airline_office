@@ -33,17 +33,20 @@ public class SecondStagePassengerRecovery {
 		Parameter.isPassengerCostConsidered = true;
 		Parameter.isReadFixedRoutes = true;
 		Parameter.gap = 5;
+		Parameter.stageIndex = 2;
 		
 		Scenario scenario = new Scenario(Parameter.EXCEL_FILENAME);
 		
 		runSecondStage(false,scenario);
 		
-		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
-		outputResultWithPassenger.writeResult(scenario, "integerSolution_830.csv");
 		
 		runThirdStage(false,scenario);
 
-		
+
+		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
+		outputResultWithPassenger.writeResult(scenario, "integerSolution_830.csv");
+
+		System.exit(1);
 	}
 
 	public static void runSecondStage(boolean isFractional, Scenario scenario){
@@ -128,6 +131,12 @@ public class SecondStagePassengerRecovery {
 				
 				if (!a.checkFlyViolation(f1)) {
 					a.singleFlightList.add(f1);
+					if(f1.isStraightened){
+						f1.connectingFlightpair.firstFlight.isSelectedInSecondPhase = true;
+						f1.connectingFlightpair.secondFlight.isSelectedInSecondPhase = true;
+					}else{
+						f1.isSelectedInSecondPhase = true;
+					}
 				}else{
 					System.out.println("航班飞机匹配错误");
 				}
@@ -193,6 +202,7 @@ public class SecondStagePassengerRecovery {
 		}
 		
 		System.out.println("candidate:"+candidateFlightList.size()+" "+candidateConnectingFlightList.size());
+		
 		SecondStageCplexModel model = new SecondStageCplexModel();
 		model.run(candidateAircraftList, candidateFlightList, candidateConnectingFlightList, scenario,flightArcItineraryList,
 				isFractional, false);

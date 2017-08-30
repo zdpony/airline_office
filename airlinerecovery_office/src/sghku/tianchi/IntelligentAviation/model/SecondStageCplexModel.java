@@ -147,22 +147,12 @@ public class SecondStageCplexModel {
 				obj.addTerm(Parameter.passengerCancelCost, passCancel[i]);
 			}
 
-			/*
-			 * System.out.println("---------------flight arc "+flightArcList.
-			 * size()+"--------------------"); for(FlightArc arc:flightArcList){
-			 * System.out.println("arc:"+arc.id+"  "+arc); }
-			 * System.out.println("---------------connecting arc "
-			 * +connectingArcList.size()+"--------------------");
-			 * 
-			 * System.out.println("---------------ground arc "+groundArcList.
-			 * size()+"--------------------"); for(GroundArc arc:groundArcList){
-			 * System.out.println(arc.fromNode.airport+" -> "+arc.toNode.
-			 * airport+" "+arc.fromNode.time+":"+arc.toNode.time); }
-			 * 
-			 * System.exit(1);
-			 */
-			 
-
+			/*for(FlightArc arc:flightArcList){
+				if(arc.flight.id == 108){
+					System.out.println("arc 108:"+arc.passengerCapacity+" "+arc.fulfilledNormalPassenger+" "+arc.aircraft.passengerCapacity+" "+arc.flight.connectedPassengerNumber+" "+arc.flight.transferPassengerNumber+" "+arc.flight.normalPassengerNumber);
+				}
+			}
+			System.exit(1);*/
 			cplex.addMinimize(obj);
 
 			// 1. flow balance constraints
@@ -688,12 +678,13 @@ public class SecondStageCplexModel {
 							fai.volume = cplex.getValue(passX[i]);
 							fai.flightArc.flight.flightArcItineraryList.add(fai);
 							totalSignChangeDelayCost += fai.volume * fai.unitCost;
+							
 						}
-						if(cplex.getValue(passCancel[i])>1e-6){
+						/*if(cplex.getValue(passCancel[i])>1e-6){
 							//totalPassengerCancelCost += cplex.getValue(passCancel[i]) * Parameter.passengerCancelCost;
 							sce.itineraryList.get(i).flight.normalPassengerCancelNum = cplex.getValue(passCancel[i]);
 					
-						}
+						}*/
 					}
 					/*try {
 						MyFile.creatTxtFile("testpassenger");
@@ -714,6 +705,15 @@ public class SecondStageCplexModel {
 							// cplex.getValue(passCancel[i]) *
 							// Parameter.passengerCancelCost;
 						}
+					}
+					
+					for (FlightArc fa : flightArcList) {
+						if(fa.flight.id == 108){
+							double totalSignChange = 0;
+							for (FlightArcItinerary fai : fa.flightArcItineraryList) {
+								totalSignChange += cplex.getValue(passX[fai.id]);
+							}
+						}						
 					}
 
 					double cancelCost1 = 0;

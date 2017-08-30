@@ -112,6 +112,7 @@ public class OutputResultWithPassenger {
 							if(fai.flightArc.flight.id != f.id){
 								int num = (int)Math.round(fai.volume);
 								if(num > 0){
+									
 									signChangeSb.append(fai.flightArc.flight.id +":"+(int)Math.round(fai.volume)+"&");
 									isSignChange = true;
 								}		
