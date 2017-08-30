@@ -448,9 +448,8 @@ public class SecondStagePassengerRecovery {
 			if(f.isIncludedInTimeWindow) {
 				if(f.isCancelled) {
 					f.remainingSeatNum = 0;
-					if(f.id==246 || f.id==246) {
-						System.out.println("f_"+f.id+" cancell!");
-					}
+					//if(f.id==246 || f.id==246)System.out.println("f_"+f.id+" cancell");
+
 				}else {
 					int totalPassenger = 0;
 					if(f.isIncludedInConnecting && f.brotherFlight.isCancelled) {
@@ -458,7 +457,7 @@ public class SecondStagePassengerRecovery {
 					}else {
 						totalPassenger += f.connectedPassengerNumber;  //优先承载联程旅客（不能签转出去）
 					}
-					if(f.id==246 || f.id==246)System.out.println("f_"+f.id+" firstTransferNum "+f.firstTransferPassengerNumber+" secondTransferNum "+f.secondTransferPassengerNumber);
+					//if(f.id==246 || f.id==246)System.out.println("f_"+f.id+" firstTransferNum "+f.firstTransferPassengerNumber+" secondTransferNum "+f.secondTransferPassengerNumber);
 
 					totalPassenger += f.firstTransferPassengerNumber; //优先承载第一截转乘旅客（不能签转出去）
 					//totalPassenger += f.secondTransferPassengerNumber; //优先承载第一截转乘旅客（能签转出去）
