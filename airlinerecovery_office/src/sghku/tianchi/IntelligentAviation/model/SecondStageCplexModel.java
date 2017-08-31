@@ -670,6 +670,14 @@ public class SecondStageCplexModel {
 						}
 					}
 
+					/*try {
+						MyFile.creatTxtFile("rachelresult/secondstageresult");
+					} catch (IOException e2) {
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
+					StringBuilder sb2 = new StringBuilder();*/
+					
 					double totalSignChangeDelayCost = 0;
 					for (int i = 0; i < flightArcItineraryList.size(); i++) {
 						FlightArcItinerary fai = flightArcItineraryList.get(i);
@@ -678,11 +686,17 @@ public class SecondStageCplexModel {
 							fai.volume = cplex.getValue(passX[i]);
 							fai.flightArc.flight.flightArcItineraryList.add(fai);
 							totalSignChangeDelayCost += fai.volume * fai.unitCost;
-
+							//sb2.append(fai.itinerary.flight.id+"_"+fai.flightArc.flight.id+","+fai.volume+"\n");
 						}
 
 					}
-
+					
+					/*try {
+						MyFile.writeTxtFile(sb2.toString());
+					} catch (IOException e2) {
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}*/
 
 					/*try {
 						MyFile.creatTxtFile("testpassenger");

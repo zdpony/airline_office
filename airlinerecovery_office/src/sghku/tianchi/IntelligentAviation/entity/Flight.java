@@ -141,7 +141,13 @@ public class Flight {
 	public int formerFlightLandingTime;
 	
 	public boolean canSignOutTransfer = true;
-
+	
+	public List<Itinerary> iteList = new ArrayList<>();  //此flight对应的自己的itinerary
+	public List<FlightItinerary> flightIteList = new ArrayList<>();  //签转到此flight的对应flightItinerary
+	public double normalAndSecondTrsfrPassengerCancelNum = 0; //在第二阶段model中得到，用于第三阶段
+	public int normalExcessPassNum = 0;
+	public int signChangeFlag = 0;
+	public double testCost = 0;
 	//temp
 	public double totalCost = 0;
 	//飞机可以飞的时间段

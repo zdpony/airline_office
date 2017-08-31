@@ -45,6 +45,7 @@ public class Scenario {
 
 	// 乘客信息
 	public List<Itinerary> itineraryList = new ArrayList<>();
+	public List<Itinerary> thirdStageIteList = new ArrayList<>();
 
 	public Set<Integer> affectedAirportSet = new HashSet();
 

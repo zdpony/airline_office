@@ -28,8 +28,8 @@ import sghku.tianchi.IntelligentAviation.entity.*;
 import sghku.tianchi.IntelligentAviation.model.*;
 
 public class SecondStagePassengerRecovery {
-	public static int passengerCostWay = 1;
-	
+	public static int passengerCostWay = 2;
+
 	public static void main(String[] args) {
 
 		Parameter.isPassengerCostConsidered = true;
@@ -41,14 +41,13 @@ public class SecondStagePassengerRecovery {
 
 		runSecondStage(false,scenario);
 		
-
-		runThirdStage(false,scenario);
-
+		//runThirdStageByGreedy(false,scenario);
+		
+		runThirdStageByCPLEX(scenario);
+		
 		OutputResultWithPassenger outputResultWithPassenger = new OutputResultWithPassenger();
-		outputResultWithPassenger.writeResult(scenario, "rachel_includeThirdStage_0830.csv");	
-
-		System.exit(1);
-			
+		outputResultWithPassenger.writeResult(scenario, "rachelresult/rachel_secondStage_0831.csv");	
+		
 	}
 
 	public static void runSecondStage(boolean isFractional, Scenario scenario){
@@ -56,68 +55,6 @@ public class SecondStagePassengerRecovery {
 
 		FlightDelayLimitGenerator flightDelayLimitGenerator = new FlightDelayLimitGenerator();
 		flightDelayLimitGenerator.setFlightDelayLimit(scenario);
-
-
-		/*for(Flight f:scenario.flightList){
-			System.out.print(f.id+"  ");
-			for(int[] timeLimit:f.timeLimitList){
-				System.out.print("["+timeLimit[0]+","+timeLimit[1]+"] ");
-			}
-			System.out.println();
-		}
-
-		try {
-
-			//Scanner sn = new Scanner(new File("delayfiles/linearsolution_30_421761.807_15.8.csv"));
-			Scanner sn = new Scanner(new File("delayfiles/linearsolution_30_489295.42_967_largecancelcost.csv"));
-
-			sn.nextLine();
-			while(sn.hasNextLine()){
-				String nextLine = sn.nextLine();
-				if(nextLine.trim().equals("")){
-					break;
-				}
-
-				Scanner innerSn = new Scanner(nextLine);
-				innerSn.useDelimiter(",");
-				int fId = innerSn.nextInt();
-
-				Flight f = scenario.flightList.get(fId-1);
-
-				innerSn.next();
-				innerSn.next();
-				innerSn.next();
-				innerSn.next();
-				innerSn.next();
-
-				String[] delayArray = innerSn.next().split("_");
-
-				for(String delay:delayArray){
-					int d = Integer.parseInt(delay);
-					int t = f.initialTakeoffT + d;
-					boolean isInclude = false;
-					for(int[] timeLimit:f.timeLimitList){
-						int startT = timeLimit[0];
-						int endT = timeLimit[1];
-
-						if(t >= startT && t <= endT){
-							isInclude = true;
-							break;
-						}
-					}
-
-					if(!isInclude){
-						System.out.println("error "+f.id+" delay:"+d+"  actual time:"+t);
-					}
-				}
-
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		System.exit(1);*/
 
 		List<Flight> candidateFlightList = new ArrayList<>();
 		List<ConnectingFlightpair> candidateConnectingFlightList = new ArrayList<>();
@@ -185,7 +122,6 @@ public class SecondStagePassengerRecovery {
 		}
 
 		//基于目前固定的飞机路径来进一步求解线性松弛模型
-		//solver(scenario, scenario.aircraftList, candidateFlightList, candidateConnectingFlightList, isFractional);		
 		solver(scenario, candidateAircraftList, scenario.flightList, new ArrayList(), isFractional);		
 
 	}
@@ -233,76 +169,11 @@ public class SecondStagePassengerRecovery {
 		NetworkConstructor networkConstructor = new NetworkConstructor();
 		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);
 
-
-		/*NetworkConstructor networkConstructor = new NetworkConstructor();
-
-		for (Aircraft aircraft : candidateAircraftList) {	
-
-			for (Flight f : aircraft.singleFlightList) {
-				//List<FlightArc> faList = networkConstructor.generateArcForFlightBasedOnFixedSchedule(aircraft, f, scenario);
-				List<FlightArc> faList = networkConstructor.generateArcForFlight(aircraft, f, 5, scenario);
-			}
-
-			for(ConnectingFlightpair cf:aircraft.connectingFlightList){
-				List<ConnectingArc> caList = networkConstructor.generateArcForConnectingFlightPair(aircraft, cf, 5, false, scenario);
-			}
-		}
-
-
-		networkConstructor.generateNodes(candidateAircraftList, scenario.airportList, scenario);*/
 	}
 
 	//计算itinerary，和FlightArcItinerary
 	public static void constructFlightArcItinerary(Scenario sce) {
-		/*// clear scenario 里面储存的上阶段用的itinerary
-		sce.itineraryList.clear();
 
-		// 检测每一个flight的（可被签转的）disrupted passenger, itinerary只包含可被签转的disrupted passenger
-		for (Flight f : sce.flightList) {
-			//只考虑time_window内
-			if (f.isIncludedInTimeWindow) {
-				int capacity = f.aircraft.passengerCapacity;  //分配给flight的aircraft的容量
-				if(f.isCancelled || f.isStraightened){       //如果cancel或者straighten，normal passenger不能再坐这个航班了，所以capacity设为0
-					capacity = 0;
-				}
-				int totalVolume = 0;    
-
-				if(f.isIncludedInConnecting && !f.brotherFlight.isCancelled) {  //联程航班另一截没被cancel，要给connecting passenger留座
-					totalVolume = f.connectedPassengerNumber + f.passengerNumber;
-				}else {
-					totalVolume = f.passengerNumber;
-				}
-
-				int cancelNum = Math.min(Math.max(0, totalVolume-capacity), f.normalPassengerNumber);  //只签转普通乘客
-
-				if(cancelNum > 0){
-					Itinerary ite = new Itinerary();
-					ite.flight = f;
-					ite.volume = cancelNum;
-
-					f.itinerary = ite;
-
-					sce.itineraryList.add(ite);
-				}					
-			}
-		}
-
-		// 为每一个行程检测可以替代的航班
-		for (Itinerary ite :sce.itineraryList) {
-			for (Flight f : sce.flightList) {    //不考虑connectingflight，因其不能承载转签乘客
-				//在time_window内，起始、到达机场相同，不是原来的航班，没被cancel
-				if (f.isIncludedInTimeWindow && f.leg.equals(ite.flight.leg) && f.id != ite.flight.id && !f.isCancelled) {
-					// 判断时间上是够可以承载该行程
-					int earliestT = f.initialTakeoffT - (f.isAllowtoBringForward ? Parameter.MAX_LEAD_TIME : 0);
-					int latestT = f.initialTakeoffT + (f.isDomestic?Parameter.MAX_DELAY_DOMESTIC_TIME:Parameter.MAX_DELAY_INTERNATIONAL_TIME);
-
-					if(latestT >= ite.flight.initialTakeoffT && earliestT <= ite.flight.initialTakeoffT + 48*60){
-						ite.candidateFlightList.add(f);
-					}
-				}
-			}		
-		}
-		 */
 		//生成FlightArcItinerary
 		for (Itinerary ite : sce.itineraryList) {
 			// 生成替代航班相关的FlightArcItinerary
@@ -344,7 +215,7 @@ public class SecondStagePassengerRecovery {
 								}
 							}
 						}
-						
+
 					}
 
 					if (fai.unitCost > 0-1e-5) {
@@ -450,7 +321,7 @@ public class SecondStagePassengerRecovery {
 		}
 	}
 
-	public static void runThirdStage(boolean isFractional,Scenario sce){
+	public static void runThirdStageByGreedy(boolean isFractional,Scenario sce){
 		//计算每个flight剩余的座位数
 		for(Flight f:sce.flightList) {
 			if(f.isIncludedInTimeWindow) {
@@ -468,7 +339,7 @@ public class SecondStagePassengerRecovery {
 					if(f.id==1749 || f.id==1749)System.out.println("f_"+f.id+" firstTransferNum "+f.firstTransferPassengerNumber+" secondTransferNum "+f.secondTransferPassengerNumber);
 
 					totalPassenger += f.firstTransferPassengerNumber; //优先承载第一截转乘旅客（不能签转出去）
-					//totalPassenger += f.secondTransferPassengerNumber; //优先承载第一截转乘旅客（能签转出去）
+					//totalPassenger += f.secondTransferPassengerNumber; //优先承载第二截转乘旅客（能签转出去）
 					//如果飞机容量容不下以上两类“重要”乘客，则得出剩余座位数为0
 					if(f.aircraft.passengerCapacity<=totalPassenger) {
 						System.out.println("error! connecting and firstTransfer passengers on the flight already exceeds its capacity: flight id "+f.id);
@@ -498,7 +369,7 @@ public class SecondStagePassengerRecovery {
 
 					//加上签转进来的普通旅客，有签转进来的乘客，则不能考虑上面的第二截transfer乘客
 					for(FlightArcItinerary fai:f.flightArcItineraryList) {
-						
+
 						if(fai.volume>0) {
 							f.canSignOutTransfer = false;
 							totalPassenger += (int)Math.round(fai.volume);
@@ -693,6 +564,359 @@ public class SecondStagePassengerRecovery {
 			}
 		}
 
+	}
+
+	public static void runThirdStageByCPLEX(Scenario sce){
+		
+		//flight按actual takeoff time 从小往大排序
+		List<Flight> sortedFlightList = new ArrayList<>();
+		sortedFlightList.addAll(sce.flightList);
+		Collections.sort(sortedFlightList, new FlightComparator2());  
+		
+		//计算每个flight剩余的座位数
+		for(Flight f:sce.flightList) {
+			if(f.isIncludedInTimeWindow) {
+				if(f.isCancelled) {
+					f.remainingSeatNum = 0;
+					
+				}else {
+					f.remainingSeatNum = f.aircraft.passengerCapacity; 
+					if(f.isIncludedInConnecting && f.brotherFlight.isCancelled) {
+						//联程乘客没来占座位，不用减去
+					}else {
+						f.remainingSeatNum -= f.connectedPassengerNumber;  //优先承载联程旅客（不能签转出去），座位减去
+					}
+
+					f.remainingSeatNum -= f.firstTransferPassengerNumber; //优先承载第一截转乘旅客（不能签转出去），座位减去
+
+					//如果飞机容量容不下以上两类“重要”乘客，则有异常
+					if(f.remainingSeatNum<=0) {
+						System.out.println("error 1! connecting and firstTrsfr passengers already exceeds capacity: flight id "+f.id);
+						System.exit(1);
+					}
+					if(f.id==71) {
+						System.out.println("f_"+f.id+" before transfer having seat"+f.remainingSeatNum);
+						for(Itinerary ite:f.iteList) {
+							System.out.println(ite.volume);
+						}
+					}
+					//check 所有中转乘客的第一截是否坐上，以及是否miss-connection，如果是，要加入itinerary
+					for(TransferPassenger tp:sce.transferPassengerList) {
+						if(tp.outFlight.id==f.id) {
+							if(!tp.inFlight.isCancelled) {  //第一截没cancel（乘客坐上了），判断是否miss-connection，
+								if(f.actualTakeoffT-tp.inFlight.actualLandingT<tp.minTurnaroundTime) { //如果是，中转乘客要加入ite进行recover
+									
+								}else {   //如果没miss-connection，中转乘客优先上飞机，更新remainingSeatNum，无需生成itinerary
+									f.remainingSeatNum -= tp.volume;
+									if(f.remainingSeatNum<=0) {
+										System.out.println("error 2! connecting, firstTrsfr, secondTrsfr passengers exceeds capacity: flight id "+f.id);
+										System.exit(1);
+									}
+								}
+								
+							}
+						}
+					}
+				
+					//溢出的普通乘客记录溢出数量，后面构造itinerary
+					if(f.remainingSeatNum-f.normalPassengerNumber<0) {  //被乘客坐满了
+						f.normalExcessPassNum = f.normalPassengerNumber - f.remainingSeatNum;
+						f.remainingSeatNum = 0;   //没座位了						
+					}else {  //没坐满，只调整remainingSeatNum，不用生成itinerary
+						f.remainingSeatNum -= f.normalPassengerNumber;
+					}
+				}
+			}
+		}
+		/*
+		for(Flight f:sce.flightList) {
+			System.out.println(f.id+"  "+f.remainingSeatNum+"  "+f.isCancelled);
+		}
+		
+		System.exit(1);*/
+		
+		
+		//根据没坐上来构建itinerary
+		for(Flight f:sce.flightList) {
+			if(f.isIncludedInTimeWindow) {
+				if(f.isCancelled) {
+					//check 所有中转乘客的第一截是否坐上
+					for(TransferPassenger tp:sce.transferPassengerList) {
+						if(tp.outFlight.id==f.id) {
+							if(!tp.inFlight.isCancelled) {  //第一截没cancel（乘客坐上了），第二截cancel了，中转乘客要加入ite进行recover
+								Itinerary ite = new Itinerary();
+								ite.tp = tp;
+								ite.volume = tp.volume;
+								ite.flight = f;
+								f.iteList.add(ite);
+								for(Flight candidateSignToFlight:sortedFlightList) {
+									if(candidateSignToFlight.remainingSeatNum<=0)continue;  //航班已经坐满了，无法承接转签旅客
+									//时间窗内，没被cancel，leg一致，不是原flight，没被cancel
+									if(candidateSignToFlight.isIncludedInTimeWindow && f.leg.equals(candidateSignToFlight.leg) 
+											&& f.id != candidateSignToFlight.id && !candidateSignToFlight.isCancelled) {
+										//签转航班要留足turnaround_time
+										if(candidateSignToFlight.actualTakeoffT >= tp.inFlight.actualLandingT + tp.minTurnaroundTime 
+												&& candidateSignToFlight.actualTakeoffT  <= f.initialTakeoffT + 48*60
+												&& candidateSignToFlight.actualTakeoffT >= f.initialTakeoffT) {
+											
+											ite.candidateFlightList.add(candidateSignToFlight);
+											FlightItinerary fi = new FlightItinerary();
+											fi.thirdStageite = ite;
+											fi.flight = candidateSignToFlight;
+											int delay = candidateSignToFlight.actualTakeoffT - f.initialTakeoffT;
+											
+									/*		if (delay < 6 * 60) {
+												fi.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
+											} else if (delay >= 6 * 60 && delay < 24 * 60) {
+												fi.unitCost = delay/(60.0*24.0); 
+											} else if (delay >= 24 * 60 && delay < 36 * 60) {
+												fi.unitCost = delay/(60.0*18.0); 
+											} else if (delay >= 36 * 60 && delay <= 48 * 60) {
+												fi.unitCost = delay/(60.0*16.0);
+											} else {
+												if(delay < 48*60){
+													System.out.println("error delay:" + delay);								
+												}
+											}*/
+											
+											if (delay < 6 * 60) {
+												fi.unitCost = 0.0;
+											} else if (delay < 24 * 60) {
+												fi.unitCost = 0.5;
+											} else if (delay <= 48 * 60) {
+												fi.unitCost = 1;
+											} else {
+												if(delay < 48*60){
+													System.out.println("error delay:" + delay);								
+												}
+											}
+											
+											ite.flightIteList.add(fi);
+											candidateSignToFlight.flightIteList.add(fi);
+											if(f.id==869 &&candidateSignToFlight.id==870) {
+												System.out.println(candidateSignToFlight.id+" cost "+fi.unitCost+" initTime "+f.initialTakeoffT+" signToTime:"+candidateSignToFlight.actualTakeoffT);		
+											}
+										}
+									}
+								}
+								sce.thirdStageIteList.add(ite);
+							}
+						}
+					}
+					
+					//溢出的普通乘客构造一个itinerary
+					Itinerary ite = new Itinerary();
+					ite.volume = f.normalPassengerNumber;
+					ite.flight = f;
+					f.iteList.add(ite);
+					for(Flight candidateSignToFlight:sortedFlightList) {
+						
+
+						if(candidateSignToFlight.remainingSeatNum<=0)continue;  //航班已经坐满了，无法承接转签旅客
+						if(f.id==11 && candidateSignToFlight.id == 71)System.out.println("find a flight to signChange");
+						//时间窗内，没被cancel，leg一致，不是原flight，没被cancel
+						if(candidateSignToFlight.isIncludedInTimeWindow && f.leg.equals(candidateSignToFlight.leg) 
+								&& f.id != candidateSignToFlight.id && !candidateSignToFlight.isCancelled) {
+							//时间上合理
+							if(candidateSignToFlight.actualTakeoffT  <= f.initialTakeoffT + 48*60
+									&& candidateSignToFlight.actualTakeoffT >= f.initialTakeoffT) {
+								
+								ite.candidateFlightList.add(candidateSignToFlight);
+								FlightItinerary fi = new FlightItinerary();
+								fi.thirdStageite = ite;
+								fi.flight = candidateSignToFlight;
+								int delay = candidateSignToFlight.actualTakeoffT - f.initialTakeoffT;
+								
+							/*	if (delay < 6 * 60) {
+									fi.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
+								} else if (delay >= 6 * 60 && delay < 24 * 60) {
+									fi.unitCost = delay/(60.0*24.0); 
+								} else if (delay >= 24 * 60 && delay < 36 * 60) {
+									fi.unitCost = delay/(60.0*18.0); 
+								} else if (delay >= 36 * 60 && delay <= 48 * 60) {
+									fi.unitCost = delay/(60.0*16.0);
+								} else {
+									if(delay < 48*60){
+										System.out.println("error delay:" + delay);								
+									}
+								}*/
+								
+								if (delay < 6 * 60) {
+									fi.unitCost = 0.0;
+								} else if (delay < 24 * 60) {
+									fi.unitCost = 0.5;
+								} else if (delay <= 48 * 60) {
+									fi.unitCost = 1;
+								} else {
+									if(delay < 48*60){
+										System.out.println("error delay:" + delay);								
+									}
+								}
+								
+								ite.flightIteList.add(fi);
+								candidateSignToFlight.flightIteList.add(fi);
+								
+								if(f.id==869 &&candidateSignToFlight.id==870) {
+									System.out.println(candidateSignToFlight.id+" cost "+fi.unitCost+" initTime "+f.initialTakeoffT+" signToTime:"+candidateSignToFlight.actualTakeoffT);		
+								}
+							}
+						}
+					}
+					sce.thirdStageIteList.add(ite);
+					if(f.id==11) {
+						System.out.println("f_"+f.id+" canceled flight, after transfer having seat"+f.remainingSeatNum);
+						for(Itinerary itin:f.iteList) {
+							System.out.println(itin.volume);
+							System.out.println(itin.flightIteList.size());
+						}
+					}
+				}else {
+					//check 所有中转乘客的第一截是否坐上，以及是否miss-connection，如果是，要加入itinerary
+					for(TransferPassenger tp:sce.transferPassengerList) {
+						if(tp.outFlight.id==f.id) {
+							if(!tp.inFlight.isCancelled) {  //第一截没cancel（乘客坐上了），判断是否miss-connection，
+								if(f.actualTakeoffT-tp.inFlight.actualLandingT<tp.minTurnaroundTime) { //如果是，中转乘客要加入ite进行recover
+									Itinerary ite = new Itinerary();
+									ite.tp = tp;
+									ite.volume = tp.volume;
+									ite.flight = f;
+									f.iteList.add(ite);
+									for(Flight candidateSignToFlight:sortedFlightList) {
+										if(candidateSignToFlight.remainingSeatNum<=0)continue;  //航班已经坐满了，无法承接转签旅客
+										//时间窗内，没被cancel，leg一致，不是原flight，没被cancel
+										if(candidateSignToFlight.isIncludedInTimeWindow && f.leg.equals(candidateSignToFlight.leg) 
+												&& f.id != candidateSignToFlight.id && !candidateSignToFlight.isCancelled) {
+											//签转航班要留足turnaround_time
+											if(candidateSignToFlight.actualTakeoffT >= tp.inFlight.actualLandingT + tp.minTurnaroundTime 
+													&& candidateSignToFlight.actualTakeoffT  <= f.initialTakeoffT + 48*60
+													&& candidateSignToFlight.actualTakeoffT >= f.initialTakeoffT) {
+												
+												ite.candidateFlightList.add(candidateSignToFlight);
+												FlightItinerary fi = new FlightItinerary();
+												fi.thirdStageite = ite;
+												fi.flight = candidateSignToFlight;
+												int delay = candidateSignToFlight.actualTakeoffT - f.initialTakeoffT;
+												
+												/*if (delay < 6 * 60) {
+													fi.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
+												} else if (delay >= 6 * 60 && delay < 24 * 60) {
+													fi.unitCost = delay/(60.0*24.0); 
+												} else if (delay >= 24 * 60 && delay < 36 * 60) {
+													fi.unitCost = delay/(60.0*18.0); 
+												} else if (delay >= 36 * 60 && delay <= 48 * 60) {
+													fi.unitCost = delay/(60.0*16.0);
+												} else {
+													if(delay < 48*60){
+														System.out.println("error delay:" + delay);								
+													}
+												}*/
+												
+												if (delay < 6 * 60) {
+													fi.unitCost = 0.0;
+												} else if (delay < 24 * 60) {
+													fi.unitCost = 0.5;
+												} else if (delay <= 48 * 60) {
+													fi.unitCost = 1;
+												} else {
+													if(delay < 48*60){
+														System.out.println("error delay:" + delay);								
+													}
+												}
+												
+												ite.flightIteList.add(fi);
+												candidateSignToFlight.flightIteList.add(fi);
+												if(f.id==869 &&candidateSignToFlight.id==870) {
+													System.out.println(candidateSignToFlight.id+" cost "+fi.unitCost+" initTime "+f.initialTakeoffT+" signToTime:"+candidateSignToFlight.actualTakeoffT);		
+												}
+											}
+										}
+									}
+									sce.thirdStageIteList.add(ite);
+								}else {   //如果没miss-connection，中转乘客优先上飞机，更新remainingSeatNum，无需生成itinerary
+									
+								}
+								
+							}
+						}
+					}
+					//溢出的普通乘客构造一个itinerary
+					if(f.normalExcessPassNum>0) {  //有溢出的普通乘客
+						Itinerary ite = new Itinerary();
+						ite.volume = f.normalExcessPassNum;
+						ite.flight = f;
+						f.iteList.add(ite);
+						for(Flight candidateSignToFlight:sortedFlightList) {
+							if(candidateSignToFlight.remainingSeatNum<=0)continue;  //航班已经坐满了，无法承接转签旅客
+							//时间窗内，没被cancel，leg一致，不是原flight，没被cancel
+							if(candidateSignToFlight.isIncludedInTimeWindow && f.leg.equals(candidateSignToFlight.leg) 
+									&& f.id != candidateSignToFlight.id && !candidateSignToFlight.isCancelled) {
+								//时间上合理
+								if(candidateSignToFlight.actualTakeoffT  <= f.initialTakeoffT + 48*60
+										&& candidateSignToFlight.actualTakeoffT >= f.initialTakeoffT) {
+									
+									ite.candidateFlightList.add(candidateSignToFlight);
+									FlightItinerary fi = new FlightItinerary();
+									fi.thirdStageite = ite;
+									fi.flight = candidateSignToFlight;
+									int delay = candidateSignToFlight.actualTakeoffT - f.initialTakeoffT;
+									
+									/*if (delay < 6 * 60) {
+										fi.unitCost = delay/(60.0*30.0);   //if delay 5 minutes, cost = 0.0027
+									} else if (delay >= 6 * 60 && delay < 24 * 60) {
+										fi.unitCost = delay/(60.0*24.0); 
+									} else if (delay >= 24 * 60 && delay < 36 * 60) {
+										fi.unitCost = delay/(60.0*18.0); 
+									} else if (delay >= 36 * 60 && delay <= 48 * 60) {
+										fi.unitCost = delay/(60.0*16.0);
+									} else {
+										if(delay < 48*60){
+											System.out.println("error delay:" + delay);								
+										}
+									}*/
+									
+									if (delay < 6 * 60) {
+										fi.unitCost = 0.0;
+									} else if (delay < 24 * 60) {
+										fi.unitCost = 0.5;
+									} else if (delay <= 48 * 60) {
+										fi.unitCost = 1;
+									} else {
+										if(delay < 48*60){
+											System.out.println("error delay:" + delay);								
+										}
+									}
+									
+									ite.flightIteList.add(fi);
+									candidateSignToFlight.flightIteList.add(fi);
+									
+									if(f.id==869 &&candidateSignToFlight.id==870) {
+										System.out.println(candidateSignToFlight.id+" cost "+fi.unitCost+" initTime "+f.initialTakeoffT+" signToTime:"+candidateSignToFlight.actualTakeoffT);		
+									}
+								}
+							}
+						}
+						sce.thirdStageIteList.add(ite);
+						
+					}else {  //没坐满，不用生成itinerary
+						
+					}
+				}
+			}
+			
+			
+
+		}
+		
+		
+		
+		
+		//要不要根据remainingSeatNum过滤一遍candidate flight
+		
+		//System.exit(1);
+		
+		//run model
+		ThirdStageCplexModel model = new ThirdStageCplexModel();
+		model.run(sce);
 	}
 
 }
