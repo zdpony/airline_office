@@ -40,12 +40,12 @@ import sghku.tianchi.IntelligentAviation.model.CplexModelForPureAircraft;
 import sghku.tianchi.IntelligentAviation.model.IntegratedCplexModel;
 import sghku.tianchi.IntelligentAviation.model.PushForwardCplexModel;
 
-public class IntegratedFlightReschedulingLinearProgrammingPhaseFixingVersion2 {
+public class IntegratedFlightReschedulingLinearProgrammingPhaseFixingVersion3 {
 	public static void main(String[] args) {
 
 		Parameter.isPassengerCostConsidered = true;
 		Parameter.isReadFixedRoutes = true;
-		Parameter.gap = 15;
+		Parameter.gap = 30;
 		
 		Parameter.linearsolutionfilename = "linearsolutionwithpassenger_0830_stage3.csv";
 		runOneIteration(false, 40);
@@ -100,12 +100,24 @@ public class IntegratedFlightReschedulingLinearProgrammingPhaseFixingVersion2 {
 		for(Aircraft a:candidateAircraftList){
 			for(Flight f:candidateFlightList){
 				if(!a.tabuLegs.contains(f.leg)){
-					a.singleFlightList.add(f);
+					if(f.initialTakeoffT <= 6*1440+12*60 || f.initialTakeoffT >= 8*1440) {
+						if(f.initialAircraftType == a.type) {
+							a.singleFlightList.add(f);
+						}
+					}else {
+						a.singleFlightList.add(f);
+					}		
 				}
 			}
 			for(ConnectingFlightpair cf:candidateConnectingFlightList){
 				if(!a.tabuLegs.contains(cf.firstFlight.leg) && !a.tabuLegs.contains(cf.secondFlight.leg)){
-					a.connectingFlightList.add(cf);
+					if(cf.firstFlight.initialTakeoffT <= 6*1440+12*60 || cf.firstFlight.initialTakeoffT >= 8*1440) {
+						if(cf.firstFlight.initialAircraftType == a.type) {
+							a.connectingFlightList.add(cf);
+						}
+					}else {
+						a.connectingFlightList.add(cf);
+					}
 				}
 			}
 		}
